@@ -116,6 +116,15 @@
         "correction_attempt_admissions",
         "correction_attempt_no_effect"
       ]
+    },
+    {
+      "path": "lib/db/migrations/durable-job-execution.review.sql",
+      "sha256": "4d40f0c36ca3de578c1abc1a904b57967dd5de84180f4f558491ebf40f6a4d88",
+      "status": "review_sql_only",
+      "tables": [
+        "durable_job_execution_events",
+        "durable_job_execution_outbox"
+      ]
     }
   ],
   "reservedChanges": [

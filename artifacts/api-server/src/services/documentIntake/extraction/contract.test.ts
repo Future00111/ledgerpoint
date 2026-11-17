@@ -1,4 +1,5 @@
 import test from 'node:test';
+import '../../durableJobs/executionContract.test';
 import assert from 'node:assert/strict';
 import { createEvidence, type TranscriptPage } from '../evidence';
 import type { ExtractionCandidate, ExtractedField } from '../candidate';

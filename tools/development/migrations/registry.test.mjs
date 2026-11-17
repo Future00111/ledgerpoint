@@ -184,3 +184,16 @@ test('durable queued/cancelled identities, lifecycle and outbox are pinned and i
  assert.ok(read('tools/accounting-flow/schema.mjs').toString().includes("await admin.query(migrationInputs['durable-jobs']);"));
  assert.equal(sql.includes('CREATE TABLE public.durable_job_attempts'),false);
 });
+
+test('durable execution adds independently pinned immutable event/outbox history after the existing queue',()=>{
+ const inputs=loadMigrationInputs(root),sql=inputs['durable-job-execution'];
+ assert.ok(read('artifacts/api-server/src/services/durableJobs/executionSchema.ts').toString().includes(registry().migrations.find(m=>m.id==='durable-job-execution').sha256));
+ for(const table of['durable_job_execution_events','durable_job_execution_outbox']){
+  assert.ok(sql.includes(`CREATE TABLE public.${table}`));
+  assert.ok(sql.includes(`ALTER TABLE public.${table} ENABLE ALWAYS TRIGGER ${table}_immutable`));
+  assert.ok(sql.includes(`REVOKE ALL ON public.${table} FROM PUBLIC,ledgerly_api`));
+ }
+ for(const includeAmendments of[false,true])assert.deepEqual(expectedMigrationHistory(inputs,{includeAmendments}).find(r=>r.id==='durable-job-execution').dependencies,['durable-jobs']);
+ assert.ok(read('tools/accounting-flow/schema.mjs').toString().includes("await admin.query(migrationInputs['durable-job-execution']);"));
+ assert.equal(/ALTER TABLE public\.(durable_jobs|durable_job_events|durable_outbox)\b/.test(sql),false);
+});

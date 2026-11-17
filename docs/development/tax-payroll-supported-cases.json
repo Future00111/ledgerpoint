@@ -1,10 +1,10 @@
 {
   "version": 1,
-  "asOf": "2026-10-30",
+  "asOf": "2026-11-17",
   "authority": "docs/ledgerly-active-product-plan.md",
   "enginePolicy": "in_house_only",
   "purpose": "Qualification inventory for new tax/payroll engines; does not replace existing VAT document posting boundaries or enable any calculation or filing.",
-  "scopePolicy": "Pending or unsupported means not yet qualified; it never removes a promised commercial feature. This initial inventory is not exhaustive: unknown combinations remain rejected and must be resolved against the full backlog before P04-01 acceptance.",
+  "scopePolicy": "All existing promised scope is retained. The declaration matrix maps existing P08/P09/P10/P11 requirements to explicit variants and input/output contracts. Listed variants and their combinations remain unqualified; unknown selections fail explicitly. This declaration does not extend the product promise to every optional form or statutory regime.",
   "statusValues": [
     "supported",
     "unsupported"
@@ -57,14 +57,54 @@
       "url": "https://www.gov.uk/government/publications/software-developers-payroll-test-data-2026-to-2027",
       "checkedAt": "2026-10-31",
       "evidence": "Official PAYE v1.1 ZIP bytes pinned; 168 cached reference rows across 22 regional sheets extracted. No native PAYE engine or statutory qualification claimed."
+    },
+    "saForms": {
+      "url": "https://www.gov.uk/self-assessment-tax-return-forms",
+      "checkedAt": "2026-11-17",
+      "evidence": "Self Assessment return and supplementary-page inventory; applicable forms must be selected from taxpayer facts, not inferred from bookkeeping. This is official discovery provenance, not a pinned calculation routine."
+    },
+    "ctForms": {
+      "url": "https://www.gov.uk/government/collections/corporation-tax-forms",
+      "checkedAt": "2026-11-17",
+      "evidence": "CT600 supplementary-page inventory checked, including A/B/C/D/E/F/H/I/J/K/L/M/N/P. A listed page is an applicability question, not a promise that its rules are implemented. This is official discovery provenance, not a pinned calculation routine."
+    },
+    "ctGuide": {
+      "url": "https://www.gov.uk/guidance/the-company-tax-return-guide",
+      "checkedAt": "2026-11-17",
+      "evidence": "Company return content, accounting-to-tax adjustments and required supplementary-page disclosure context checked. This is official discovery provenance, not a pinned calculation routine."
+    },
+    "accountsTaxonomy": {
+      "url": "https://www.gov.uk/government/publications/xbrl-guide-for-uk-businesses/xbrl-guide-for-uk-businesses",
+      "checkedAt": "2026-11-17",
+      "evidence": "Accounts framework and accounts/computation taxonomy distinction checked, including FRS102 Section1A and FRS105. Actual editions and taxonomy bytes remain P04-03/P11 qualification. This is official discovery provenance, not a pinned calculation routine."
+    },
+    "vatReturn": {
+      "url": "https://www.gov.uk/guidance/how-to-fill-in-and-submit-your-vat-return-vat-notice-70012",
+      "checkedAt": "2026-11-17",
+      "evidence": "Nine-box return scope, accounting-scheme differences and submission review checked. No rates or return calculations qualified. This is official discovery provenance, not a pinned calculation routine."
+    },
+    "mtdIncomeUpdates": {
+      "url": "https://www.gov.uk/guidance/use-making-tax-digital-for-income-tax/send-quarterly-updates",
+      "checkedAt": "2026-11-17",
+      "evidence": "Per-business digital-record quarterly-update context checked. An update is separate from annual return finalisation. This is official discovery provenance, not a pinned calculation routine."
+    },
+    "mtdIncomeStart": {
+      "url": "https://www.gov.uk/guidance/use-making-tax-digital-for-income-tax/using-making-tax-digital-for-income-tax-for-the-first-time",
+      "checkedAt": "2026-11-17",
+      "evidence": "Digital records, quarterly updates and tax-return stages checked; no HMRC product access or launch-year approval inferred. This is official discovery provenance, not a pinned calculation routine."
+    },
+    "pensionDuties": {
+      "url": "https://www.gov.uk/workplace-pensions-employers",
+      "checkedAt": "2026-11-17",
+      "evidence": "Employer assessment and enrolment duties discovery checked; specialist-reviewed scheme and year-specific fixtures still required. This is official discovery provenance, not a pinned calculation routine."
     }
   },
   "openQualificationRequirements": [
-    "Enumerate all regional/residency, multiple-business, income interaction and company framework/supplement cases against P10/P11.",
-    "Pin year-specific official calculation routines, eligibility, rounding rules and schemas; do not reuse one year for another.",
-    "Add independently reviewed exact input/output fixtures and reviewer evidence before promoting any case to supported.",
-    "Qualify payroll tax codes/bases, NI categories/director methods, schedules, statutory pay, loans, deductions, pensions and combinations.",
-    "Retain VAT exemptions, zero/reduced rates, cross-border, reverse charge and unsupported scheme decisions from existing accounting contracts."
+    "P04-03 must pin year-specific official calculation routines, exact input/output fixtures, exceptional instructions and independent review before any case is qualified.",
+    "P04-02 must implement deterministic precision/rounding/versioned replay against that independently reviewed evidence; scope examples below are rejection examples, not statutory calculation fixtures.",
+    "P02-04 must establish payroll/personal-tax role separation before native records or sensitive data are exposed.",
+    "P08/P09/P10/P11 must qualify complete workflows, applicable combinations, return forms, accounts frameworks and schemas. An enumerated variant never implies an implemented engine or supported cross-product combination.",
+    "External HMRC access, pension connections, statutory submissions and any separate Companies House filing scope retain their existing owner gates; no launch-year availability is assumed."
   ],
   "cases": [
     {
@@ -3716,5 +3756,2074 @@
         "expectedResultEvidence": null
       }
     ]
+  },
+  "scopeRegister": {
+    "version": 1,
+    "status": "declared_scope_not_engine_qualification",
+    "taxYears": [
+      "2025-26",
+      "2026-27",
+      "2027-28"
+    ],
+    "sourceBacklog": "docs/development/work-backlog.json",
+    "sourceBulletCount": 92,
+    "selectionFields": [
+      "domain",
+      "family",
+      "variant",
+      "entity",
+      "taxYear"
+    ],
+    "combinationPolicy": "Each selection identifies a declared qualification obligation, not permission to combine supported calculations. Multiple selected variants remain unqualified; unknown combinations cannot inherit a neighbouring case.",
+    "futureYearPolicy": "A declared future tax year has no inherited rates, schemas or calculation evidence. Pin that year independently before promotion.",
+    "existingAccountingBoundary": "This register governs future tax/payroll engines. Existing qualified accounting VAT document boundaries and their tax-code evidence remain separate and unchanged.",
+    "scopeBoundary": "Variants enumerate existing requirement families, including exceptions that must block visibly. Optional statutory forms are applicability questions; listing one does not expand promised company types or qualify that regime.",
+    "externalGates": [
+      "P08-80",
+      "P09-80"
+    ],
+    "supplementInventory": {
+      "sourceId": "ctForms",
+      "checkedAt": "2026-11-17",
+      "forms": [
+        "CT600A",
+        "CT600B",
+        "CT600C",
+        "CT600D",
+        "CT600E",
+        "CT600F",
+        "CT600H",
+        "CT600I",
+        "CT600J",
+        "CT600K",
+        "CT600L",
+        "CT600M",
+        "CT600N",
+        "CT600P"
+      ],
+      "status": "applicability_review_required",
+      "unknownFormPolicy": "Reject unknown or unevaluated applicability; never silently omit a required page."
+    },
+    "families": [
+      {
+        "backlogTask": "P08-01",
+        "domain": "vat",
+        "id": "return_boxes",
+        "sourceId": "vatReturn",
+        "variants": [
+          "nine_boxes",
+          "boxes_2_3",
+          "boxes_8_9",
+          "source_adjustments",
+          "signed_credits",
+          "zero_rated",
+          "reduced_rated",
+          "exempt",
+          "outside_scope",
+          "ni_eu_goods"
+        ],
+        "inputExample": {
+          "companyId": "synthetic-company",
+          "periodStart": "2026-04-01",
+          "periodEnd": "2026-06-30",
+          "sourceIdentities": [
+            "synthetic-invoice-1"
+          ],
+          "netMinor": "10000",
+          "vatTreatment": "explicit_unqualified",
+          "adjustments": []
+        },
+        "requiredOutputs": [
+          "boxes",
+          "sourceLinks",
+          "adjustmentLinks",
+          "reconciliation",
+          "warnings"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "6bde5a0f1e0244155ad155a5c3ad2149bef24beafe511a81c6404be9cb3c90d2",
+        "requiredInputs": [
+          "companyId",
+          "periodStart",
+          "periodEnd",
+          "sourceIdentities",
+          "netMinor",
+          "vatTreatment",
+          "adjustments"
+        ],
+        "acceptanceScenario": "Implement a complete nine-box return model and supported transactions for boxes 2, 3, 8 and 9. Keep unsupported amounts blocked, rather than substituting zero. Link each figure to source transactions and adjustments.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "sole_trader",
+          "small_limited_company"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "boxes": null,
+          "sourceLinks": null,
+          "adjustmentLinks": null,
+          "reconciliation": null,
+          "warnings": null
+        }
+      },
+      {
+        "backlogTask": "P08-02",
+        "domain": "vat",
+        "id": "scheme_treatment",
+        "sourceId": "vat",
+        "variants": [
+          "standard_invoice",
+          "cash",
+          "flat_rate",
+          "annual",
+          "partial_exemption",
+          "domestic_reverse_charge",
+          "overseas_reverse_charge",
+          "imports_postponed_vat",
+          "imports_paid_vat",
+          "exports",
+          "scheme_transition"
+        ],
+        "inputExample": {
+          "companyId": "synthetic-company",
+          "schemeElection": "unqualified",
+          "effectiveDate": "2026-04-01",
+          "supplyPlace": "GB",
+          "sourceIdentities": [
+            "synthetic-invoice-1"
+          ],
+          "netMinor": "10000",
+          "eligibilityEvidence": [
+            "synthetic-evidence-1"
+          ]
+        },
+        "requiredOutputs": [
+          "schemeDecision",
+          "taxTreatment",
+          "calculationSteps",
+          "recoveryRestriction",
+          "warnings"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "985a46d994de0c7e4fab2eebef0e789ae425afc940ede751f462f962a19d5916",
+        "requiredInputs": [
+          "companyId",
+          "schemeElection",
+          "effectiveDate",
+          "supplyPlace",
+          "sourceIdentities",
+          "netMinor",
+          "eligibilityEvidence"
+        ],
+        "acceptanceScenario": "Approve scheme coverage: standard invoice accounting, and explicit decisions on cash accounting, flat rate, partial exemption, reverse charge and imports. Build and qualify each scheme promised at launch; expose exclusions before setup.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "sole_trader",
+          "small_limited_company"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "schemeDecision": null,
+          "taxTreatment": null,
+          "calculationSteps": null,
+          "recoveryRestriction": null,
+          "warnings": null
+        }
+      },
+      {
+        "backlogTask": "P08-03",
+        "domain": "vat",
+        "id": "period_correction",
+        "sourceId": "vatReturn",
+        "variants": [
+          "period_lock",
+          "late_entry",
+          "adjustment",
+          "correction",
+          "prior_snapshot",
+          "preserved_source"
+        ],
+        "inputExample": {
+          "companyId": "synthetic-company",
+          "periodId": "synthetic-period",
+          "sourceVersion": "synthetic-source-v1",
+          "originalReturnId": "synthetic-return-1",
+          "adjustmentMinor": "-1000",
+          "reason": "synthetic correction"
+        },
+        "requiredOutputs": [
+          "lockedPeriod",
+          "correctedReturn",
+          "immutableSnapshot",
+          "correctionLineage",
+          "reconciliation"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "053a68217c0549521a5d6503da9384c8a149244fa5df9564bf2ae7f95f3c2bed",
+        "requiredInputs": [
+          "companyId",
+          "periodId",
+          "sourceVersion",
+          "originalReturnId",
+          "adjustmentMinor",
+          "reason"
+        ],
+        "acceptanceScenario": "Finish VAT period locking, late entries, adjustments and correction routes; reconcile returns to the ledger and preserve the exact submitted snapshot.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "sole_trader",
+          "small_limited_company"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "lockedPeriod": null,
+          "correctedReturn": null,
+          "immutableSnapshot": null,
+          "correctionLineage": null,
+          "reconciliation": null
+        }
+      },
+      {
+        "backlogTask": "P08-04",
+        "domain": "vat",
+        "id": "hmrc_lifecycle",
+        "sourceId": "vatReturn",
+        "variants": [
+          "taxpayer_authority",
+          "agent_authority",
+          "obligations",
+          "submit",
+          "liabilities",
+          "payment_visibility",
+          "receipt",
+          "rejection",
+          "unknown_response",
+          "fraud_headers",
+          "sandbox",
+          "production_access"
+        ],
+        "inputExample": {
+          "companyId": "synthetic-company",
+          "authorityReference": "synthetic-authority",
+          "obligationId": "synthetic-obligation",
+          "reviewedPayloadDigest": "0000000000000000000000000000000000000000000000000000000000000000",
+          "submissionId": "synthetic-submission",
+          "responseStatus": "unknown"
+        },
+        "requiredOutputs": [
+          "validatedPayload",
+          "submissionStatus",
+          "receipt",
+          "liabilityStatus",
+          "recoveryAction"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "932dda5a4d02bbb3526e542275310296ef56180b6cdd2f24932398849b74c526",
+        "requiredInputs": [
+          "companyId",
+          "authorityReference",
+          "obligationId",
+          "reviewedPayloadDigest",
+          "submissionId",
+          "responseStatus"
+        ],
+        "acceptanceScenario": "Implement direct HMRC authorisation, obligations, submission, liabilities/payment visibility where required, verified receipts and timeout recovery. Complete fraud-prevention headers, sandbox tests and production-access requirements.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "sole_trader",
+          "small_limited_company"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "validatedPayload": null,
+          "submissionStatus": null,
+          "receipt": null,
+          "liabilityStatus": null,
+          "recoveryAction": null
+        }
+      },
+      {
+        "backlogTask": "P08-05",
+        "domain": "vat",
+        "id": "review_signoff",
+        "sourceId": "vatReturn",
+        "variants": [
+          "review",
+          "warnings",
+          "approve",
+          "signoff",
+          "receipt_evidence",
+          "amendment_guidance"
+        ],
+        "inputExample": {
+          "companyId": "synthetic-company",
+          "returnSnapshotId": "synthetic-return",
+          "reviewerId": "synthetic-reviewer",
+          "warnings": [
+            "calculation_unqualified"
+          ],
+          "approval": false
+        },
+        "requiredOutputs": [
+          "reviewDecision",
+          "warnings",
+          "evidenceLinks",
+          "amendmentGuidance"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "17019fd1f9fe335bc84dac5eaa0240cd1bcfc85e55fa65fe0f897e70daf12eba",
+        "requiredInputs": [
+          "companyId",
+          "returnSnapshotId",
+          "reviewerId",
+          "warnings",
+          "approval"
+        ],
+        "acceptanceScenario": "Provide a clear review/sign-off journey with warnings, submission evidence and amendment guidance; never equate an internal status with an HMRC-accepted return.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "sole_trader",
+          "small_limited_company"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "reviewDecision": null,
+          "warnings": null,
+          "evidenceLinks": null,
+          "amendmentGuidance": null
+        }
+      },
+      {
+        "backlogTask": "P09-01",
+        "domain": "payroll",
+        "id": "employment_and_schedule",
+        "sourceId": "payroll",
+        "variants": [
+          "employee",
+          "director",
+          "starter",
+          "leaver",
+          "rejoiner",
+          "midyear_migration",
+          "weekly",
+          "fortnightly",
+          "four_weekly",
+          "monthly",
+          "irregular_schedule",
+          "effective_change"
+        ],
+        "inputExample": {
+          "employerId": "synthetic-employer",
+          "employmentId": "synthetic-employment",
+          "payrollId": "synthetic-payroll",
+          "employmentDates": {
+            "start": "2026-04-06",
+            "end": null
+          },
+          "paySchedule": {
+            "frequency": "monthly",
+            "paymentDate": "2026-04-30"
+          },
+          "taxCode": "1257L",
+          "niCategory": "A",
+          "priorYearToDate": {
+            "grossMinor": "0",
+            "taxMinor": "0"
+          }
+        },
+        "requiredOutputs": [
+          "versionedEmploymentSnapshot",
+          "schedulePeriods",
+          "validationErrors"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "c117554e0cf53c58a87ea671e13fcaf124ba8b31f808f7aec8440257431ae80d",
+        "requiredInputs": [
+          "employerId",
+          "employmentId",
+          "payrollId",
+          "employmentDates",
+          "paySchedule",
+          "taxCode",
+          "niCategory",
+          "priorYearToDate"
+        ],
+        "acceptanceScenario": "Create employer and employee records, payroll IDs, pay schedules, employment dates, tax/NI settings and prior year-to-date values. Qualify migration into a live tax year and starter/leaver/rejoiner cases.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "employer"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "versionedEmploymentSnapshot": null,
+          "schedulePeriods": null,
+          "validationErrors": null
+        }
+      },
+      {
+        "backlogTask": "P09-02",
+        "domain": "payroll",
+        "id": "gross_pay",
+        "sourceId": "payroll",
+        "variants": [
+          "salary",
+          "hours",
+          "overtime",
+          "bonus",
+          "arrears",
+          "holiday_absence",
+          "adjustment",
+          "benefit",
+          "pay_period_cutoff",
+          "effective_change"
+        ],
+        "inputExample": {
+          "employmentSnapshot": {
+            "id": "synthetic-employment",
+            "revision": "synthetic-v1"
+          },
+          "payPeriod": {
+            "start": "2026-04-06",
+            "end": "2026-05-05"
+          },
+          "payComponents": [
+            {
+              "type": "salary",
+              "amountMinor": "100000"
+            }
+          ],
+          "componentTaxAndNiTreatment": "unqualified",
+          "effectiveRuleVersion": "unqualified"
+        },
+        "requiredOutputs": [
+          "grossPayMinor",
+          "taxablePayMinor",
+          "niablePayMinor",
+          "pensionablePayMinor",
+          "componentCalculationSteps"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "0889c8ae7c6fd572b73828f11c40d45395d99b76f5149eb535e7bec3be15f605",
+        "requiredInputs": [
+          "employmentSnapshot",
+          "payPeriod",
+          "payComponents",
+          "componentTaxAndNiTreatment",
+          "effectiveRuleVersion"
+        ],
+        "acceptanceScenario": "Implement gross pay: salary, hours, overtime, bonuses, arrears, holiday/absence inputs, adjustments and supported benefits. Define pay-period cutoffs and effective-dated changes.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "employer"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "grossPayMinor": null,
+          "taxablePayMinor": null,
+          "niablePayMinor": null,
+          "pensionablePayMinor": null,
+          "componentCalculationSteps": null
+        }
+      },
+      {
+        "backlogTask": "P09-03",
+        "domain": "payroll",
+        "id": "paye",
+        "sourceId": "payroll",
+        "variants": [
+          "cumulative",
+          "non_cumulative",
+          "rest_of_uk",
+          "scotland",
+          "wales",
+          "code_change",
+          "irregular_pay",
+          "refund",
+          "tax_code_forms",
+          "k_code_limit",
+          "multiple_employments"
+        ],
+        "inputExample": {
+          "taxYear": "2026-27",
+          "taxRegion": "rest_of_uk",
+          "taxCode": "1257L",
+          "taxBasis": "cumulative",
+          "periodNumber": 1,
+          "taxablePayMinor": "100000",
+          "taxablePayToDateMinor": "100000",
+          "priorTaxMinor": "0",
+          "ruleVersion": "unqualified"
+        },
+        "requiredOutputs": [
+          "payeMinor",
+          "payeToDateMinor",
+          "allowanceAndBandSteps",
+          "ruleVersion"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "8e1f31d403b88b0b73185fdafa46c1b7c10fb35d7342a323501e5e2257dbf98f",
+        "requiredInputs": [
+          "taxYear",
+          "taxRegion",
+          "taxCode",
+          "taxBasis",
+          "periodNumber",
+          "taxablePayMinor",
+          "taxablePayToDateMinor",
+          "priorTaxMinor",
+          "ruleVersion"
+        ],
+        "acceptanceScenario": "Implement PAYE with official routines: cumulative and non-cumulative bases, relevant tax-code forms, Scottish/Welsh treatment, code changes, irregular pay and refunds. Retain a reproducible calculation breakdown.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "employer"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "payeMinor": null,
+          "payeToDateMinor": null,
+          "allowanceAndBandSteps": null,
+          "ruleVersion": null
+        }
+      },
+      {
+        "backlogTask": "P09-04",
+        "domain": "payroll",
+        "id": "national_insurance",
+        "sourceId": "payroll",
+        "variants": [
+          "employee",
+          "employer",
+          "category_change",
+          "director_annual",
+          "director_alternative",
+          "irregular_earnings_period",
+          "age_status_change",
+          "employee_employer_thresholds",
+          "period_boundary"
+        ],
+        "inputExample": {
+          "taxYear": "2026-27",
+          "niCategory": "A",
+          "niablePayMinor": "100000",
+          "earningsPeriod": "monthly",
+          "directorMethod": "annual",
+          "appointmentDate": "2026-04-06",
+          "yearToDate": {
+            "grossMinor": "0"
+          },
+          "ruleVersion": "unqualified"
+        },
+        "requiredOutputs": [
+          "employeeNiMinor",
+          "employerNiMinor",
+          "yearToDateNi",
+          "thresholdAndRoundingSteps"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "b65d365a87e7fa57b3a3291fe148840326c1811dd56be9e96777dcd6344a73d6",
+        "requiredInputs": [
+          "taxYear",
+          "niCategory",
+          "niablePayMinor",
+          "earningsPeriod",
+          "directorMethod",
+          "appointmentDate",
+          "yearToDate",
+          "ruleVersion"
+        ],
+        "acceptanceScenario": "Implement employee/employer National Insurance, relevant categories and director methods; handle thresholds, age/status changes and period boundaries with independent fixtures.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "employer"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "employeeNiMinor": null,
+          "employerNiMinor": null,
+          "yearToDateNi": null,
+          "thresholdAndRoundingSteps": null
+        }
+      },
+      {
+        "backlogTask": "P09-05",
+        "domain": "payroll",
+        "id": "loans_statutory_deductions",
+        "sourceId": "payroll",
+        "variants": [
+          "student_plan_1",
+          "student_plan_2",
+          "student_plan_4",
+          "student_plan_5",
+          "postgraduate",
+          "concurrent_student_and_postgraduate",
+          "protected_earnings",
+          "statutory_pay",
+          "statutory_recovery",
+          "other_deductions",
+          "salary_sacrifice",
+          "negative_net_pay",
+          "effective_date",
+          "eligibility_limit"
+        ],
+        "inputExample": {
+          "taxYear": "2026-27",
+          "effectiveLoanNotices": [],
+          "loanPlan": "plan_1",
+          "niablePayMinor": "100000",
+          "earningsPeriod": "monthly",
+          "protectedEarningsOrder": [],
+          "statutoryEligibilityEvidence": [],
+          "deductionInstructions": [],
+          "salarySacrificeAgreement": null,
+          "ruleVersion": "unqualified"
+        },
+        "requiredOutputs": [
+          "loanDeductionsMinor",
+          "statutoryPayMinor",
+          "statutoryRecoveryMinor",
+          "otherDeductionsMinor",
+          "earningsBasisAdjustments",
+          "calculationSteps"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "35f48fe7f5a1efcf4df9aae8a6027dafa7399b32263af642ee9c151185248538",
+        "requiredInputs": [
+          "taxYear",
+          "effectiveLoanNotices",
+          "loanPlan",
+          "niablePayMinor",
+          "earningsPeriod",
+          "protectedEarningsOrder",
+          "statutoryEligibilityEvidence",
+          "deductionInstructions",
+          "salarySacrificeAgreement",
+          "ruleVersion"
+        ],
+        "acceptanceScenario": "Implement student/postgraduate loans, statutory payments and recoveries, supported deductions and salary sacrifice. Test eligibility, limits, interactions, negative net pay and effective dates.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "employer"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "loanDeductionsMinor": null,
+          "statutoryPayMinor": null,
+          "statutoryRecoveryMinor": null,
+          "otherDeductionsMinor": null,
+          "earningsBasisAdjustments": null,
+          "calculationSteps": null
+        }
+      },
+      {
+        "backlogTask": "P09-06",
+        "domain": "payroll",
+        "id": "pensions",
+        "sourceId": "pensionDuties",
+        "variants": [
+          "assessment",
+          "enrolment",
+          "postponement",
+          "opt_out",
+          "re_enrolment",
+          "scheme_contributions",
+          "scheme_specific_output",
+          "specialist_review"
+        ],
+        "inputExample": {
+          "employmentSnapshot": {
+            "id": "synthetic-employment",
+            "revision": "synthetic-v1"
+          },
+          "assessmentDate": "2026-04-30",
+          "earningsBasis": "unqualified",
+          "schemeRules": "unqualified",
+          "enrolmentEvents": [],
+          "contributionInstructions": []
+        },
+        "requiredOutputs": [
+          "assessmentOutcome",
+          "employeeContributionMinor",
+          "employerContributionMinor",
+          "schemeOutput",
+          "auditEvents"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "c09add68df548ce5ec385a977f179e24ed639c898d72ea78ef7053e2566166d9",
+        "requiredInputs": [
+          "employmentSnapshot",
+          "assessmentDate",
+          "earningsBasis",
+          "schemeRules",
+          "enrolmentEvents",
+          "contributionInstructions"
+        ],
+        "acceptanceScenario": "Build pension assessment and calculations, enrolment/postponement/opt-out/re-enrolment workflows, contribution records and scheme-specific outputs. Validate applicable pension duties and supported schemes with a specialist.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "employer"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "assessmentOutcome": null,
+          "employeeContributionMinor": null,
+          "employerContributionMinor": null,
+          "schemeOutput": null,
+          "auditEvents": null
+        }
+      },
+      {
+        "backlogTask": "P09-07",
+        "domain": "payroll",
+        "id": "run_lifecycle",
+        "sourceId": "payroll",
+        "variants": [
+          "preview",
+          "approve",
+          "finalise",
+          "lock",
+          "correction",
+          "duplicate_retry",
+          "net_pay_reconciliation",
+          "employer_cost_reconciliation",
+          "liability_reconciliation",
+          "journal_duplicate"
+        ],
+        "inputExample": {
+          "companyId": "synthetic-company",
+          "actorId": "synthetic-actor",
+          "runId": "synthetic-run",
+          "operationId": "synthetic-operation",
+          "employmentAndRuleSnapshots": [
+            {
+              "employmentId": "synthetic-employment",
+              "ruleVersion": "unqualified"
+            }
+          ],
+          "reviewedPreviewHash": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "requiredOutputs": [
+          "immutableRunResult",
+          "approvalEvidence",
+          "lockVersion",
+          "correctionLink",
+          "operationOutcome"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "12fafde36bb1581fe0c7579f4f963930ce2595aa121399915f4a4b3228f3881a",
+        "requiredInputs": [
+          "companyId",
+          "actorId",
+          "runId",
+          "operationId",
+          "employmentAndRuleSnapshots",
+          "reviewedPreviewHash"
+        ],
+        "acceptanceScenario": "Deliver preview, approval, finalisation, payroll locking and audited corrections. Reconcile employee net pay, employer costs, deductions, pension liabilities and payroll journals without duplicate posting.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "employer"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "immutableRunResult": null,
+          "approvalEvidence": null,
+          "lockVersion": null,
+          "correctionLink": null,
+          "operationOutcome": null
+        }
+      },
+      {
+        "backlogTask": "P09-08",
+        "domain": "payroll",
+        "id": "outputs_and_year_end",
+        "sourceId": "payroll",
+        "variants": [
+          "payslip",
+          "employer_report",
+          "p45",
+          "p60",
+          "payment_file",
+          "year_end",
+          "access_separation",
+          "delivery",
+          "opening_values"
+        ],
+        "inputExample": {
+          "finalisedRunId": "synthetic-run",
+          "employmentIdentity": {
+            "employerId": "synthetic-employer",
+            "payrollId": "synthetic-payroll"
+          },
+          "taxYear": "2026-27",
+          "yearToDate": {
+            "grossMinor": "0"
+          },
+          "outputPermissions": [],
+          "paymentInstructions": []
+        },
+        "requiredOutputs": [
+          "payslip",
+          "employerReport",
+          "p45",
+          "p60",
+          "paymentFile",
+          "yearEndReconciliation"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "53382be00a8936d55a48fc7c72eb0da38be2259acf12bfb25dcac17711459c15",
+        "requiredInputs": [
+          "finalisedRunId",
+          "employmentIdentity",
+          "taxYear",
+          "yearToDate",
+          "outputPermissions",
+          "paymentInstructions"
+        ],
+        "acceptanceScenario": "Produce secure payslips, employer reports, P45/P60 outputs, payment files and year-end processing. Test access separation, delivery, totals and opening values for the next tax year.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "employer"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "payslip": null,
+          "employerReport": null,
+          "p45": null,
+          "p60": null,
+          "paymentFile": null,
+          "yearEndReconciliation": null
+        }
+      },
+      {
+        "backlogTask": "P09-09",
+        "domain": "payroll",
+        "id": "rti_and_notices",
+        "sourceId": "payroll",
+        "variants": [
+          "fps",
+          "eps",
+          "receipt",
+          "rejection",
+          "unknown_response",
+          "amendment",
+          "notice",
+          "late_reporting",
+          "correction",
+          "verified_receipt"
+        ],
+        "inputExample": {
+          "employerAuthority": "synthetic-authority",
+          "finalisedRunSnapshot": {
+            "id": "synthetic-run",
+            "status": "unqualified"
+          },
+          "submissionId": "synthetic-submission",
+          "schemaVersion": "unqualified",
+          "priorReceipt": null,
+          "noticeIdentity": "synthetic-notice"
+        },
+        "requiredOutputs": [
+          "validatedPayload",
+          "submissionState",
+          "receiptIdentity",
+          "rejectionDetails",
+          "noticeState"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "f811aacc6cae03cb150561ea38f4ac928df650d701d1d2942c62680f9c4dff6d",
+        "requiredInputs": [
+          "employerAuthority",
+          "finalisedRunSnapshot",
+          "submissionId",
+          "schemaVersion",
+          "priorReceipt",
+          "noticeIdentity"
+        ],
+        "acceptanceScenario": "Build direct RTI FPS/EPS preparation, validation, transmission, receipts and rejection recovery, plus relevant HMRC notices. Verify correction and late-reporting journeys; never mark an unverified request as filed.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "employer"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "validatedPayload": null,
+          "submissionState": null,
+          "receiptIdentity": null,
+          "rejectionDetails": null,
+          "noticeState": null
+        }
+      },
+      {
+        "backlogTask": "P09-10",
+        "domain": "payroll",
+        "id": "full_cycle_and_rollover",
+        "sourceId": "payroll",
+        "variants": [
+          "ordinary_cycle",
+          "correction_cycle",
+          "tax_year_rollover",
+          "prior_year_replay",
+          "2027_28_readiness"
+        ],
+        "inputExample": {
+          "supportedCaseIds": [],
+          "officialFixtures": [],
+          "independentReview": null,
+          "ruleVersions": [],
+          "openingYearToDate": {
+            "grossMinor": "0"
+          },
+          "runSequence": [
+            "synthetic-run"
+          ]
+        },
+        "requiredOutputs": [
+          "reconciledGrossToNet",
+          "reconciledEmployerLiability",
+          "yearEndTotals",
+          "qualificationEvidence"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "57b1be155d6c651d73df1ca3baea9a4ec19a6745628136ca615ba15cd2078dd6",
+        "requiredInputs": [
+          "supportedCaseIds",
+          "officialFixtures",
+          "independentReview",
+          "ruleVersions",
+          "openingYearToDate",
+          "runSequence"
+        ],
+        "acceptanceScenario": "Run complete pay cycles and year rollover against official and independently checked expected results. Plan for the launch year: 2027-28 RTI specifications are already listed by HMRC.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "employer"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "reconciledGrossToNet": null,
+          "reconciledEmployerLiability": null,
+          "yearEndTotals": null,
+          "qualificationEvidence": null
+        }
+      },
+      {
+        "backlogTask": "P10-01",
+        "domain": "income",
+        "id": "taxpayer_sources",
+        "sourceId": "saForms",
+        "variants": [
+          "sole_trade",
+          "uk_property",
+          "employment",
+          "savings",
+          "dividends",
+          "mixed_income",
+          "multiple_trades",
+          "multiple_property_businesses",
+          "england_northern_ireland",
+          "scotland",
+          "wales",
+          "uk_resident",
+          "non_uk_resident",
+          "dual_resident",
+          "tax_year_boundary"
+        ],
+        "inputExample": {
+          "taxpayerId": "synthetic-taxpayer",
+          "businessIds": [
+            "synthetic-trade-1",
+            "synthetic-property-1"
+          ],
+          "residencyEvidence": [
+            "synthetic-residency"
+          ],
+          "taxRegion": "unqualified",
+          "incomeSources": [
+            {
+              "id": "synthetic-source",
+              "type": "sole_trade",
+              "amountMinor": "100000"
+            }
+          ],
+          "periodStart": "2026-04-06",
+          "periodEnd": "2027-04-05"
+        },
+        "requiredOutputs": [
+          "taxpayerCase",
+          "incomeCategories",
+          "businessMappings",
+          "requiredPages",
+          "unsupportedCombinations"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "a3cb335cff1264a45832afa0e1471d8eb84b275c09bf9570eb1dc2b3e14d2daa",
+        "requiredInputs": [
+          "taxpayerId",
+          "businessIds",
+          "residencyEvidence",
+          "taxRegion",
+          "incomeSources",
+          "periodStart",
+          "periodEnd"
+        ],
+        "acceptanceScenario": "Build the taxpayer/income case model and map accounting records to tax categories. Define support for sole trade, property and other promised income sources, residency, multiple businesses and tax-year boundaries.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "individual"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "taxpayerCase": null,
+          "incomeCategories": null,
+          "businessMappings": null,
+          "requiredPages": null,
+          "unsupportedCombinations": null
+        }
+      },
+      {
+        "backlogTask": "P10-02",
+        "domain": "income",
+        "id": "personal_calculation",
+        "sourceId": "income",
+        "variants": [
+          "disallowable_expenses",
+          "capital_allowances",
+          "trading_losses",
+          "property_losses",
+          "reliefs",
+          "class_2_ni",
+          "class_4_ni",
+          "income_interactions",
+          "payments_on_account",
+          "cash_basis",
+          "traditional_accounting",
+          "refund",
+          "negative_profit"
+        ],
+        "inputExample": {
+          "taxpayerId": "synthetic-taxpayer",
+          "businessId": "synthetic-trade-1",
+          "bookProfitMinor": "100000",
+          "disallowableMinor": "10000",
+          "allowanceClaims": [],
+          "lossClaims": [],
+          "otherIncomeMinor": "20000",
+          "priorPaymentsMinor": "0"
+        },
+        "requiredOutputs": [
+          "taxableProfit",
+          "taxLiability",
+          "nationalInsurance",
+          "paymentsOnAccount",
+          "calculationSteps",
+          "ruleVersion"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "9752c37cfe1a7a3aded57ba1928a43362f60024c3fe18e1db497e7e234ff012b",
+        "requiredInputs": [
+          "taxpayerId",
+          "businessId",
+          "bookProfitMinor",
+          "disallowableMinor",
+          "allowanceClaims",
+          "lossClaims",
+          "otherIncomeMinor",
+          "priorPaymentsMinor"
+        ],
+        "acceptanceScenario": "Implement our own taxable-profit and liability calculations for the agreed cases: disallowable expenses, allowances, losses, reliefs, relevant National Insurance, other income interactions and payments on account.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "individual"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "taxableProfit": null,
+          "taxLiability": null,
+          "nationalInsurance": null,
+          "paymentsOnAccount": null,
+          "calculationSteps": null,
+          "ruleVersion": null
+        }
+      },
+      {
+        "backlogTask": "P10-03",
+        "domain": "income",
+        "id": "tax_reconciliation",
+        "sourceId": "income",
+        "variants": [
+          "book_profit",
+          "tax_adjustments",
+          "personal_liability",
+          "source_evidence",
+          "unsupported_income_relief",
+          "correction"
+        ],
+        "inputExample": {
+          "taxpayerId": "synthetic-taxpayer",
+          "ledgerSnapshotId": "synthetic-ledger",
+          "bookProfitMinor": "100000",
+          "adjustmentIds": [
+            "synthetic-adjustment"
+          ],
+          "incomeReliefSelections": [
+            "unqualified"
+          ]
+        },
+        "requiredOutputs": [
+          "bookToTaxBridge",
+          "liabilityBreakdown",
+          "sourceLinks",
+          "blockingReasons"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "116381b5efdfe5266990f70c68d5de71526738a58925c05194f202590d771c29",
+        "requiredInputs": [
+          "taxpayerId",
+          "ledgerSnapshotId",
+          "bookProfitMinor",
+          "adjustmentIds",
+          "incomeReliefSelections"
+        ],
+        "acceptanceScenario": "Separate bookkeeping profit, tax adjustments and personal tax. Show how each result was calculated, retain evidence, and make unsupported income/relief combinations an explicit blocker.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "individual"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "bookToTaxBridge": null,
+          "liabilityBreakdown": null,
+          "sourceLinks": null,
+          "blockingReasons": null
+        }
+      },
+      {
+        "backlogTask": "P10-04",
+        "domain": "income",
+        "id": "mtd_lifecycle",
+        "sourceId": "mtdIncomeUpdates",
+        "variants": [
+          "digital_records",
+          "per_business_obligations",
+          "quarterly_update",
+          "annual_adjustments",
+          "review",
+          "finalisation",
+          "amendment",
+          "taxpayer_authority",
+          "agent_authority"
+        ],
+        "inputExample": {
+          "taxpayerId": "synthetic-taxpayer",
+          "businessId": "synthetic-trade-1",
+          "obligationId": "synthetic-obligation",
+          "digitalRecordIds": [
+            "synthetic-record"
+          ],
+          "authorityReference": "synthetic-authority",
+          "reviewedPayloadDigest": "0000000000000000000000000000000000000000000000000000000000000000",
+          "submissionId": "synthetic-submission"
+        },
+        "requiredOutputs": [
+          "digitalRecordLinks",
+          "obligationStatus",
+          "updatePayload",
+          "finalReturnSnapshot",
+          "receipt",
+          "amendmentLineage"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "67acc4da52d085d2f7a05e592406f0b79e966b3b265493ceaa7fa38110a9d907",
+        "requiredInputs": [
+          "taxpayerId",
+          "businessId",
+          "obligationId",
+          "digitalRecordIds",
+          "authorityReference",
+          "reviewedPayloadDigest",
+          "submissionId"
+        ],
+        "acceptanceScenario": "Maintain digital records and build obligation tracking, quarterly updates, annual adjustments, review, finalisation and amendment journeys through direct HMRC APIs, with correct taxpayer/agent authority.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "individual"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "digitalRecordLinks": null,
+          "obligationStatus": null,
+          "updatePayload": null,
+          "finalReturnSnapshot": null,
+          "receipt": null,
+          "amendmentLineage": null
+        }
+      },
+      {
+        "backlogTask": "P10-05",
+        "domain": "income",
+        "id": "hmrc_reconciliation",
+        "sourceId": "mtdIncomeStart",
+        "variants": [
+          "matching_calculation",
+          "discrepancy",
+          "unknown_status",
+          "revised_calculation",
+          "finalisation_block"
+        ],
+        "inputExample": {
+          "taxpayerId": "synthetic-taxpayer",
+          "localCalculationId": "synthetic-local",
+          "hmrcCalculationId": "synthetic-hmrc",
+          "localLiabilityMinor": "10000",
+          "returnedLiabilityMinor": "11000",
+          "responseVerified": false
+        },
+        "requiredOutputs": [
+          "comparison",
+          "discrepancyDetails",
+          "finalisationDecision",
+          "sourceEvidence"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "31e1c87cd12830a96e9921cfcd7a0b00ed5f0576ce145e3985b556b486745bd5",
+        "requiredInputs": [
+          "taxpayerId",
+          "localCalculationId",
+          "hmrcCalculationId",
+          "localLiabilityMinor",
+          "returnedLiabilityMinor",
+          "responseVerified"
+        ],
+        "acceptanceScenario": "Reconcile the local engine with HMRC-returned calculations and statuses. Investigate discrepancies before finalisation; do not imply an internal estimate replaces the official filing flow.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "individual"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "comparison": null,
+          "discrepancyDetails": null,
+          "finalisationDecision": null,
+          "sourceEvidence": null
+        }
+      },
+      {
+        "backlogTask": "P10-06",
+        "domain": "income",
+        "id": "launch_year_access",
+        "sourceId": "mtdIncomeStart",
+        "variants": [
+          "fraud_headers",
+          "sandbox_tests",
+          "production_access",
+          "intended_tax_year",
+          "access_window_recheck"
+        ],
+        "inputExample": {
+          "productId": "synthetic-product",
+          "intendedTaxYear": "2027-28",
+          "applicationEvidence": null,
+          "sandboxResults": [],
+          "fraudHeaderProfile": "unqualified"
+        },
+        "requiredOutputs": [
+          "accessReadiness",
+          "missingRequirements",
+          "approvalEvidence",
+          "blockedLaunchReason"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "003cd57c7ca0e38045d948d33465b9e6af1653889c60f5f0067716fb2a8a85b8",
+        "requiredInputs": [
+          "productId",
+          "intendedTaxYear",
+          "applicationEvidence",
+          "sandboxResults",
+          "fraudHeaderProfile"
+        ],
+        "acceptanceScenario": "Complete required headers, tests and production approval for the intended launch tax year. Resolve the current access-window constraint before committing to a launch date.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "individual"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "accessReadiness": null,
+          "missingRequirements": null,
+          "approvalEvidence": null,
+          "blockedLaunchReason": null
+        }
+      },
+      {
+        "backlogTask": "P10-07",
+        "domain": "income",
+        "id": "return_qualification",
+        "sourceId": "income",
+        "variants": [
+          "year_change",
+          "non_aligned_period",
+          "loss",
+          "cessation",
+          "corrected_bookkeeping",
+          "rejection",
+          "unknown_submission",
+          "immutable_receipt",
+          "prior_year_replay"
+        ],
+        "inputExample": {
+          "taxpayerId": "synthetic-taxpayer",
+          "periodStart": "2026-07-01",
+          "periodEnd": "2027-04-05",
+          "cessationDate": "2027-02-01",
+          "sourceVersions": [
+            "synthetic-v1",
+            "synthetic-v2"
+          ],
+          "submissionId": "synthetic-submission",
+          "priorReceiptId": null
+        },
+        "requiredOutputs": [
+          "reconciledReturn",
+          "replayResult",
+          "receiptHistory",
+          "correctionLineage",
+          "qualificationEvidence"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "c8a4213fb7bdd3e03819ecf0c8900118bb81f29086002d675c95b85b9fbc0399",
+        "requiredInputs": [
+          "taxpayerId",
+          "periodStart",
+          "periodEnd",
+          "cessationDate",
+          "sourceVersions",
+          "submissionId",
+          "priorReceiptId"
+        ],
+        "acceptanceScenario": "Qualify complete supported returns across year changes, non-aligned periods, losses, cessation and corrected bookkeeping; include rejected/unknown submissions and immutable receipt history.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "individual"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "reconciledReturn": null,
+          "replayResult": null,
+          "receiptHistory": null,
+          "correctionLineage": null,
+          "qualificationEvidence": null
+        }
+      },
+      {
+        "backlogTask": "P11-01",
+        "domain": "corporation",
+        "id": "company_profit",
+        "sourceId": "ctGuide",
+        "variants": [
+          "company_identity",
+          "accounting_period",
+          "book_to_tax",
+          "disallowable_costs",
+          "capital_allowances",
+          "trading_losses",
+          "reliefs"
+        ],
+        "inputExample": {
+          "companyId": "synthetic-company",
+          "companyType": "small_limited_company",
+          "accountingPeriodStart": "2026-04-01",
+          "accountingPeriodEnd": "2027-03-31",
+          "bookProfitMinor": "100000",
+          "disallowableMinor": "10000",
+          "allowanceClaims": [],
+          "lossClaims": []
+        },
+        "requiredOutputs": [
+          "taxableProfit",
+          "reconciliation",
+          "adjustments",
+          "ruleVersion",
+          "calculationSteps"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "0df4ce0082ed2aaebb478fdadcacce56048ffcbfc5bf5cb446503f8da6bd623d",
+        "requiredInputs": [
+          "companyId",
+          "companyType",
+          "accountingPeriodStart",
+          "accountingPeriodEnd",
+          "bookProfitMinor",
+          "disallowableMinor",
+          "allowanceClaims",
+          "lossClaims"
+        ],
+        "acceptanceScenario": "Build the company and accounting-period model, accounting-to-tax reconciliation and our own taxable-profit calculation. Cover supported disallowable costs, capital allowances, losses and reliefs.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "small_limited_company"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "taxableProfit": null,
+          "reconciliation": null,
+          "adjustments": null,
+          "ruleVersion": null,
+          "calculationSteps": null
+        }
+      },
+      {
+        "backlogTask": "P11-02",
+        "domain": "corporation",
+        "id": "rates_periods",
+        "sourceId": "ctGuide",
+        "variants": [
+          "main_rate",
+          "small_profits",
+          "marginal_relief",
+          "associated_companies",
+          "short_period",
+          "long_period",
+          "year_apportionment",
+          "rate_change"
+        ],
+        "inputExample": {
+          "companyId": "synthetic-company",
+          "accountingPeriodStart": "2026-01-01",
+          "accountingPeriodEnd": "2027-06-30",
+          "taxableProfitMinor": "100000",
+          "associatedCompanyFacts": [],
+          "distributionFacts": []
+        },
+        "requiredOutputs": [
+          "taxPeriods",
+          "apportionedProfit",
+          "corporationTax",
+          "marginalRelief",
+          "calculationSteps",
+          "ruleVersion"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "3b4b81a2ffbf937217e114c625eead7c38dc66f370bfd6f09a8b8a8a0a60824c",
+        "requiredInputs": [
+          "companyId",
+          "accountingPeriodStart",
+          "accountingPeriodEnd",
+          "taxableProfitMinor",
+          "associatedCompanyFacts",
+          "distributionFacts"
+        ],
+        "acceptanceScenario": "Implement relevant rates, marginal relief, associated-company effects and period apportionment. Handle short/long accounting periods and tax-year changes with versioned rules and independently verified examples.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "small_limited_company"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "taxPeriods": null,
+          "apportionedProfit": null,
+          "corporationTax": null,
+          "marginalRelief": null,
+          "calculationSteps": null,
+          "ruleVersion": null
+        }
+      },
+      {
+        "backlogTask": "P11-03",
+        "domain": "corporation",
+        "id": "return_supplements",
+        "sourceId": "ctForms",
+        "variants": [
+          "ct600_main",
+          "applicability_review",
+          "required_supplement",
+          "omitted_supplement",
+          "unknown_supplement",
+          "disclosure_validation"
+        ],
+        "inputExample": {
+          "companyId": "synthetic-company",
+          "periodId": "synthetic-period",
+          "companyFacts": {
+            "trade": "synthetic-trade"
+          },
+          "supplementSelections": [
+            "CT600A"
+          ],
+          "applicabilityEvidence": [],
+          "taxComputationId": "synthetic-computation"
+        },
+        "requiredOutputs": [
+          "requiredForms",
+          "applicabilityDecisions",
+          "omittedDisclosureErrors",
+          "validatedReturn"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "7a0cd94aebfa03476036f6c81b718099e6588c399182497913b5b3fc78051670",
+        "requiredInputs": [
+          "companyId",
+          "periodId",
+          "companyFacts",
+          "supplementSelections",
+          "applicabilityEvidence",
+          "taxComputationId"
+        ],
+        "acceptanceScenario": "Prepare CT600 and every supplementary page required by the supported company cases. Make omitted cases clear before a business relies on the service; do not silently drop disclosures.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "small_limited_company"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "requiredForms": null,
+          "applicabilityDecisions": null,
+          "omittedDisclosureErrors": null,
+          "validatedReturn": null
+        }
+      },
+      {
+        "backlogTask": "P11-04",
+        "domain": "corporation",
+        "id": "statutory_accounts",
+        "sourceId": "accountsTaxonomy",
+        "variants": [
+          "small_limited_company",
+          "micro_entity",
+          "frs102_section_1a",
+          "frs105",
+          "framework_eligibility",
+          "disclosures",
+          "prior_year_comparatives",
+          "approval",
+          "ledger_reconciliation"
+        ],
+        "inputExample": {
+          "companyId": "synthetic-company",
+          "framework": "unqualified",
+          "periodId": "synthetic-period",
+          "ledgerSnapshotId": "synthetic-ledger",
+          "priorYearSnapshotId": "synthetic-prior",
+          "disclosures": [],
+          "approvalDetails": null
+        },
+        "requiredOutputs": [
+          "statutoryAccounts",
+          "frameworkDecision",
+          "disclosures",
+          "comparatives",
+          "approvalRecord",
+          "reconciliation"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "4f493f61642ffa0715d60e476ca6af1334d4106448e7c4ee00e036a4ae399cd5",
+        "requiredInputs": [
+          "companyId",
+          "framework",
+          "periodId",
+          "ledgerSnapshotId",
+          "priorYearSnapshotId",
+          "disclosures",
+          "approvalDetails"
+        ],
+        "acceptanceScenario": "Produce statutory accounts for the agreed company types and accounting framework, including disclosures, prior-year comparisons and approval details. Reconcile them to the ledger and tax computation.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "small_limited_company"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "statutoryAccounts": null,
+          "frameworkDecision": null,
+          "disclosures": null,
+          "comparatives": null,
+          "approvalRecord": null,
+          "reconciliation": null
+        }
+      },
+      {
+        "backlogTask": "P11-05",
+        "domain": "corporation",
+        "id": "ixbrl_package",
+        "sourceId": "accountsTaxonomy",
+        "variants": [
+          "accounts_taxonomy",
+          "computation_taxonomy",
+          "taxonomy_version",
+          "tag_contexts",
+          "readable_copy",
+          "validation_result"
+        ],
+        "inputExample": {
+          "companyId": "synthetic-company",
+          "accountsSnapshotId": "synthetic-accounts",
+          "computationSnapshotId": "synthetic-computation",
+          "taxonomyVersion": "unqualified",
+          "taggingFacts": []
+        },
+        "requiredOutputs": [
+          "ixbrlAccounts",
+          "ixbrlComputation",
+          "readableCopies",
+          "validationEvidence",
+          "taxonomyDigests"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "2e12e39ef525f1a441ba8ca59cd7dec39ec55fb377cfbcb4f2ec299f3e1ac0a6",
+        "requiredInputs": [
+          "companyId",
+          "accountsSnapshotId",
+          "computationSnapshotId",
+          "taxonomyVersion",
+          "taggingFacts"
+        ],
+        "acceptanceScenario": "Build and validate iXBRL accounts and computations against the applicable taxonomy and HMRC requirements. Preserve tagging/version evidence and readable copies. This work is owned in-house.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "small_limited_company"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "ixbrlAccounts": null,
+          "ixbrlComputation": null,
+          "readableCopies": null,
+          "validationEvidence": null,
+          "taxonomyDigests": null
+        }
+      },
+      {
+        "backlogTask": "P11-06",
+        "domain": "corporation",
+        "id": "submission_lifecycle",
+        "sourceId": "corporation",
+        "variants": [
+          "authority",
+          "validate",
+          "submit",
+          "receipt",
+          "rejection",
+          "unknown_response",
+          "amendment",
+          "recovery",
+          "companies_house_scope_gate"
+        ],
+        "inputExample": {
+          "companyId": "synthetic-company",
+          "authorityReference": "synthetic-authority",
+          "reviewedPackageDigest": "0000000000000000000000000000000000000000000000000000000000000000",
+          "submissionId": "synthetic-submission",
+          "priorReceiptId": null,
+          "companiesHouseFilingAuthority": false
+        },
+        "requiredOutputs": [
+          "submissionStatus",
+          "validatedPackage",
+          "receipt",
+          "amendmentLineage",
+          "recoveryAction",
+          "scopeBlockers"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "f34d2f5188fdcffd4008ba01ccfc26aa55122dffee4ceb3383624a94fc35f2e2",
+        "requiredInputs": [
+          "companyId",
+          "authorityReference",
+          "reviewedPackageDigest",
+          "submissionId",
+          "priorReceiptId",
+          "companiesHouseFilingAuthority"
+        ],
+        "acceptanceScenario": "Implement direct Corporation Tax submission, validation, receipts, rejection handling, amendments and recovery. Resolve the separate Companies House accounts-filing scope and requirements if promised.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "small_limited_company"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "submissionStatus": null,
+          "validatedPackage": null,
+          "receipt": null,
+          "amendmentLineage": null,
+          "recoveryAction": null,
+          "scopeBlockers": null
+        }
+      },
+      {
+        "backlogTask": "P11-07",
+        "domain": "corporation",
+        "id": "package_qualification",
+        "sourceId": "corporation",
+        "variants": [
+          "accounts_tax_filing_reconciliation",
+          "period_boundaries",
+          "rounding_boundaries",
+          "professional_review",
+          "rule_update",
+          "form_update",
+          "taxonomy_update",
+          "prior_year_replay"
+        ],
+        "inputExample": {
+          "companyId": "synthetic-company",
+          "packageId": "synthetic-package",
+          "periodId": "synthetic-period",
+          "officialFixtureIds": [],
+          "professionalReviewReference": null,
+          "priorRuleVersion": "unqualified"
+        },
+        "requiredOutputs": [
+          "reconciledPackage",
+          "qualificationEvidence",
+          "updateImpact",
+          "priorYearReplay"
+        ],
+        "owner": "coordinator",
+        "status": "unsupported",
+        "scopeStatus": "retained_for_qualification",
+        "requirementSha256": "3df9066f68f1a803f2b86b0766ae8f4070ac48aee4bba1a7fb484a25d67d6953",
+        "requiredInputs": [
+          "companyId",
+          "packageId",
+          "periodId",
+          "officialFixtureIds",
+          "professionalReviewReference",
+          "priorRuleVersion"
+        ],
+        "acceptanceScenario": "Test full accounts-to-tax-to-filing packages, including period/rounding edge cases, with independent professional review. Maintain rule, form and taxonomy updates after release.",
+        "test": "artifacts/api-server/src/services/tax/contracts/scopeRegistry.test.mjs",
+        "expected": {
+          "ok": false,
+          "code": "CASE_NOT_QUALIFIED",
+          "calculation": null,
+          "filingAllowed": false
+        },
+        "expectedResultEvidence": null,
+        "ruleVersion": null,
+        "entities": [
+          "small_limited_company"
+        ],
+        "nextTask": "P04-03",
+        "exampleMeaning": "Concrete synthetic required-input shape; every listed variant and year must reject with the expected result. No monetary expected result or statutory rule is inferred.",
+        "requiredOutputExample": {
+          "reconciledPackage": null,
+          "qualificationEvidence": null,
+          "updateImpact": null,
+          "priorYearReplay": null
+        }
+      }
+    ],
+    "qualificationHandoff": {
+      "P04-03": "Independently qualify first existing Plan1 weekly notice/boundary pack against pinned rules, dates and expected deductions; preserve other families as explicit unqualified work. Continue boundaries, losses, refunds, corrections and year changes before full fixture acceptance.",
+      "P02-04": "Implement and negatively test separate bookkeeping/payroll/personal-tax permissions before native employee records; register completion is not sensitive-data access authority.",
+      "P04-02": "Implement deterministic primitives and first reviewed calculation only once P04-03 dependencies permit; do not treat this scope selector as a calculation engine."
+    }
   }
 }

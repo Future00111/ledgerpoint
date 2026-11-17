@@ -4,7 +4,12 @@ async function main(){
  const {pool}=await import('@workspace/db');await verifyTarget(pool,target.database);
  const {enqueueIntakeJob,recoverIntakeJob}=await import('./service');
  process.once('message',async(input:any)=>{try{
-  const data=input.mode==='commit'?await enqueueIntakeJob(input.company,input.actor,input.source,input.body):await recoverIntakeJob(input.company,input.actor,input.source,input.body.request_id);
+  let data;
+  if(input.mode==='claim'){
+   const {DurableExtractionRepository}=await import('./executionRepository');
+   const claimed=await new DurableExtractionRepository(8).claim({company_id:input.company,job_id:input.job_id},Date.now(),1000);
+   data=claimed.kind==='claimed'?{kind:claimed.kind,expires_at_ms:claimed.lease.expires_at_ms}:{kind:claimed.kind};
+  }else data=input.mode==='commit'?await enqueueIntakeJob(input.company,input.actor,input.source,input.body):await recoverIntakeJob(input.company,input.actor,input.source,input.body.request_id);
   process.send?.({ok:true,data});
   if(input.mode==='recover'){await pool.end();process.disconnect?.();}
   // The commit producer remains alive until the harness kills the actual process.

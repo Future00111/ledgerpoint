@@ -58,6 +58,7 @@ try {
     ['src/services/accounting/canonicalPosting.integration.test.ts','canonical-posting-flow.test.cjs'],
     ['src/services/durableJobs/contract.test.ts','durable-jobs-contract.test.cjs'],
     ['src/services/durableJobs/integration.test.ts','durable-jobs-flow.test.cjs'],
+    ['src/services/durableJobs/execution.integration.test.ts','durable-execution-flow.test.cjs'],
     ['src/services/accountingDocuments/integration.test.ts','accounting-flow.test.cjs'],
     ['src/services/accountingDocuments/conditionalDiscount.integration.test.ts','conditional-discount-flow.test.cjs'],
     ['src/services/accountingDocuments/conditionalDiscount.test.ts','conditional-discount-unit.test.cjs'],

@@ -69,6 +69,7 @@ export async function installSchema(admin,sql,{includeAmendments=false}={}) {
     await admin.query(migrationInputs['credit-tracking']);
     await admin.query(migrationInputs['document-intake']);
     await admin.query(migrationInputs['durable-jobs']);
+    await admin.query(migrationInputs['durable-job-execution']);
     await admin.query(migrationInputs['paid-credit-operations']);
     await admin.query(migrationInputs['bank-imports']);
     await admin.query(migrationInputs['bank-openings']);

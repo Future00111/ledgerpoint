@@ -200,6 +200,15 @@
         "document-intake"
       ],
       "sha256": "23ce9b92b69bed960573db768351b653de502e512a5c1797f5040f67a015eed0"
+    },
+    {
+      "id": "durable-job-execution",
+      "path": "lib/db/migrations/durable-job-execution.review.sql",
+      "contractVersion": 1,
+      "dependencies": [
+        "durable-jobs"
+      ],
+      "sha256": "4d40f0c36ca3de578c1abc1a904b57967dd5de84180f4f558491ebf40f6a4d88"
     }
   ],
   "securityOverlay": {

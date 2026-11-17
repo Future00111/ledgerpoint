@@ -5,16 +5,17 @@ import { verifyStoredEvidence, providerStatus } from '../documentIntake/service'
 import { createExtractionJob, cancelJob, type ExtractionJob, type ExtractionRecipe } from '../documentIntake/extraction/contract';
 import { reconstructQueuedJob, storageContract } from './contract';
 import { requireQueueSchema } from './schema';
+import { loadExecution, appendExecution } from './executionStore';
 export type AfterQueueWrite=(boundary:'identity'|'event'|'outbox',q:Queryable)=>Promise<void>;
 const fields=(value:unknown,keys:string[])=>{if(!plainRecord(value)||Object.keys(value).some(k=>!keys.includes(k)))fail(422,'FIELD_INVALID');return value;};
-async function source(q:Queryable,company:string,id:string){
+export async function durableSource(q:Queryable,company:string,id:string){
  const rows=await q.query('SELECT * FROM document_intake_sources WHERE company_id=$1 AND id=$2 FOR UPDATE',[company,uuid(id)]);
  if(rows.rowCount!==1)fail(404,'RESOURCE_NOT_FOUND');
  const row=rows.rows[0];const evidence=verifyStoredEvidence(row);
  if(row.document_id!==null)fail(409,'SOURCE_ALREADY_LINKED');
  return {row,evidence};
 }
-async function load(q:Queryable,row:Record<string,any>,evidence:ReturnType<typeof verifyStoredEvidence>,sourceRevision:string){
+export async function loadQueuedJob(q:Queryable,row:Record<string,any>,evidence:ReturnType<typeof verifyStoredEvidence>,sourceRevision:string){
  const events=(await q.query('SELECT revision,status,actor_id FROM durable_job_events WHERE company_id=$1 AND job_id=$2 ORDER BY revision',[row.company_id,row.job_id])).rows;
  const outbox=(await q.query('SELECT revision,status,topic FROM durable_outbox WHERE company_id=$1 AND job_id=$2 ORDER BY revision',[row.company_id,row.job_id])).rows;
  if(row.storage_version!==1 || row.contract!=='document-intake.extraction-job.v1')fail(409,'DURABLE_JOB_EVIDENCE_MISMATCH');
@@ -24,6 +25,10 @@ async function load(q:Queryable,row:Record<string,any>,evidence:ReturnType<typeo
    recipe:{provider:row.recipe_provider,version:row.recipe_version},recipe_fingerprint:row.recipe_fingerprint,
    request_id:row.request_id,max_attempts:row.max_attempts,revision:last?.revision,status:last?.status,
    attempts:[],retry_at_ms:null,result:null,replacement_job_id:null},events,outbox},evidence,row.company_id,sourceRevision);
+}
+async function load(q:Queryable,row:Record<string,any>,evidence:ReturnType<typeof verifyStoredEvidence>,sourceRevision:string){
+ const base=await loadQueuedJob(q,row,evidence,sourceRevision);
+ return(await loadExecution(q,base,{company_id:row.company_id,evidence})).job;
 }
 async function append(q:Queryable,job:ExtractionJob,actor:string,hook?:AfterQueueWrite){
  await q.query('INSERT INTO durable_job_events(company_id,job_id,revision,status,actor_id) VALUES($1,$2,$3,$4,$5)',[job.company_id,job.job_id,job.revision,job.status,actor]);
@@ -39,7 +44,7 @@ export async function enqueueIntakeJob(company:string,actor:string,id:string,inp
  const request=uuid(body.request_id).toLowerCase(),expected=uuid(body.source_revision).toLowerCase();
  return transact(async q=>{
   await scope(q,company,actor,true,true);await requireQueueSchema(q);
-  const {row,evidence}=await source(q,company,id);
+  const {row,evidence}=await durableSource(q,company,id);
   if(row.revision!==expected)fail(409,'REVISION_CONFLICT');
   const job=createExtractionJob({company_id:company,evidence,request_id:request,recipe:body.recipe as ExtractionRecipe,max_attempts:body.max_attempts as number|undefined});
   const prior=await q.query('SELECT * FROM durable_jobs WHERE company_id=$1 AND request_id=$2',[company,request]);
@@ -60,10 +65,11 @@ export async function enqueueIntakeJob(company:string,actor:string,id:string,inp
 }
 async function recover(q:Queryable,company:string,id:string,request:string){
  company=uuid(company).toLowerCase();id=uuid(id).toLowerCase();
- const {row,evidence}=await source(q,company,id);
+ const {row,evidence}=await durableSource(q,company,id);
  const prior=await q.query('SELECT * FROM durable_jobs WHERE company_id=$1 AND request_id=$2 AND source_id=$3',[company,uuid(request),id]);
  if(prior.rowCount!==1)fail(404,'RESOURCE_NOT_FOUND');
- return {job:await load(q,prior.rows[0],evidence,row.revision),revision:row.revision};
+ const base=await loadQueuedJob(q,prior.rows[0],evidence,row.revision),execution=await loadExecution(q,base,{company_id:company,evidence});
+ return {job:execution.job,revision:row.revision,execution,evidence};
 }
 export const recoverIntakeJob=(company:string,actor:string,id:string,request:string)=>transact(async q=>{
  await scope(q,company,actor,false,true);await requireQueueSchema(q);
@@ -73,8 +79,12 @@ export const cancelIntakeJob=(company:string,actor:string,id:string,request:stri
  const body=fields(input,['expected_revision']);
  if(!Number.isInteger(body.expected_revision)||Number(body.expected_revision)<0)fail(422,'FIELD_INVALID');
  await scope(q,company,actor,true,true);await requireQueueSchema(q);
- const {job,revision}=await recover(q,company,id,request);
+ const {job,revision,execution,evidence}=await recover(q,company,id,request);
  // Lost cancellation response may replay the original revision, but no future revision is accepted.
- if(job.status==='cancelled' && (body.expected_revision===0||body.expected_revision===1))return response(job,revision,true);
+ if(job.status==='cancelled' && (body.expected_revision===job.revision||body.expected_revision===job.revision-1))return response(job,revision,true);
+ if(execution.sequence>0){
+  const next=await appendExecution(q,execution,{company_id:job.company_id,evidence},actor,'cancel',{expected_revision:body.expected_revision});
+  await hook?.('event',q);await hook?.('outbox',q);return response(next.job,revision);
+ }
  const cancelled=cancelJob(job,body.expected_revision as number);await append(q,cancelled,actor,hook);return response(cancelled,revision);
 });
