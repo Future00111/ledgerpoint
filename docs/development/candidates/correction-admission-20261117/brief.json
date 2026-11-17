@@ -1,0 +1,29 @@
+{
+  "task": "P03-01",
+  "actor": "correction-admission-implementer",
+  "source": "a055f0266e7ff6378f8a6262fb6cca1571ad7144",
+  "authorBranch": "codex/correction-admission-20261117",
+  "worktree": "/workspace/scratch/0c1e486180e4/ledgerpoint-capture",
+  "reviewer": "root",
+  "authorStopTarget": "2026-11-17T16:15:00Z",
+  "scope": "Complete interrupted invoice/bill correction recovery: immutable precommit admission, read-only pending discovery/recovery, explicit protected no-effect closure, and fresh review only after a verified terminal outcome.",
+  "requirements": [
+    "Admission after successful actor/company/correct capability/review validation, persisted before financial transaction. Bind company, actor, document, request UUID, expected revision, request hash and review hash; minimal date/reason metadata.",
+    "New additive correction-operation-recovery.review.sql with immutable admission and no-effect records, exact FK/constraints, always-on update/delete/truncate guards and restricted SELECT/INSERT grants. Existing pinned migrations remain byte-identical.",
+    "Integrate registry dependencies/history and disposable installer in both includeAmendments modes correctly; no startup/shared database migration.",
+    "Company-first locks and fresh READ COMMITTED decisions across admission, canonical correction context and terminal closure; no canonical engine edits. Inspect actual engine ordering.",
+    "Same identity stays bound. A different actor/document-scoped attempt is fenced only while a genuine unresolved admission exists. Canonical history validation and orphan journal/effect checks fail closed; legacy committed corrections without admission recover normally.",
+    "Read-only recovery and actor-before-limit discovery distinguish unknown/pending/no_effect/known without treating absence, timeout or TTL as failure. Explicitly select a candidate; no automatic resend/cancel.",
+    "Protected no-effect command validates exact selected immutable binding under lock. Canonical committed outcome wins; a terminal no-effect row prevents any delayed original write. Fresh GET must verify terminal result before locator cleanup/fresh context review.",
+    "Post-admission errors need a fixed machine-readable marker so the first-attempt definitive-error branch preserves identity. Preserve original service errors and pre-admission rejection behavior. Unknown/denied/malformed response retains locks.",
+    "URL only recovery mode plus UUID; no payload, review tokens or financial metadata in browser storage. Preserve generation/dispose/company-switch fencing and existing known/committed discovery.",
+    "Native tests: pending visible before effects, original late commit, rollback and process restart, same-ID replay/conflicts, replacement fence, both terminal-vs-posting races, canonical orphan/corrupt history, unknown/other actor/company/removed membership, immutable schema controls, legacy receipts. Preserve old financial assertions when changing rollback expectation from unknown to pending.",
+    "Actual mounted invoice/bill browser journeys: pending selection and actual reload with fresh receipt; terminal closure requires explicit confirmation plus fresh GET before fresh review. Count only intended commands, zero recovery financial reposts, one parent refresh, empty browser storage.",
+    "Restored native pending/terminal/known evidence and immutable grants/guards must be tested through existing disposable runner; new helper/test may live under already-owned services/operationRecovery/.",
+    "Run focused model/API/render tests and compile native suite AND exact generated browser entry before submission. Local PostgreSQL/Chromium runtime is unavailable; do not bypass environment restrictions. Root runs combined/build plus exact GitHub native/browser/restore gates.",
+    "Stay within claim file list. No queue edits, remote pushes, merge/deploy/provider/demo/shared DB changes. Commit locally, save author report/test logs, confirm stopped. No Codex attribution trailers."
+  ],
+  "parentAcceptance": "Bounded outcome against original criteria[0,1]; parent remains pending for payroll/filing and other unqualified scenarios. Do not call reference fixtures payroll engines.",
+  "schemaAuthorization": "Coordinator approves this reviewed additive disposable-only interface within P03-01; independent final source review remains required.",
+  "provider": "Replit exact URL/name capability check unavailable this run; controlled Codex implementer."
+}
