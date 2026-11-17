@@ -1,0 +1,50 @@
+{
+  "task": "P03-01",
+  "basePublished": "77830812f93b7ddba1e7382ec69e0e963adbc7ac",
+  "baseTree": "152687018a096581260796c4a5297634889f8043",
+  "purpose": "Find and verify an already committed invoice/bill correction when its browser request reference is missing. Never infer that an absent result proves no effect and never repost during discovery.",
+  "scope": {
+    "supported": [
+      "posted sales_invoice",
+      "posted purchase_bill"
+    ],
+    "excluded": [
+      "new schema or financial posting mutation",
+      "credit-note or metadata correction families",
+      "payroll/filing recovery",
+      "real Clerk or production qualification"
+    ]
+  },
+  "contract": {
+    "service": "Reuse corrections.ts authority(required=true), immutable amendmentHistory and existing recoverCorrection receipt lookup. Add actor-filtered, company/document-bound, read-only discovery with a bounded latest100 list and has_more flag. Return request_id/revision/journal_id/date/reason metadata, not financial intent/review tokens.",
+    "api": "Add explicit read-only discovery GET before competing parameter routes; retain existing protected known-request GET. Use native accounting client and no generic financial write path.",
+    "ui": "Add Find a recorded correction entry. Discovery mode stays locked against financial review/post; explicit user selection must be reverified through native known-request recovery with matching request/document/journal/revision. No automatic first-choice selection. Empty, malformed, unauthorized or unknown results stay unconfirmed.",
+    "storage": "Persist only recovery mode and selected UUID locator if needed; no financial payload/review token. Preserve existing known-locator reload flow and stale-response/company-switch fencing.",
+    "completion": "Verified receipt closes recovery before a single parent refresh; lookup makes zero POST requests. Missing browser locator is a recovery state, not permission to create a fresh correction."
+  },
+  "fileOwnership": {
+    "alreadyLeasedByTask": [
+      "artifacts/ledgerly/src/features/documentCorrections/model.mjs",
+      "artifacts/api-server/src/services/accountingDocuments/integration.test.ts",
+      "artifacts/api-server/src/routes/accountingDocuments.ts",
+      "artifacts/ledgerly/src/api/accountingDocuments.mjs",
+      "artifacts/ledgerly/src/api/accountingDocuments.test.mjs"
+    ],
+    "proposedAdditions": [
+      "artifacts/api-server/src/services/accountingDocuments/corrections.ts",
+      "artifacts/ledgerly/src/features/documentCorrections/DocumentCorrections.jsx",
+      "artifacts/ledgerly/src/features/documentCorrections/DocumentCorrections.test.jsx",
+      "artifacts/ledgerly/src/features/documentCorrections/model.test.mjs"
+    ],
+    "migration": "Before edits: all workers/tasks stopped; independently review four-path expansion preserving92source bullets, priorities, dependencies, criteria and history. Export/archive old queue; migrate pinned catalogue digest and checkpoint with full historical evidence; initialise normally. Claim highesteligible via CLI only after durable coordinator ownership."
+  },
+  "validation": [
+    "Controller: explicit selection, no POST, empty/unknown lock, tampered document/request/journal/revision, stale responses, disposal, company/actor switch, failed locator persistence.",
+    "Native API: current correct capability and active membership, actor/company/document isolation, absent and other-actor attempts, immutable history and zero new correction/journal effects.",
+    "Isolated Chromium: actual mounted component/native API for invoice and bill, missing locator, list/reselect/fresh verification; explicit completion report, no dump-dom/virtual-time completion dependency, no POST during recovery.",
+    "Full current source checks, pinned pnpm10.26.1 build/typecheck, migration checks, exact-source native/browser/populated+encrypted restore CI."
+  ],
+  "acceptance": "Independent matching-commit accept-outcome only for this bounded scenario with criteria0/1. Keep broader P03-01 pending, preserve other accepted outcomes.",
+  "provider": "Current Replit exactURL search empty and exactname resolver foundfalse; no Replit dispatch.",
+  "publicationBlocker": "Automatic approval review twice rejected new full coordinator reservation despite previous explicit disclosure approval. No authority ref changed; no author dispatched or code edited."
+}

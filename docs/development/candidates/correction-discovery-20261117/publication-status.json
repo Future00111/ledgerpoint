@@ -1,0 +1,12 @@
+{
+  "at": "2026-11-17T14:53:08.760123+00:00",
+  "remoteAuthorityCommit": "076d64c4d43cea582a2c38e6ad118965d31db731",
+  "remoteRevision": 458,
+  "remoteStatus": "idle",
+  "queueRevision": 866,
+  "preparedReservationRevision": 460,
+  "preparedReservationPublished": false,
+  "workersDispatched": false,
+  "sourceEdited": false,
+  "rawTokensExcludedFromPublication": true
+}
