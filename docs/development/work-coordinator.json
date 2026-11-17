@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 487,
+  "revision": 488,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "b176e696124e4a16354ba503aa55afd0c3bae96b",
@@ -21,19 +21,24 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "397d0588cfa82a1767315d42ed80acf466417647",
+    "sha": "4a9250fdfa84920ab95352d4d56d27b25a9d169c",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "397d0588cfa82a1767315d42ed80acf466417647",
-        "path": "docs/development/candidates/durable-intake-20261117/activity-queue-delta.json"
+        "sha": "4a9250fdfa84920ab95352d4d56d27b25a9d169c",
+        "path": "docs/development/candidates/durable-intake-20261117/review/review-queue-delta.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "4a9250fdfa84920ab95352d4d56d27b25a9d169c",
+        "path": "docs/development/candidates/durable-intake-20261117/review/root-review.json"
       }
     ],
     "runId": "durable-intake-1794935665134",
-    "at": 1794936464850,
+    "at": 1794937105566,
     "codeHead": "b176e696124e4a16354ba503aa55afd0c3bae96b"
   },
-  "updatedAt": 1794936464850,
+  "updatedAt": 1794937105566,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -125,12 +130,13 @@
     {
       "actor": "durable-intake-implementer",
       "task": "P03-02",
-      "status": "running",
-      "worktree": "ledgerpoint-jobs",
-      "branch": "codex/durable-intake-queue-20261117"
+      "status": "review",
+      "stopped": true,
+      "branch": "codex/durable-intake-queue-20261117",
+      "authorCommit": "27a890e6176cb5204cf02e8566caeb6f66e4d489"
     }
   ],
-  "workersStopped": false,
+  "workersStopped": true,
   "discoveryRun": {
     "runId": "correction-discovery-1794927549982",
     "startedAt": "2026-11-17T14:59:10.335Z",
@@ -170,11 +176,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "397d0588cfa82a1767315d42ed80acf466417647",
-    "path": "docs/development/candidates/durable-intake-20261117/activity-queue-delta.json",
-    "bytesSha256": "029c886beda3e6681f548b642ef2467bc253b9d66900f3a614aec62ae94e0f63",
-    "queueSha256": "56d40c28c6e344287ef7bf521fd60a0eb573d67095fc94893d05b97336a24612",
-    "revision": 888,
+    "sha": "4a9250fdfa84920ab95352d4d56d27b25a9d169c",
+    "path": "docs/development/candidates/durable-intake-20261117/review/review-queue-delta.json",
+    "bytesSha256": "d04b680320bcf37cb92d6e1c9f8c75649b3ed0e063f181b0008656891d7dd044",
+    "queueSha256": "017310b444ec2a731caf8035ec59707833453b98aa4df79b76dd60d888d6c8a4",
+    "revision": 890,
     "catalogDigest": "0ab5eee68ef6c5d706b5268a95520543f44f4b60a71848f5804ad18d791ebdbd"
   },
   "historyReference": {
@@ -193,7 +199,7 @@
       "constraint": "Current fixture waits for loaded readiness; financial safeguards remain fail-closed."
     }
   ],
-  "worktreesClean": false,
+  "worktreesClean": true,
   "queueHydration": {
     "required": true,
     "note": "queueState is an immutable reference, not a runnable queue. Fetch the exact artifact, verify byte and resolved queue digests and catalogue digest, validate with core.mjs, then hydrate before CLI init/scheduling/currentView. Never initialize an archived base alone. Existing coordinator ownership/fencing and expected-head publication remain unchanged.",
@@ -204,7 +210,7 @@
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
     "baseRevision": 871,
-    "currentRevision": 888,
+    "currentRevision": 890,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
@@ -308,7 +314,10 @@
   },
   "durableIntakeRun": {
     "startedAt": "2026-11-17T17:14:25.140Z",
-    "activity": "Implementation and independent review active; malformed-history and structural schema gates tightened. Runtime restart/restore coverage underway. Bounded author stop17:45UTC, parent not accepted.",
-    "authorStopTarget": "2026-11-17T17:45:00Z"
+    "activity": "Stopped clean author27a890e independently reviewed by root; focused68, registry34, native compile, combined regression and full build/typecheck passed. Reviewed source publication and exact native CI next.",
+    "authorStopTarget": "2026-11-17T17:45:00Z",
+    "authorCommit": "27a890e6176cb5204cf02e8566caeb6f66e4d489",
+    "tree": "a1b69964c61ef12fecea0d6ed567911db10225e6",
+    "reviewArchive": "4a9250fdfa84920ab95352d4d56d27b25a9d169c"
   }
 }
