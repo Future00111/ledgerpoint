@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 500,
+  "revision": 501,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "1bcb350dff63ce17c8bdefa067d156ff8afe5ad4",
@@ -21,24 +21,19 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "816092d836169c92a315a6ea0de40565c9d7dc85",
+    "sha": "fcbf8dc7967d90796737b6caf3b849c73034612a",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "816092d836169c92a315a6ea0de40565c9d7dc85",
-        "path": "docs/development/candidates/two-track-20261117/reservation-queue-delta.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "816092d836169c92a315a6ea0de40565c9d7dc85",
-        "path": "docs/development/candidates/two-track-20261117/brief.json"
+        "sha": "fcbf8dc7967d90796737b6caf3b849c73034612a",
+        "path": "docs/development/candidates/two-track-20261117/activity/activity-queue-delta.json"
       }
     ],
     "runId": "two-track-1794939703603",
-    "at": 1794940525802,
+    "at": 1794940804828,
     "codeHead": "1bcb350dff63ce17c8bdefa067d156ff8afe5ad4"
   },
-  "updatedAt": 1794940525802,
+  "updatedAt": 1794940804828,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -130,13 +125,13 @@
     {
       "actor": "tax-register-implementer",
       "task": "P04-01",
-      "status": "reserved",
+      "status": "running",
       "stopped": false
     },
     {
       "actor": "durable-execution-implementer",
       "task": "P03-02",
-      "status": "reserved",
+      "status": "running",
       "stopped": false
     }
   ],
@@ -180,11 +175,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "816092d836169c92a315a6ea0de40565c9d7dc85",
-    "path": "docs/development/candidates/two-track-20261117/reservation-queue-delta.json",
-    "bytesSha256": "750a2fae953cf2026bc4c2c84781f9c0b41fa3c0fe88e08141c79296ecd8019c",
-    "queueSha256": "7caa8014050e45e704959e4608df4b3be493ac0303321d41df10c306154b19ae",
-    "revision": 903,
+    "sha": "fcbf8dc7967d90796737b6caf3b849c73034612a",
+    "path": "docs/development/candidates/two-track-20261117/activity/activity-queue-delta.json",
+    "bytesSha256": "895322b5370ba41613171da4ec313d85091b3bd3f5988d3332678f9e61c27406",
+    "queueSha256": "e67f759001019da245411dc5bf2c398ee363e2d00a83d612293c5753da07672c",
+    "revision": 905,
     "catalogDigest": "df1d49d22e3a0fff74ed2b375bbe7b86279de43f82d996c3085a3c9b50740b6f"
   },
   "historyReference": {
@@ -203,7 +198,7 @@
       "constraint": "Current fixture waits for loaded readiness; financial safeguards remain fail-closed."
     }
   ],
-  "worktreesClean": true,
+  "worktreesClean": false,
   "queueHydration": {
     "required": true,
     "note": "queueState is an immutable reference, not a runnable queue. Fetch the exact artifact, verify byte and resolved queue digests and catalogue digest, validate with core.mjs, then hydrate before CLI init/scheduling/currentView. Never initialize an archived base alone. Existing coordinator ownership/fencing and expected-head publication remain unchanged.",
@@ -214,7 +209,7 @@
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
     "baseRevision": 901,
-    "currentRevision": 903,
+    "currentRevision": 905,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
@@ -354,7 +349,7 @@
   },
   "twoTrackRun": {
     "startedAt": "2026-11-17T18:21:43.606Z",
-    "activity": "Two highest eligible independent tracks reserved; implementers acknowledged exact source/worktrees/owned paths and wait for live checkpoint readback.",
+    "activity": "Both implementations active. Root observed native execution event/schema/store changes and expanded tax register; no unreviewed source published. Physical closure after crash remains held pending trusted supervisor proof.",
     "providerCheck": "Exact URL returned no editable apps; exact LedgerPoint resolver found false. Codex continues.",
     "migration": {
       "published": "1bcb350dff63ce17c8bdefa067d156ff8afe5ad4",
@@ -366,6 +361,7 @@
       "ref": "refs/heads/codex/ledgerly-work-queue-state",
       "sha": "816092d836169c92a315a6ea0de40565c9d7dc85",
       "path": "docs/development/candidates/two-track-20261117/brief.json"
-    }
+    },
+    "observedAt": "2026-11-17T18:39:47.484Z"
   }
 }
