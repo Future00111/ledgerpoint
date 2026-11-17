@@ -1,0 +1,15 @@
+{
+  "runId": "refund-date-1794923940343",
+  "source": "77830812f93b7ddba1e7382ec69e0e963adbc7ac",
+  "stateRevision": 458,
+  "status": "idle",
+  "queueRevision": 866,
+  "workersStopped": true,
+  "worktreesClean": true,
+  "heldTasks": [],
+  "acceptedTask": "P01-03",
+  "acceptedOutcome": "capture-lost-response-reload-20261117",
+  "P03Status": "pending",
+  "completedAt": "2026-11-17T14:22:25.137Z",
+  "evidenceCommit": "6ed1ef119535966d4a4d25ac022b728a44a8922f"
+}

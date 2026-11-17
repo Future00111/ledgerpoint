@@ -1,0 +1,39 @@
+{
+  "evidence": {
+    "commit": "7f2b7f013f714e5360f0aff9fa5f959efa49bc07",
+    "integratedCommit": "77830812f93b7ddba1e7382ec69e0e963adbc7ac",
+    "reviewed": true,
+    "reviewer": "correction_implementation",
+    "summary": "Bounded capture slice independently qualified on exact current tree1526870. Both purchasebill/suppliercredit actual hook/review-component browser journeys recover same committed draft after interruptedresponse/retry/actualreload/company switch/syntheticrelogin; foreigncompany/memberremoved denied. Existing concurrent/rollback tests retain atomicity, one draft/audit, immutable source, no posting journal and no financial browserstorage. Full logs/review immutable at6ed1ef119535966d4a4d25ac022b728a44a8922f. Not fullproductpage/realClerk/wholeparent qualification.",
+    "tests": [
+      {
+        "command": "CI44100938004 native92/92 including both CAPTURE_RECOVERY_BROWSER_ACCEPTANCE markers and existing atomicity/permission/concurrency cases",
+        "passed": true
+      },
+      {
+        "command": "CI44100938004 all20steps successful unskipped including full browser/accounting/populated+encrypted restore and cleanup",
+        "passed": true
+      },
+      {
+        "command": "Independent final matchingcommit review correction_implementation, all source trees equal1526870",
+        "passed": true
+      }
+    ]
+  },
+  "outcome": {
+    "id": "capture-lost-response-reload-20261117",
+    "scenario": "Recover a committed supplier bill or supplier credit draft after a lost save response through Retry, actual reload, company change and synthetic re-login using native source-to-draft recovery with exactly one draft/audit, unchanged source evidence, no posting journal and no browser-stored financial payload; removed members and foreign-company access denied.",
+    "criteria": [
+      0,
+      1
+    ],
+    "remaining": [
+      "Qualify correction recovery without a saved browser locator and supported correction-family discovery.",
+      "Implement and qualify durable payroll and filing operation identities/outcomes within existing in-house engine scope.",
+      "Complete applicable full-page and real-Clerk/owner production qualification separately; synthetic session evidence is bounded."
+    ],
+    "nextAction": "Highest-eligible P03-01: inspect existing authorized canonical correction history, then implement/qualify a bounded missing-locator correction discovery journey without duplicate correction effects. Preserve broader payroll/filing scope and separate payment-history readiness UX follow-up.",
+    "integratedCommit": "77830812f93b7ddba1e7382ec69e0e963adbc7ac"
+  },
+  "workersStopped": true
+}
