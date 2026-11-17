@@ -2522,3 +2522,101 @@ const session=async action=>{const response=await fetch('/session/'+action,{meth
   listener.closeAllConnections();await new Promise<void>(r=>listener.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});
  }
 });
+
+async function recordedCorrectionFixture(kind:string) {
+ const f=await fixture(),doc=await create(f,kind,source(kind==='sales_invoice'?f.customer:f.supplier));await post(f,doc);
+ const intent={request_id:randomUUID(),reason:'Synthetic discoverable correction',effective_date:'2026-10-22',line_items:[{quantity:'1',unit_price:'108'}]};
+ const reviewed=await request(f.company,`/accounting-documents/${doc.id}/corrections/review`,'POST',intent,doc.revision);
+ assert.equal(reviewed.status,200,JSON.stringify(reviewed));
+ const posted=await request(f.company,`/accounting-documents/${doc.id}/corrections`,'POST',{...intent,review_token:reviewed.data.review_token},doc.revision);
+ assert.equal(posted.status,200,JSON.stringify(posted));return {f,doc,intent,receipt:posted.data};
+}
+for(const kind of ['sales_invoice','purchase_bill']) test(`${kind}: correction discovery is actor-filtered read-only validated history`,async()=>{
+ const {f,doc,intent,receipt}=await recordedCorrectionFixture(kind),other=await fixture(),another='correction-discovery-'+randomUUID();
+ await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,$3,'owner',true)",[randomUUID(),f.company,another]);
+ const route=`/accounting-documents/${doc.id}/corrections/operations`;
+ const empty=await request(f.company,route,'GET',undefined,undefined,another);assert.deepEqual(empty.data,{company_id:f.company,document_id:doc.id,has_more:false,receipts:[]});
+ const second={...intent,request_id:randomUUID(),reason:'Other actor correction',line_items:[{quantity:'1',unit_price:'96'}]};
+ const review=await request(f.company,`/accounting-documents/${doc.id}/corrections/review`,'POST',second,receipt.revision,another);assert.equal(review.status,200);
+ const posted=await request(f.company,`/accounting-documents/${doc.id}/corrections`,'POST',{...second,review_token:review.data.review_token},receipt.revision,another);assert.equal(posted.status,200);
+ const snapshot=async()=>(await admin.query(`SELECT
+  (SELECT jsonb_agg(to_jsonb(x) ORDER BY id) FROM accounting_document_amendments x WHERE company_id=$1) amendments,
+  (SELECT jsonb_agg(to_jsonb(x) ORDER BY id) FROM canonical_journal_entries x WHERE company_id=$1) journals,
+  (SELECT jsonb_agg(to_jsonb(x) ORDER BY id) FROM canonical_journal_lines x WHERE company_id=$1) lines,
+  (SELECT jsonb_agg(to_jsonb(x) ORDER BY id) FROM accounting_posting_effects x WHERE company_id=$1) effects,
+  (SELECT to_jsonb(x) FROM accounting_document_sources x WHERE company_id=$1 AND id=$2) original`,[f.company,doc.id])).rows[0];
+ const before=await snapshot();
+ const found=await request(f.company,route);assert.equal(found.status,200);assert.equal(found.data.has_more,false);
+ assert.deepEqual(found.data.receipts,[{request_id:intent.request_id,document_id:doc.id,revision:receipt.revision,journal_id:receipt.journal_id,effective_date:intent.effective_date,reason:intent.reason}]);
+ const own=await request(f.company,route,'GET',undefined,undefined,another);assert.equal(own.data.receipts.length,1);assert.equal(own.data.receipts[0].request_id,second.request_id);
+ const known=await request(f.company,route+'/'+intent.request_id);assert.equal(known.data.receipt.journal_id,receipt.journal_id);
+ assert.equal((await request(f.company,route+'/'+intent.request_id,'GET',undefined,undefined,another)).status,404);
+ assert.equal((await request(f.company,route,'GET',undefined,undefined,null)).status,401);
+ assert.equal((await request(f.company,route,'GET',undefined,undefined,readOnly)).status,403);
+ assert.equal((await request(other.company,route)).status,404);
+ assert.equal((await request(f.company,route+'?actor='+another)).status,400);
+ assert.notEqual((await request(f.company,'/accounting-documents/not-a-uuid/corrections/operations')).status,200);
+ const draft=await create(f,kind,source(kind==='sales_invoice'?f.customer:f.supplier));
+ assert.equal((await request(f.company,`/accounting-documents/${draft.id}/corrections/operations`)).status,409);
+ const current=await request(f.company,`/accounting-documents/${doc.id}`);assert.equal(current.status,200);
+ const credit=await creditDoc(f,current.data,'0.1','2026-10-23');
+ assert.equal((await request(f.company,`/accounting-documents/${credit.id}/corrections/operations`)).status,409);
+ await admin.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
+ assert.equal((await request(f.company,route)).status,404);assert.equal((await request(f.company,route+'/'+intent.request_id)).status,404);
+ assert.deepEqual(await snapshot(),before);
+});
+
+for(const kind of ['sales_invoice','purchase_bill']) test(`isolated Chromium: ${kind} discovers and verifies a recorded correction without its locator`,async()=>{
+ const fs=await import('node:fs'),cp=await import('node:child_process'),{createRequire}=await import('node:module');
+ const {f,doc,intent,receipt}=await recordedCorrectionFixture(kind);
+ const snapshot=async()=>(await admin.query(`SELECT
+  (SELECT jsonb_agg(to_jsonb(x) ORDER BY id) FROM accounting_document_amendments x WHERE company_id=$1) amendments,
+  (SELECT jsonb_agg(to_jsonb(x) ORDER BY id) FROM canonical_journal_entries x WHERE company_id=$1) journals,
+  (SELECT jsonb_agg(to_jsonb(x) ORDER BY id) FROM canonical_journal_lines x WHERE company_id=$1) lines,
+  (SELECT jsonb_agg(to_jsonb(x) ORDER BY id) FROM accounting_posting_effects x WHERE company_id=$1) effects,
+  (SELECT to_jsonb(x) FROM accounting_document_sources x WHERE company_id=$1 AND id=$2) original`,[f.company,doc.id])).rows[0];
+ const before=await snapshot();assert.equal(before.amendments.length,1);assert.equal(before.journals.length,2);
+ const dir=fs.mkdtempSync('/tmp/correction-discovery-browser-'),root=process.cwd(),entry=path.join(dir,'entry.jsx'),bundle=path.join(dir,'bundle.js');
+ const app=express();app.use(express.json());let pageLoads=0,posts=0,lists=0,reads=0,stage='startup',report:(value:any)=>void=()=>{};
+ let browser:ReturnType<typeof cp.spawn>|undefined,timer:ReturnType<typeof setTimeout>|undefined;
+ app.post('/acceptance',(req,res)=>{res.json({ok:true});report(req.body);});
+ app.post('/progress',(req,res)=>{stage=String(req.body.stage);res.json({ok:true});});
+ app.get('/scenario',(_req,res)=>res.json({reloaded:pageLoads>1}));
+ app.use('/api/companies/:companyId',(req,res,next)=>{req.headers['x-test-actor']=actor;if(req.method!=='GET')posts++;
+  if(req.path.endsWith('/corrections/operations'))lists++;else if(req.path.includes('/corrections/operations/'))reads++;next();},createAccountingRouter(auth));
+ const listener=app.listen(0,'127.0.0.1');await new Promise<void>(r=>listener.once('listening',r));
+ try {
+  fs.writeFileSync(entry,`import React,{useState} from 'react';import {createRoot} from 'react-dom/client';import {MemoryRouter} from 'react-router-dom';
+import DocumentCorrections from '@/features/documentCorrections/DocumentCorrections.jsx';
+const expected=${JSON.stringify(receipt)},sourceRequest=${JSON.stringify(intent.request_id)};let refreshes=0;
+const assert=(ok,message)=>{if(!ok)throw Error(message)};
+const report=(passed,error=null)=>fetch('/acceptance',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({passed,error,refreshes})});
+window.addEventListener('unhandledrejection',e=>report(false,String(e.reason?.message??e.reason)));window.addEventListener('error',e=>report(false,e.message));
+function App(){const[confirmed,setConfirmed]=useState(null);return <MemoryRouter><DocumentCorrections companyId=${JSON.stringify(f.company)} documentId=${JSON.stringify(doc.id)} onSaved={receipt=>{assert(!new URLSearchParams(location.search).has('correction_request')&&!new URLSearchParams(location.search).has('correction_recovery'),'locator must clear before refresh');assert(receipt.id===sourceRequest&&receipt.revision===expected.revision&&receipt.journal_id===expected.journal_id,'receipt identity mismatch');refreshes++;setConfirmed(receipt);}}/>{confirmed&&<p data-testid="verified-correction">Verified correction {confirmed.id}</p>}</MemoryRouter>}
+createRoot(document.getElementById('root')).render(<App/>);
+const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent===text);
+const wait=async(fn,label)=>{await fetch('/progress',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stage:label})});for(let i=0;i<160;i++){if(fn())return;await new Promise(r=>setTimeout(r,25));}throw Error('Timed out: '+label+' '+document.body.textContent.slice(-1800));};
+(async()=>{const scenario=await fetch('/scenario').then(r=>r.json());
+ await wait(()=>button('Find a recorded correction'),'entry');
+ if(!scenario.reloaded){assert(!new URLSearchParams(location.search).has('correction_request'),'fixture unexpectedly has locator');button('Find a recorded correction').click();}
+ await wait(()=>button('This is my correction — verify receipt'),'explicit choice');
+ assert(document.body.textContent.includes(sourceRequest),'actor receipt missing');assert(refreshes===0&&!document.querySelector('[data-testid="verified-correction"]'),'automatic receipt selection');
+ assert(!button('Post correction')&&!button('Review revised amounts'),'discovery exposed write controls');
+ assert(localStorage.length===0&&sessionStorage.length===0,'financial state stored in browser');
+ if(!scenario.reloaded){assert(new URLSearchParams(location.search).get('correction_recovery')==='lost','discovery mode not retained');location.reload();return;}
+ button('This is my correction — verify receipt').click();await wait(()=>document.querySelector('[data-testid="verified-correction"]'),'fresh verified receipt');
+ assert(refreshes===1,'parent refreshed more than once');assert(!document.querySelector('[aria-label="Find a recorded correction"]'),'recovery did not close');
+ assert(localStorage.length===0&&sessionStorage.length===0,'receipt persisted financial browser data');await report(true);
+})().catch(e=>report(false,e.message));`);
+  createRequire(path.join(root,'artifacts/api-server/package.json'))('esbuild').buildSync({entryPoints:[entry],outfile:bundle,bundle:true,platform:'browser',format:'iife',jsx:'automatic',alias:{'@':path.join(root,'artifacts/ledgerly/src')},nodePaths:[path.join(root,'artifacts/ledgerly/node_modules')],define:{'process.env.NODE_ENV':'"production"'}});
+  app.get('/bundle.js',(_req,res)=>res.type('js').send(fs.readFileSync(bundle,'utf8')));
+  app.get('/correction',(_req,res)=>{pageLoads++;res.type('html').send('<!doctype html><html><body><div id="root"></div><script src="/bundle.js"></script></body></html>');});
+  const acceptance=new Promise<any>((resolve,reject)=>{timer=setTimeout(()=>reject(Error('Bounded correction discovery timeout at '+stage)),35000);report=value=>{clearTimeout(timer);resolve(value);};});
+  browser=cp.spawn('chromium',['--headless','--disable-gpu','--no-first-run','--disable-background-networking','--user-data-dir='+path.join(dir,'profile'),'http://127.0.0.1:'+(listener.address() as any).port+'/correction'],{stdio:['ignore','pipe','pipe']});
+  let stderr='';browser.stderr!.on('data',chunk=>stderr=(stderr+chunk).slice(-4000));browser.stdout!.resume();
+  const failure=new Promise<never>((_,reject)=>{browser!.once('error',reject);browser!.once('exit',code=>reject(Error('Browser exited before verification '+code+': '+stderr)));});
+  const result=await Promise.race([acceptance,failure]);assert.equal(result.passed,true,JSON.stringify({...result,stage}));assert.equal(result.refreshes,1);
+  assert.equal(posts,0);assert.equal(lists,2);assert.equal(reads,1);assert.equal(pageLoads,2);assert.deepEqual(await snapshot(),before);
+  console.log('CORRECTION_DISCOVERY_BROWSER_ACCEPTANCE',JSON.stringify({kind,actualComponents:true,nativeApi:true,missingLocator:true,explicitSelection:true,freshReceipt:true,actualReload:true,parentRefreshes:1,posts:0,browserStorageEmpty:true,realClerk:false}));
+ }finally{clearTimeout(timer);report=()=>{};if(browser?.pid&&browser.exitCode===null&&browser.signalCode===null)await new Promise<void>(resolve=>{const force=setTimeout(()=>browser?.kill('SIGKILL'),5000);browser!.once('exit',()=>{clearTimeout(force);resolve();});browser!.kill('SIGTERM');});listener.closeAllConnections();await new Promise<void>(r=>listener.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});}
+});

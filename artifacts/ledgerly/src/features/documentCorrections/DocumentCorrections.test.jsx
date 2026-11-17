@@ -34,3 +34,11 @@ test('reloaded recovery without form context stays visible and cannot post',()=>
 test('loading exposes no stale financial values or edit form',()=>{
  const html=render({status:'loading'});assert.ok(!html.includes('£120.00'));assert.ok(!html.includes('Repair labour'));assert.ok(html.includes('aria-busy="true"'));
 });
+
+test('lost-reference discovery explains absence and exposes explicit receipt choices without financial controls',()=>{
+ const html=render({status:'discovery',discovery:true,candidates:[{request_id:'chosen-id',effective_date:'2026-11-17',reason:'Price correction'}],hasMore:true});
+ for(const text of ['Find a recorded correction','This is my correction','empty list does not prove failure','latest 100','chosen-id'])assert.ok(html.includes(text),text);
+ assert.ok(!html.includes('Post correction'));assert.ok(!html.includes('Review revised amounts'));assert.match(html,/disabled=""[^>]*>Close/);
+ const empty=render({status:'discovery',discovery:true,candidates:[]});assert.ok(empty.includes('missing outcome remains unconfirmed'));
+ const busy=render({status:'checking',discovery:true,candidates:[{request_id:'chosen-id',reason:'Example'}]});assert.match(busy,/disabled=""[^>]*>This is my correction/);
+});

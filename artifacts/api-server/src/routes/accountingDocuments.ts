@@ -12,7 +12,7 @@ import { journal, reports } from "../services/accountingDocuments/reports";
 import { CanonicalPostingError, type DatabaseTransaction } from "../services/accounting/canonicalPosting";
 import { chart, AccountSelectionError } from "../services/accountingDocuments/accounts";
 import { saveAccount } from "../services/accountingDocuments/chart";
-import { correctionContext, reviewCorrection, commitCorrection, correctionHistory, recoverCorrection } from "../services/accountingDocuments/corrections";
+import { correctionContext, reviewCorrection, commitCorrection, correctionHistory, recoverCorrection, discoverCorrections } from "../services/accountingDocuments/corrections";
 
 import { paymentContext, savePaymentConfiguration, listPayments, previewPayment, postPayment, recoverPayment, discoverPayments, terminatePaymentAttempt } from '../services/accountingDocuments/payments';
 import { createClaims, listClaims, confirmReceipt, cancelClaim } from '../services/creditTracking/service';
@@ -133,6 +133,10 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
   });
   router.get('/accounting-documents/:id/correction-context',async(req,res)=>{
     const {company,actor,id}=ids(req);res.json({data:await correctionContext(company,actor,id)});
+  });
+  router.get('/accounting-documents/:id/corrections/operations',async(req,res)=>{
+    const {company,actor,id}=ids(req);if(Object.keys(req.query).length)fail(400,'INVALID_REQUEST_SHAPE');
+    res.json({data:await discoverCorrections(company,actor,id)});
   });
   router.get('/accounting-documents/:id/corrections/operations/:requestId',async(req,res)=>{
     const {company,actor,id}=ids(req);res.json({data:await recoverCorrection(company,actor,id,String(req.params.requestId))});

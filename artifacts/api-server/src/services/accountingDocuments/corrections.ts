@@ -84,6 +84,23 @@ export async function correctionHistory(company: string, actor: string, id: stri
   return transact(async q => { await authority(q, company, actor); return publicHistory(await amendmentHistory(q, company, await document(q, company, id))); }, true);
 }
 
+/** Discovery is a read of validated committed history, never proof that an
+ * absent attempt failed. Filter ownership before applying the display bound. */
+export async function discoverCorrections(company: string, actor: string, id: string) {
+  uuid(company); uuid(id);
+  return transact(async q => {
+    await authority(q, company, actor, false, true);
+    if (!await amendmentSchema(q)) fail(503, 'CORRECTION_SCHEMA_UNAVAILABLE');
+    const original = await document(q, company, id);
+    if (!['sales_invoice', 'purchase_bill'].includes(original.kind) || original.status !== 'posted') fail(409, 'CORRECTION_KIND_UNSUPPORTED');
+    const history = await amendmentHistory(q, company, original);
+    const owned = history.rows.filter(row => row.actor_id === actor);
+    return { company_id: company, document_id: id, has_more: owned.length > 100,
+      receipts: owned.slice(-100).reverse().map(row => ({ request_id: row.request_id, document_id: id,
+        revision: row.revision, journal_id: row.journal_id, effective_date: row.effective_date, reason: row.reason })) };
+  }, true);
+}
+
 /** Read-only outcome lookup. Unknown is not proof of failure: an in-flight
  * transaction may still commit. Never retry or create an operation here. */
 export async function recoverCorrection(company:string,actor:string,id:string,requestId:string) {

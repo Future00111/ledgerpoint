@@ -127,3 +127,11 @@ test('terminal resolution posts only exact selected binding to the protected sco
  assert.equal(seen.url,'/api/companies/company%2Fid/accounting-payments/operations/attempt%2Fid/no-effect');
  assert.equal(seen.init.method,'POST');assert.deepEqual(JSON.parse(seen.init.body),binding);
 });
+
+test('correction discovery uses a scoped abortable GET without financial body or headers',async()=>{
+ const calls=[],abort=new AbortController();const api=createAccountingClient(async(url,options)=>{calls.push({url,options});return {ok:true,status:200,json:async()=>({data:{receipts:[]}})};});
+ await api.discoverCorrections('company/a','document?b',abort.signal);
+ assert.equal(calls[0].url,'/api/companies/company%2Fa/accounting-documents/document%3Fb/corrections/operations');
+ assert.equal(calls[0].options.method,'GET');assert.equal(calls[0].options.signal,abort.signal);assert.equal(calls[0].options.body,undefined);
+ assert.ok(!calls[0].options.headers['If-Match']);
+});

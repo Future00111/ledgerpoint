@@ -94,6 +94,7 @@ export function createAccountingClient(fetcher = (...a) => fetch(...a)) {
     get: (c, id, signal) => call(`${docs(c)}/${encodeURIComponent(id)}`, { signal }),
     correctionContext: (c, id, signal) => call(`${docs(c)}/${encodeURIComponent(id)}/correction-context`, { signal }),
     correctionHistory: (c, id, signal) => call(`${docs(c)}/${encodeURIComponent(id)}/corrections`, { signal }),
+    discoverCorrections: (c, id, signal) => call(`${docs(c)}/${encodeURIComponent(id)}/corrections/operations`, { signal }),
     recoverCorrection: (c, id, requestId, signal) => call(`${docs(c)}/${encodeURIComponent(id)}/corrections/operations/${encodeURIComponent(requestId)}`, { signal }),
     reviewCorrection: (c, id, body, revision) => call(`${docs(c)}/${encodeURIComponent(id)}/corrections/review`, { method: 'POST', body, revision }),
     commitCorrection: (c, id, body, revision) => call(`${docs(c)}/${encodeURIComponent(id)}/corrections`, { method: 'POST', body, revision }),

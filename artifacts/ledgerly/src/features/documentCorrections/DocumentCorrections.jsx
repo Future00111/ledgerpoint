@@ -7,13 +7,22 @@ import { Money, ErrorBox, JournalLink, SkeletonRows, today } from '@/components/
 import { canReviewCorrection, correctionForm, createCorrectionController } from './model.mjs';
 
 export default function DocumentCorrections({ companyId, documentId, onSaved }) {
-  const [open, setOpen] = useState(() => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('correction_request'));
+  const [open, setOpen] = useState(() => typeof window !== 'undefined' && (new URLSearchParams(window.location.search).has('correction_request') || new URLSearchParams(window.location.search).get('correction_recovery') === 'lost'));
+  const [entryError, setEntryError] = useState(null);
   const close = () => {
-    const url=new URL(window.location.href);url.searchParams.delete('correction_request');
-    window.history.replaceState(window.history.state,'',url);setOpen(false);
+    try {
+      const url=new URL(window.location.href);url.searchParams.delete('correction_request');url.searchParams.delete('correction_recovery');
+      window.history.replaceState(window.history.state,'',url);setEntryError(null);setOpen(false);return true;
+    } catch { return false; }
+  };
+  const find = () => {
+    try { const url=new URL(window.location.href);url.searchParams.set('correction_recovery','lost');
+      window.history.replaceState(window.history.state,'',url);setEntryError(null);setOpen(true);
+    } catch { setEntryError(Error('Could not retain the recovery page. No request was sent.')); }
   };
   return <section className="workspace-card p-5" aria-label="Document corrections">
-    <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-semibold">Corrections & history</h2><p className="mt-1 text-sm text-muted-foreground">Review an amount change while preserving the original and payment history.</p></div><Button variant="outline" onClick={() => setOpen(true)} disabled={open}>Review corrections</Button></div>
+    <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-semibold">Corrections & history</h2><p className="mt-1 text-sm text-muted-foreground">Review an amount change while preserving the original and payment history.</p></div><Button variant="outline" onClick={() => setOpen(true)} disabled={open}>Review corrections</Button><Button variant="outline" onClick={find} disabled={open}>Find a recorded correction</Button></div>
+    <ErrorBox error={entryError} />
     {open && <CorrectionEditor key={`${companyId}:${documentId}`} companyId={companyId} documentId={documentId} onSaved={onSaved} onClose={close} />}
   </section>;
 }
@@ -23,13 +32,16 @@ function CorrectionEditor({ companyId, documentId, onSaved, onClose }) {
   const notified = useRef(false);
   useEffect(() => {
     if (state.status !== 'posted' || notified.current) return;
-    notified.current = true;
-    onClose(); // Clear the locator before the parent refetch can remount recovery.
+    if (onClose() === false) {
+      setState(previous => ({...previous,status:'unknown',error:Error('Could not clear the recovery link. Check this correction again before continuing.')}));return;
+    }
+    notified.current = true; // Clear the locator before the parent refetch can remount recovery.
     savedCallback.current?.(state.receipt);
   }, [state.status, state.receipt, onClose]);
   useEffect(() => {
     const session = createCorrectionController({ client: accounting, companyId, documentId,
       recoveryRequestId:new URLSearchParams(window.location.search).get('correction_request'),
+      discoveryMode:new URLSearchParams(window.location.search).get('correction_recovery')==='lost',
       rememberRequest: requestId => {
         const url=new URL(window.location.href);url.searchParams.set('correction_request',requestId);
         window.history.replaceState(window.history.state,'',url);
@@ -47,20 +59,33 @@ function CorrectionEditor({ companyId, documentId, onSaved, onClose }) {
   return <CorrectionWorkspace state={state} form={form} acknowledged={ack} onAcknowledge={setAck} onChange={change}
     onReview={() => { setAck(false); controller.current.review(form); }} onPost={() => controller.current.post()}
     onRecover={() => controller.current.recover()}
+    onDiscover={() => controller.current.discover()} onSelectReceipt={id => controller.current.selectReceipt(id)}
     onRefresh={() => { setAck(false); controller.current.load(); }} onClose={() => {
       onClose(); // Remove the recovery locator before a parent document refresh.
     }} />;
 }
 
-export function CorrectionWorkspace({ state, form, acknowledged, onAcknowledge, onChange, onReview, onPost, onRecover, onRefresh, onClose }) {
+export function CorrectionWorkspace({ state, form, acknowledged, onAcknowledge, onChange, onReview, onPost, onRecover, onDiscover, onSelectReceipt, onRefresh, onClose }) {
   const { context, review, status } = state;
-  const busy = ['loading', 'reviewing', 'posting', 'checking'].includes(status), uncertain = status === 'unknown';
+  const busy = ['loading', 'reviewing', 'posting', 'checking', 'discovering'].includes(status), uncertain = status === 'unknown' || (state.discovery && status !== 'posted');
   const editable = canReviewCorrection(context) && ['ready', 'reviewed'].includes(status);
   return <div className="mt-5 space-y-5 border-t pt-5">
     <ErrorBox error={state.error} onRetry={status === 'error' ? onRefresh : undefined} />
     {status === 'loading' && <SkeletonRows rows={4} />}
+    {state.discovery && status !== 'posted' && <section aria-label="Find a recorded correction" className="space-y-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm">
+      <h3 className="font-semibold">Find a recorded correction</h3>
+      <p>Only corrections recorded by your account on this document are listed. Select the exact correction you recognise to verify its current receipt. Checking never sends a correction.</p>
+      <p>If your correction is missing, it may still be processing. An empty list does not prove failure. Do not create a replacement correction.</p>
+      <Button variant="outline" disabled={busy || Boolean(state.requestId)} onClick={onDiscover}>{status === 'discovering' ? 'Checking recorded corrections…' : 'Check my recorded corrections'}</Button>
+      {state.candidates?.length === 0 && <p>No recorded corrections found for your account on this document. The missing outcome remains unconfirmed.</p>}
+      {state.hasMore && <p>Only the latest 100 matching corrections are shown. Older attempts remain unconfirmed here.</p>}
+      {state.candidates?.map(item => <div key={item.request_id} className="space-y-2 rounded border p-3">
+        <p>{item.effective_date} · {item.reason}</p><p className="break-all text-xs">Correction reference: {item.request_id}</p>
+        <Button variant="outline" disabled={busy || Boolean(state.requestId && state.requestId !== item.request_id)} onClick={() => onSelectReceipt(item.request_id)}>This is my correction — verify receipt</Button>
+      </div>)}
+    </section>}
     {status === 'checking' && <p role="status">Checking the recorded correction. No changes are being sent…</p>}
-    {uncertain && <div role="alert" className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm"><p>This correction may already be posted or still processing. Check its recorded outcome; do not enter another correction.</p><Button className="mt-3" variant="outline" onClick={onRecover}>Check this correction again</Button><p className="mt-2 text-xs">This page’s recovery link survives reload. Checking is read-only and never resubmits the correction.</p></div>}
+    {status === 'unknown' && <div role="alert" className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm"><p>This correction may already be posted or still processing. Check its recorded outcome; do not enter another correction.</p><Button className="mt-3" variant="outline" onClick={onRecover}>Check this correction again</Button><p className="mt-2 text-xs">This page’s recovery link survives reload. Checking is read-only and never resubmits the correction.</p></div>}
     {status === 'posted' && <p role="status" className="text-sm text-emerald-800">Correction recorded. <JournalLink id={state.receipt?.journal_id} /></p>}
     {context && <>
       <div className="rounded-lg border bg-muted/30 p-4 text-sm leading-relaxed"><p>The original document, its tax point and payments stay recorded. A correction adds a dated adjustment to the accounts.</p><p className="mt-2 font-medium">Eligible corrected invoices and bills can receive credit notes through the credit workflow, within their remaining line amounts. Conditional-discount replacement terms and return-credit tracking on corrected bills are not available. Posted credits remain included in the outstanding balance. Revised amounts must cover existing credits and allocated payments; a linked draft credit must be resolved before correction.</p><p className="mt-2 text-muted-foreground">Party, VAT codes, accounts, discounts, notes and line order stay fixed. Credit notes and metadata-only edits are not supported here yet.</p></div>

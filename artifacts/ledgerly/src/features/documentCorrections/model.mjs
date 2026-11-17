@@ -21,15 +21,52 @@ export function correctionIntent(form, requestId) {
 }
 export const canReviewCorrection = context => context?.capabilities?.review_corrections === true && Array.isArray(context.blockers) && context.blockers.length === 0;
 
+function discoveryReceipts(result, companyId, documentId) {
+  const fields = ['request_id', 'document_id', 'revision', 'journal_id', 'effective_date', 'reason'];
+  if (result?.company_id !== companyId || result.document_id !== documentId || typeof result.has_more !== 'boolean' ||
+      !Array.isArray(result.receipts) || result.receipts.length > 100 || Object.keys(result).some(key => !['company_id','document_id','has_more','receipts'].includes(key))) throw Error('Recorded corrections could not be verified.');
+  const ids = new Set(), journals = new Set(), revisions = new Set();
+  for (const item of result.receipts) {
+    if (!item || Object.keys(item).length !== fields.length || Object.keys(item).some(key => !fields.includes(key)) ||
+        !uuid(item.request_id) || !uuid(item.journal_id) || !uuid(item.revision) || item.document_id !== documentId ||
+        typeof item.reason !== 'string' || !item.reason.trim() || item.reason.length > 1000 ||
+        typeof item.effective_date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(item.effective_date) ||
+        !Number.isFinite(Date.parse(item.effective_date+'T00:00:00Z')) || new Date(item.effective_date+'T00:00:00Z').toISOString().slice(0,10) !== item.effective_date ||
+        ids.has(item.request_id) || journals.has(item.journal_id) || revisions.has(item.revision)) throw Error('Recorded corrections could not be verified.');
+    ids.add(item.request_id); journals.add(item.journal_id); revisions.add(item.revision);
+  }
+  return frozen(copy(result.receipts));
+}
+
 /** Persist only a request locator before sending. The server remains the
  * authority; a reload never reconstructs financial intent or reposts it. */
-export function createCorrectionController({ client, companyId, documentId, onState = () => {}, makeRequestId = () => crypto.randomUUID(), onSaved = () => {}, rememberRequest = () => {}, forgetRequest = () => {}, recoveryRequestId = null }) {
+export function createCorrectionController({ client, companyId, documentId, onState = () => {}, makeRequestId = () => crypto.randomUUID(), onSaved = () => {}, rememberRequest = () => {}, forgetRequest = () => {}, recoveryRequestId = null, discoveryMode = false }) {
   let active = true, generation = 0, abort;
-  let state = { status: 'idle', context: null, review: null, pending: null, error: null, receipt: null, requestId: recoveryRequestId };
+  let state = { status: 'idle', context: null, review: null, pending: null, error: null, receipt: null, requestId: recoveryRequestId,
+    discovery: discoveryMode, candidates: null, hasMore: false, selectedReceipt: null };
   const current = g => active && generation === g;
   const emit = patch => { state = { ...state, ...patch }; if (active) onState(state); };
   return {
     get state() { return state; },
+    async discover() {
+      if (!active || !state.discovery || state.requestId || ['posting','checking','discovering'].includes(state.status)) return;
+      const g = ++generation; abort?.abort(); abort = new AbortController();
+      emit({ status: 'discovering', candidates: null, error: null });
+      try {
+        const result = await client.discoverCorrections(companyId, documentId, abort.signal);
+        if (!current(g)) return;
+        emit({ status: 'discovery', candidates: discoveryReceipts(result, companyId, documentId), hasMore: result.has_more });
+      } catch (error) { if (current(g)) emit({ status: 'discovery', candidates: null, error }); }
+    },
+    async selectReceipt(requestId) {
+      if (!active || !state.discovery || !['discovery','unknown'].includes(state.status) || (state.requestId && state.requestId !== requestId)) return;
+      const selected = state.candidates?.find(item => item.request_id === requestId);
+      if (!selected) return;
+      try { rememberRequest(requestId); }
+      catch (error) { emit({ error: Error('Could not save the recovery link. No correction was selected.') }); return; }
+      emit({ requestId, selectedReceipt: selected, receipt: null });
+      return this.recover();
+    },
     async recover() {
       if(!active || ['posting','checking'].includes(state.status)) return;
       const requestId=state.requestId??state.pending?.body.request_id;
@@ -45,6 +82,8 @@ export function createCorrectionController({ client, companyId, documentId, onSt
         const receipt=result.receipt;
         if(receipt?.id!==requestId || receipt.document_id!==documentId || receipt.status!=='posted' || !uuid(receipt.journal_id)||!uuid(receipt.revision))
           throw Error('The correction receipt could not be verified.');
+        if(state.selectedReceipt && (receipt.revision!==state.selectedReceipt.revision || receipt.journal_id!==state.selectedReceipt.journal_id))
+          throw Error('The correction receipt changed. Keep checking the original request before continuing.');
         emit({status:'posted',receipt,pending:null,requestId});
         // Do not refetch/unmount automatically while the recovery locator is in
         // the URL: remounting would recover and refetch indefinitely.
@@ -52,6 +91,7 @@ export function createCorrectionController({ client, companyId, documentId, onSt
     },
     async load() {
       if(state.requestId) return this.recover();
+      if(state.discovery) return this.discover();
       if (!active || state.status === 'posting' || state.status === 'unknown') return;
       const g = ++generation; abort?.abort(); abort = new AbortController();
       emit({ status: 'loading', context: null, review: null, pending: null, error: null, receipt: null });
