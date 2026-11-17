@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 470,
+  "revision": 472,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "a055f0266e7ff6378f8a6262fb6cca1571ad7144",
@@ -11,7 +11,7 @@
     "runId": "correction-admission-1794930354689",
     "tokenSha256": "6cb56a60ff352751c29816cb471fd40609e739229fead190dbd2d5bd4c275760",
     "acquiredAt": 1794930354689,
-    "expiresAt": 1794933054689
+    "expiresAt": 1794935650250
   },
   "lastOwner": {
     "runId": "correction-discovery-1794927549982",
@@ -21,19 +21,19 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "f7b8910de3750f9d238f5460ebaa18467b32ff9a",
+    "sha": "4ca2f3082947a8048f46e3682122c3699aba8221",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "f7b8910de3750f9d238f5460ebaa18467b32ff9a",
-        "path": "docs/development/candidates/correction-admission-20261117/progress-1.json"
+        "sha": "4ca2f3082947a8048f46e3682122c3699aba8221",
+        "path": "docs/development/candidates/correction-admission-20261117/review/checkpoint.json"
       }
     ],
     "runId": "correction-admission-1794930354689",
-    "at": 1794931639556,
+    "at": 1794932050246,
     "codeHead": "a055f0266e7ff6378f8a6262fb6cca1571ad7144"
   },
-  "updatedAt": 1794931639556,
+  "updatedAt": 1794932050250,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -139,11 +139,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "e947d64f024540a3d12dc173900f38defabe0a77",
-    "path": "docs/development/candidates/correction-admission-20261117/claim-queue-delta.json",
-    "bytesSha256": "1edc71caeb8355cb6c2f01bab86220ba69b54f0fe004c91a2c225a70b65aee8a",
-    "queueSha256": "ce32def8e6ec2168c1b6603dcf38df4da3744db3613b3e7d1d6be01ee75d6a8b",
-    "revision": 873,
+    "sha": "4ca2f3082947a8048f46e3682122c3699aba8221",
+    "path": "docs/development/candidates/correction-admission-20261117/review/review-queue-delta.json",
+    "bytesSha256": "160e26b2f0d415781f05f45296b809bd1878d41c476412d4eb774680ac3201d4",
+    "queueSha256": "8e96ad1249295a00fba75c6ea52bde3a6c7b1c3d54160ecbb1c1e1d0fe96ca9f",
+    "revision": 875,
     "catalogDigest": "0ab5eee68ef6c5d706b5268a95520543f44f4b60a71848f5804ad18d791ebdbd"
   },
   "historyReference": {
