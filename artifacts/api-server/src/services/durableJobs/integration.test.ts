@@ -124,7 +124,9 @@ test('runtime and owner SQL cannot rewrite durable history; tenant FKs reject fo
  for(const table of['durable_jobs','durable_job_events','durable_outbox'])for(const sql of[`UPDATE ${table} SET company_id=company_id`,`DELETE FROM ${table}`,`TRUNCATE ${table}`]){
   await assert.rejects(()=>pool.query(sql),code('42501'));if(!sql.startsWith('TRUNCATE'))await assert.rejects(()=>admin.query(sql),code('P0001'));
  }
- await assert.rejects(()=>admin.query('TRUNCATE durable_outbox,durable_job_events,durable_jobs'),code('P0001'));
+ // Include every referencing execution table so PostgreSQL reaches the immutable
+ // trigger rather than rejecting this privileged probe during FK preflight.
+ await assert.rejects(()=>admin.query('TRUNCATE durable_job_execution_outbox,durable_job_execution_events,durable_outbox,durable_job_events,durable_jobs'),code('P0001'));
  await assert.rejects(()=>admin.query(`INSERT INTO durable_jobs(company_id,job_id,request_id,source_id,source_revision,source_sha256,actor_id,contract,storage_version,recipe_provider,recipe_version,recipe_fingerprint,max_attempts)
  SELECT $1,job_id,$2,source_id,source_revision,source_sha256,actor_id,contract,storage_version,recipe_provider,recipe_version,recipe_fingerprint,max_attempts FROM durable_jobs WHERE company_id=$3 AND job_id=$4`,[other.company,randomUUID(),f.company,queued.job.job_id]),code('23503'));
 });
