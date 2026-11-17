@@ -1,0 +1,36 @@
+{
+  "oldCatalogDigest": "1d71c92a1d6f52bff4703e791a48c36cfc474b17dd687dc6b421d02740a0b2a3",
+  "newCatalogDigest": "10b841806aa07b58201daa49008d9c865eaa3e58190bc285151eab5349ad1485",
+  "priorSourceSeedDigest": "4a4d6a7a34c9e133364ffbfbf4979a8ceacd73ef9436d0db7a7f5a7f00336058",
+  "currentQueueRevision": 866,
+  "currentEvents": 881,
+  "sourceSeedRevision": 531,
+  "sourceSeedEvents": 539,
+  "taskCount": 112,
+  "sourceBulletCount": 92,
+  "onlyFourOwnershipPathsAdded": true,
+  "allOtherCatalogFieldsPreserved": true,
+  "currentQueueTasksAndEventsUnchanged": true,
+  "sourceSeedTasksAndEventsUnchanged": true,
+  "allWorkersStopped": true,
+  "overlapWithP05Preserved": true,
+  "runtimeNotInstalledYet": true,
+  "exported": true,
+  "authorCommit": "2ebbaa8955e23c3809e792399f32862b41f02cdf",
+  "tree": "abd585d1ee2584ac55bb6cd0bf866a56c7e12164",
+  "basePublished": "77830812f93b7ddba1e7382ec69e0e963adbc7ac",
+  "reviewer": "capture_implementation",
+  "reviewed": true,
+  "checks": 103,
+  "priorCurrentQueue": {
+    "sha": "076d64c4d43cea582a2c38e6ad118965d31db731",
+    "path": "docs/development/work-coordinator.json",
+    "field": "queueState",
+    "sha256": "6b0af4cfd7807c6b8bc62b3069f18c48f014a61daff381f091af17bee14ad6b0"
+  },
+  "priorSourceSeed": {
+    "sha": "77830812f93b7ddba1e7382ec69e0e963adbc7ac",
+    "path": "docs/development/work-state.json"
+  },
+  "runtimeInstallation": "Pending publication; old runtime still installed; do not initialize source seed instead of migrated current queue."
+}

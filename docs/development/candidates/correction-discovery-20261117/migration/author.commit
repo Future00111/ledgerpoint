@@ -1,0 +1,6 @@
+tree abd585d1ee2584ac55bb6cd0bf866a56c7e12164
+parent 77830812f93b7ddba1e7382ec69e0e963adbc7ac
+author Codex <codex@openai.com> 1794927835 +0000
+committer Codex <codex@openai.com> 1794927835 +0000
+
+Extend recovery file ownership for correction discovery

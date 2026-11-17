@@ -1,0 +1,19 @@
+{
+  "oldCatalogDigest": "1d71c92a1d6f52bff4703e791a48c36cfc474b17dd687dc6b421d02740a0b2a3",
+  "newCatalogDigest": "10b841806aa07b58201daa49008d9c865eaa3e58190bc285151eab5349ad1485",
+  "priorSourceSeedDigest": "4a4d6a7a34c9e133364ffbfbf4979a8ceacd73ef9436d0db7a7f5a7f00336058",
+  "currentQueueRevision": 866,
+  "currentEvents": 881,
+  "sourceSeedRevision": 531,
+  "sourceSeedEvents": 539,
+  "taskCount": 112,
+  "sourceBulletCount": 92,
+  "onlyFourOwnershipPathsAdded": true,
+  "allOtherCatalogFieldsPreserved": true,
+  "currentQueueTasksAndEventsUnchanged": true,
+  "sourceSeedTasksAndEventsUnchanged": true,
+  "allWorkersStopped": true,
+  "overlapWithP05Preserved": true,
+  "runtimeNotInstalledYet": true,
+  "exported": true
+}
