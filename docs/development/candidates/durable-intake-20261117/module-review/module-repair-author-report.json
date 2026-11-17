@@ -1,0 +1,50 @@
+{
+  "task": "P03-02",
+  "actor": "durable-intake-implementer",
+  "authorCommit": "428b7bc069a8b44066b0ade4346281f541fc445e",
+  "tree": "634bc0b26b8c6107047238b8860ed659b6c0f19d",
+  "base": "b7115f92fcc4b5865eda2b0fad32a27472a3f31b",
+  "clean": true,
+  "stopped": true,
+  "stoppedAt": "2026-11-17T17:56:07.091Z",
+  "cause": "CI44141164259 job134244023037: dynamic import(pg) in external CJS bundle ignores NODE_PATH and fails ERR_MODULE_NOT_FOUND.",
+  "repair": "Static pg import in guarded testTarget; esbuild emits CommonJS require. Loading opens no connection. Added auto-discovered .test.mjs regression compiling exact guard outside workspace, loading from fresh Node process with only API NODE_PATH, and requiring refusal at a newly created absent private Unix endpoint with zero native queries.",
+  "tests": [
+    {
+      "command": "node --test artifacts/api-server/src/services/durableJobs/dependencyLoading.test.mjs",
+      "passed": true,
+      "count": 1,
+      "log": "module-loading.log",
+      "observedSocketRefusal": "EPERM"
+    },
+    {
+      "command": "Previous published testTarget compiled under identical external-CJS/NODE_PATH context",
+      "passed": true,
+      "negativeControl": "Reproduced exact ERR_MODULE_NOT_FOUND",
+      "log": "module-loading-negative-control.log"
+    },
+    {
+      "command": "pnpm --filter @workspace/api-server exec tsc -p tsconfig.json --noEmit",
+      "passed": true,
+      "log": "module-repair-typecheck.log"
+    },
+    {
+      "command": "Exact-worktree native integration/restart/restore bundles",
+      "passed": true
+    },
+    {
+      "command": "node --check new mjs; git diff --check",
+      "passed": true
+    }
+  ],
+  "registration": "Existing tools/development/check.mjs recursively discovers services/*.test.mjs, so no new runner/workflow edit is needed.",
+  "unchanged": [
+    "native queue runtime behavior",
+    "runtime/server permission success criteria",
+    "all SQL and schema pins",
+    "runtime grants",
+    "workflow"
+  ],
+  "scope": "Module-loading and compilation evidence only. EPERM accepted only by loading smoke for an endpoint independently proved absent; real PostgreSQL test criteria unchanged.",
+  "nativePersistenceQualification": "Still requires independent review and successful exact-source native PostgreSQL/restart/restore CI; no acceptance claimed."
+}

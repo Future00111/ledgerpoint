@@ -1,0 +1,1 @@
+Previous published dynamic import reproduced ERR_MODULE_NOT_FOUND in external CJS directory with NODE_PATH

@@ -1,0 +1,10 @@
+DURABLE_GUARD_MODULE_LOADING {"dependencyLoaded":true,"privateServerAbsent":true,"nativeQueries":0,"failureCode":"EPERM"}
+✔ compiled disposable guard resolves pg through NODE_PATH and refuses an absent private server (260.183103ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 500.522334

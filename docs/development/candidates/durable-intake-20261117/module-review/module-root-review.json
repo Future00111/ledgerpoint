@@ -1,0 +1,57 @@
+{
+  "reviewer": "root",
+  "reviewed": true,
+  "authorCommit": "428b7bc069a8b44066b0ade4346281f541fc445e",
+  "tree": "634bc0b26b8c6107047238b8860ed659b6c0f19d",
+  "base": "b7115f92fcc4b5865eda2b0fad32a27472a3f31b",
+  "reviewedAt": "2026-11-17T17:57:58.639Z",
+  "cause": "CI44141164259 job134244023037: dynamic import(pg) in external CJS bundle ignores NODE_PATH and fails ERR_MODULE_NOT_FOUND.",
+  "review": "Static pg import emits CJS require and creates no connection. Exact guarded private endpoint and bootstrap identity checks preserved. New fresh external-directory child process smoke loads exact guard via NODE_PATH, requires an absent-endpoint refusal and zero native queries; old code reproduces module-not-found. EPERM is accepted only as module-loading evidence, never as PostgreSQL success. Only testTarget and new dependency-loading test changed; product code, SQL, grants and workflow unchanged.",
+  "tests": [
+    {
+      "command": "node --test artifacts/api-server/src/services/durableJobs/dependencyLoading.test.mjs",
+      "passed": true,
+      "count": 1,
+      "log": "module-loading.log",
+      "observedSocketRefusal": "EPERM"
+    },
+    {
+      "command": "Previous published testTarget compiled under identical external-CJS/NODE_PATH context",
+      "passed": true,
+      "negativeControl": "Reproduced exact ERR_MODULE_NOT_FOUND",
+      "log": "module-loading-negative-control.log"
+    },
+    {
+      "command": "pnpm --filter @workspace/api-server exec tsc -p tsconfig.json --noEmit",
+      "passed": true,
+      "log": "module-repair-typecheck.log"
+    },
+    {
+      "command": "Exact-worktree native integration/restart/restore bundles",
+      "passed": true
+    },
+    {
+      "command": "node --check new mjs; git diff --check",
+      "passed": true
+    },
+    {
+      "command": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node tools/development/check.mjs",
+      "passed": true,
+      "exitCode": 0,
+      "file": "module-combined.log"
+    },
+    {
+      "command": "pnpm run build",
+      "passed": true,
+      "exitCode": 0,
+      "file": "module-build.log"
+    }
+  ],
+  "stopped": true,
+  "clean": true,
+  "scope": "Targeted test-harness compatibility repair; full native runtime acceptance pending",
+  "priorReviewArchives": [
+    "4a9250fdfa84920ab95352d4d56d27b25a9d169c",
+    "767dba7536cf46fd85ca2be837c5f95263cf3b22"
+  ]
+}
