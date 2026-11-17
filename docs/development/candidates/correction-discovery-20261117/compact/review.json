@@ -1,0 +1,14 @@
+{
+  "reviewed": true,
+  "reviewer": "capture_implementation",
+  "tests": 18,
+  "verdict": "Activation approved after independent rerun. Exact current queue/history preserved; current computed catalogue digest required before loading every reference. Fencing/ownership/PR/approval fields retained. Actual immutable archive refs and bytes must be verified before publication.",
+  "helperSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b",
+  "testsSha256": "8d4d6aa45798415988c6595e2cc56fed8c95dec6ea4a9d10d2131f55d63388fc",
+  "baseBytesSha256": "c99a5f0f126cd9d2254dd4057c2bb9cef245323be923391fb9ce4135c40239a7",
+  "currentQueueRevision": 868,
+  "currentQueueEvents": 883,
+  "runtimeModified": false,
+  "sourceProtocolModified": false,
+  "workerStopped": true
+}

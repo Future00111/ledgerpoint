@@ -1,0 +1,26 @@
+✔ full archive restores every task and historical event exactly (34.071133ms)
+✔ delta restores current status and all ordered history exactly; base stays unchanged (99.338545ms)
+✔ altered archive bytes fail before use (3.310721ms)
+✔ missing pinned archive cannot fall back to a stale source seed (1.582688ms)
+✔ resolved queue digest cannot be substituted (19.256818ms)
+✔ wrong catalogue fails closed (1.943651ms)
+✔ wrong revision fails closed (3.295118ms)
+✔ another repository is never fetched (1.348483ms)
+✔ path traversal is never fetched (0.977924ms)
+✔ historical event rewriting cannot create a delta (11.398138ms)
+✔ catalogue/header changes require a complete snapshot (9.86284ms)
+✔ task deletion cannot create a delta (17.934525ms)
+✔ forged delta result fails even when its byte digest is supplied (29.18064ms)
+✔ unknown replacement task is refused (17.938661ms)
+✔ core queue validation remains mandatory after digest verification (29.177279ms)
+✔ reference chain bound is enforced (0.97469ms)
+✔ current catalogue edits with identical task IDs fail before loading (2.908967ms)
+✔ an omitted current catalogue digest is refused (0.275086ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 657.679924
