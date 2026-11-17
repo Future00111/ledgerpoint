@@ -1,0 +1,24 @@
+{
+  "repository": "Future00111/ledgerpoint",
+  "pullRequest": 29,
+  "source": "4c1062fafacb68f3cce67a17aeef02e07512c761",
+  "author": "336840852fffe4e17af35e0de752e0042e7c73eb",
+  "ciCheckout": "385318f8380ea814d97c4336c74948338fd779ef",
+  "tree": "03fca674291415185a4c1b0cc1e0badbe574aadf",
+  "ci": "https://github.com/Future00111/ledgerpoint/actions/runs/44114197868",
+  "result": "All20stepssuccessunskipped",
+  "scope": "Invoice/bill correction discovery without a saved locator; explicit candidate selection and fresh receipt verification; both native browser journeys pass with reload, zero POSTs, one refresh, empty browser storage.",
+  "checks": {
+    "localSource": 1072,
+    "migrationRegistry": 32,
+    "nativeAccounting": 96,
+    "conditionalDiscount": 150,
+    "populatedRestore": true,
+    "encryptedRecovery": true,
+    "cleanup": true
+  },
+  "review": "Independently reviewed; published source, author and CI checkout share the same tree.",
+  "qualification": "Bounded development feature only; payroll/filing and full parent recovery criteria remain open; synthetic browser authentication does not qualify real Clerk or production.",
+  "archiveStatus": "Publication of full CI logs and internal queue evidence was blocked by automatic approval review. This summary links existing public CI and contains no new queue history, raw logs or task tokens.",
+  "mergeOrDeployment": false
+}
