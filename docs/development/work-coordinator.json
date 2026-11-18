@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "revision": 521,
+  "revision": 522,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "c0edfa572f13f42b37197086160c772324a502e4",
+  "codeHead": "7c70001028ea7228e8b4bbab9ba83d5edeca261f",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -21,29 +21,44 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "2c31cb6bd66b0a4a7f964306c14ac0db6d813281",
+    "sha": "c838ca9e2995af3c3996d99cdbc5259757ab50a2",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "2c31cb6bd66b0a4a7f964306c14ac0db6d813281",
-        "path": "docs/development/candidates/role-audit-20261118/repair/repair-queue-delta.json"
+        "sha": "c838ca9e2995af3c3996d99cdbc5259757ab50a2",
+        "path": "docs/development/candidates/role-audit-20261118/corrected/corrected-queue-delta.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "2c31cb6bd66b0a4a7f964306c14ac0db6d813281",
-        "path": "docs/development/candidates/role-audit-20261118/repair/first-ci.json"
+        "sha": "c838ca9e2995af3c3996d99cdbc5259757ab50a2",
+        "path": "docs/development/candidates/role-audit-20261118/corrected/source-review.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "2c31cb6bd66b0a4a7f964306c14ac0db6d813281",
-        "path": "docs/development/candidates/role-audit-20261118/repair/first-ci.log"
+        "sha": "c838ca9e2995af3c3996d99cdbc5259757ab50a2",
+        "path": "docs/development/candidates/role-audit-20261118/corrected/correction-report.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "c838ca9e2995af3c3996d99cdbc5259757ab50a2",
+        "path": "docs/development/candidates/role-audit-20261118/corrected/publication-preflight.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "c838ca9e2995af3c3996d99cdbc5259757ab50a2",
+        "path": "docs/development/candidates/role-audit-20261118/corrected/final-combined.log"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "c838ca9e2995af3c3996d99cdbc5259757ab50a2",
+        "path": "docs/development/candidates/role-audit-20261118/corrected/final-build.log"
       }
     ],
     "runId": "role-audit-1795014864638",
-    "at": 1795015842979,
-    "codeHead": "c0edfa572f13f42b37197086160c772324a502e4"
+    "at": 1795016117587,
+    "codeHead": "7c70001028ea7228e8b4bbab9ba83d5edeca261f"
   },
-  "updatedAt": 1795015842979,
+  "updatedAt": 1795016117587,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -135,11 +150,11 @@
     {
       "actor": "membership-audit-author",
       "task": "P02-04",
-      "stopped": false,
-      "status": "running"
+      "stopped": true,
+      "status": "review"
     }
   ],
-  "workersStopped": false,
+  "workersStopped": true,
   "discoveryRun": {
     "runId": "correction-discovery-1794927549982",
     "startedAt": "2026-11-17T14:59:10.335Z",
@@ -179,11 +194,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "2c31cb6bd66b0a4a7f964306c14ac0db6d813281",
-    "path": "docs/development/candidates/role-audit-20261118/repair/repair-queue-delta.json",
-    "bytesSha256": "00958fb6010689b036f48cefc5dffa2da63ee39cbb1330226d8fd48d929e89dc",
-    "queueSha256": "73298c39f9322a300a413b44df74886e853a2f6b8cfbf58575f3165aebeb0fad",
-    "revision": 929,
+    "sha": "c838ca9e2995af3c3996d99cdbc5259757ab50a2",
+    "path": "docs/development/candidates/role-audit-20261118/corrected/corrected-queue-delta.json",
+    "bytesSha256": "50e0ee658a2e8b0357888d5e835c2ce2e24dd3d7abdde113634b47a140c0bbf1",
+    "queueSha256": "62b7bb68789447eb2fc9a40b83224e4eea148ac61e66fec183f828fa130221b5",
+    "revision": 930,
     "catalogDigest": "5e86c173103402a6c097d9030aff3479165255a5adb32db747cee1efe4c32983"
   },
   "historyReference": {
@@ -202,7 +217,7 @@
       "constraint": "Current fixture waits for loaded readiness; financial safeguards remain fail-closed."
     }
   ],
-  "worktreesClean": false,
+  "worktreesClean": true,
   "queueHydration": {
     "required": true,
     "note": "queueState is an immutable reference, not a runnable queue. Fetch the exact artifact, verify byte and resolved queue digests and catalogue digest, validate with core.mjs, then hydrate before CLI init/scheduling/currentView. Never initialize an archived base alone. Existing coordinator ownership/fencing and expected-head publication remain unchanged.",
@@ -213,7 +228,7 @@
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
     "baseRevision": 922,
-    "currentRevision": 929,
+    "currentRevision": 930,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
@@ -353,10 +368,10 @@
   },
   "twoTrackRun": {
     "startedAt": "2026-11-18T14:36:15.627Z",
-    "activity": "First CI identified restricted runtime lacks DELETE; test contract correction underway.",
+    "activity": "Reviewed corrected permission fixtures published to draft PR29; exact-source CI pending.",
     "providerCost": null,
     "credits": null,
-    "publishedCommit": "c0edfa572f13f42b37197086160c772324a502e4",
+    "publishedCommit": "7c70001028ea7228e8b4bbab9ba83d5edeca261f",
     "observedAt": "2026-11-18T14:59:09.452Z",
     "publishedTree": "58ab00801fc097080625a7e684277e6a2586bb3e",
     "ciRun": 44329382408,
