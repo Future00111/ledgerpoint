@@ -1,0 +1,53 @@
+{
+  "base": "1c52f77c63599b26c4d90862c485db951f12ca66",
+  "baseTree": "8dfb788aabd7bd7769d252f808f104da53b82c6b",
+  "runStartedAt": "2026-11-18T14:36:15.627Z",
+  "authorStopTarget": "2026-11-18T15:00:00Z",
+  "coordinator": "root",
+  "reviewer": "root",
+  "tracks": [
+    {
+      "task": "P02-04",
+      "actor": "payroll-access-implementer",
+      "provider": "Codex",
+      "files": [
+        "artifacts/api-server/src/security/roles.ts",
+        "artifacts/api-server/src/security/companyPolicy.ts",
+        "artifacts/api-server/src/security/roles.test.ts",
+        "artifacts/api-server/src/security/integration.test.ts",
+        "artifacts/api-server/src/services/tax/access/",
+        "artifacts/api-server/src/services/payroll/access/"
+      ],
+      "scope": "Separate payroll and personal-tax action rights, company membership fencing and redacted audited internal service boundaries. Use existing native membership assignment and audit storage only; ordinary bookkeeping rights do not imply sensitive rights. Qualify strict role matrix, denied reads/exports and atomic allowed-read/change audit using existing disposable security suite. No existing financial role gains authority; no filing/provider route enabled. Full parent stays pending if native sensitive record routes/export wiring are absent."
+    },
+    {
+      "task": "P04-03",
+      "actor": "replit-fixture-implementer",
+      "provider": "Replit browser",
+      "files": [
+        "artifacts/api-server/src/services/tax/fixtures/",
+        "artifacts/api-server/src/services/payroll/fixtures/",
+        "docs/development/tax-payroll-fixture-review.json"
+      ],
+      "scope": "Independently qualify first2026-27Plan1 weekly deduction boundary and dated notice fixtures from pinned official source. Preserve existing reference packs unchanged; add independent reviewed fixture manifest and tests under owned paths, all unknown/future-year/other rule families remain unqualified. No calculation engine or source-register promotion."
+    }
+  ],
+  "replitPreflight": {
+    "connector": "Exact-name resolve and ledger search return no editable app; connected Chrome opened correct LedgerPoint workspace",
+    "app": "https://replit.com/t/team-workspace-gztb9zd7ed/repls/ledgerpoint",
+    "stopped": true,
+    "workspaceClean": true,
+    "sourceAvailableOnGitHub": true,
+    "isolatedFetchRequired": true,
+    "export": "Existing exactUTF8patch14410bytes/hashff59376dcfeb9723bed93a8c20b7d9f711ca03b064a6eee2f6a3ff0cab4bacce and rawcommit323bytes/base64 verified by author; same previously verified conversation-text export method retained",
+    "observation": "No edit/database/demo/push/deploy during preflight"
+  },
+  "exclusions": [
+    "credentials/rawtokens",
+    "merges",
+    "deployments",
+    "production/demo changes",
+    "external providers/filings"
+  ],
+  "credits": null
+}

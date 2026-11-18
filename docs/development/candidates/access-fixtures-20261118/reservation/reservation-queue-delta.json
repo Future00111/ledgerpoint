@@ -1,0 +1,485 @@
+{
+  "format": "exact-queue-delta-v1",
+  "base": {
+    "format": "ledgerpoint-queue-reference-v1",
+    "repository": "Future00111/ledgerpoint",
+    "ref": "refs/heads/codex/ledgerly-work-queue-state",
+    "sha": "d947548774524724665b3ca6cf461cc41675f133",
+    "path": "docs/development/candidates/two-track-20261117/migration/queue-base.json",
+    "bytesSha256": "e5434cb264d620c9acd61ea009f33bdcab03ee738a9d82afdf6ab32d27b5b6e4",
+    "queueSha256": "d9d084358adf7746b539bd20ef7acc6155178b01ea96319712b7fbcb2a88047d",
+    "revision": 901,
+    "catalogDigest": "df1d49d22e3a0fff74ed2b375bbe7b86279de43f82d996c3085a3c9b50740b6f"
+  },
+  "fromRevision": 901,
+  "revision": 916,
+  "taskReplacements": {
+    "P02-04": {
+      "status": "running",
+      "priority": 204,
+      "discoveredDependencies": [],
+      "owner": "payroll-access-implementer",
+      "tokenSha256": "c6908e1794aff739f2bc63be39f35d0bee9ac682027ca1e6dfb2f8a5798eff1c",
+      "leaseUntil": 1795015405006,
+      "workStarted": false
+    },
+    "P03-02": {
+      "status": "pending",
+      "priority": 302,
+      "discoveredDependencies": [],
+      "checkpoint": "Continue P03-02 with a bounded trusted supervisor closure/recovery protocol before scheduling or provider dispatch. Keep unknown capacity held until independently verified closure; preserve accepted native queued/cancelled and execution outcomes. Normal queue now selects newly unblockedP02-04 first; tax-payroll track selectsP04-03.",
+      "evidence": {
+        "commit": "fcc62d46e2a8d464d7635da85cd4aac650b8cec9",
+        "integratedCommit": "1c52f77c63599b26c4d90862c485db951f12ca66",
+        "reviewer": "root",
+        "reviewed": true,
+        "summary": "Native document execution journal reconstructs attempts, bounded retries, cancelled/stale result fencing and review-required results; actual worker death and fresh-process recovery preserve unknown physical capacity; populated native restore recovers successful, exhausted and retryable work. FullP03-02 remains pending supervisor recovery, scheduling, fenced delivery/provider connection and operational history retention.",
+        "tests": [
+          {
+            "command": "Exact-source CI44155016720 job134293306383: all20steps succeeded unskipped; checkoutdd8ee0b tree8dfb788 equals published source1c52f77",
+            "passed": true
+          },
+          {
+            "command": "Independent review and combined source/build/typecheck; final native5execution+8queue tests, real process death, fresh recovery and populated restore",
+            "passed": true
+          }
+        ],
+        "qualification": "docs/development/candidates/two-track-20261117/accepted/qualification.json"
+      },
+      "acceptedOutcomes": [
+        {
+          "id": "durable-intake-queued-cancelled-20261117",
+          "scenario": "Native explicit durable intake enqueue, immutable lifecycle/outbox, scoped queued/cancelled recovery and cancellation with actual process-death recovery and populated restored native reads.",
+          "criteria": [
+            0,
+            1
+          ],
+          "remaining": [
+            "Implement durable worker claims/attempt identities and lease/revision fencing, bounded retries, actual transport-capacity settlement and safe crash recovery.",
+            "Implement strict supported in-flight/result rehydration and exactly-one review-required result with stale completion denial; queued/cancelled support alone is not a durable worker.",
+            "Implement separately fenced outbox delivery and scheduler under explicit adapter/provider authority; OCR/email remain not_connected and no automatic financial effect.",
+            "Queue history limit100 safely refuses further new identities; any lifecycle/archival extension must preserve immutable source and audit history."
+          ],
+          "nextAction": "Continue P03-02 with a bounded durable worker claim/attempt and lease-fencing implementation on the accepted native queue. Settle validated in-flight/result reconstruction and physical transport-capacity/unknown-outcome recovery contracts before dispatch; qualify real process crash, stale completion, cancellation/revocation and populated restore. Preserve accepted queued/cancelled scenario; no provider connection or automatic financial effect.",
+          "integratedCommit": "ca6a00aaaea9591bcd42f0490cc2d493d8c5ef59",
+          "acceptedAt": 1794938702455,
+          "evidence": {
+            "commit": "428b7bc069a8b44066b0ade4346281f541fc445e",
+            "integratedCommit": "ca6a00aaaea9591bcd42f0490cc2d493d8c5ef59",
+            "reviewed": true,
+            "reviewer": "root",
+            "summary": "Native explicit durable intake enqueue, immutable lifecycle/outbox, scoped queued/cancelled recovery and cancellation with actual process-death recovery and populated restored native reads.",
+            "tests": [
+              {
+                "command": "Exact CI44143039202 job134250698577 checkout7d7c0b5 tree634bc0b: all20steps success/no skips; 8native queue tests, actual process kill/recovery, populated queued/cancelled native restore, existing accounting/browser/encrypted recovery and cleanup. Independent root source and two harness-repair reviews.",
+                "passed": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "durable-intake-execution-20261117",
+          "scenario": "Native document execution journal reconstructs attempts, bounded retries, cancelled/stale result fencing and review-required results; actual worker death and fresh-process recovery preserve unknown physical capacity; populated native restore recovers successful, exhausted and retryable work.",
+          "criteria": [
+            0,
+            1
+          ],
+          "remaining": [
+            "Trusted supervisor proof/release for execution occupancy left unknown by process death.",
+            "Fenced outbox delivery and scheduling under explicit provider authority.",
+            "Configured native provider execution and prompt cross-process transport cancellation; OCR/email remain not_connected.",
+            "Operational history retention beyond conservative1000executed-job scan; preserve immutable source and audit history."
+          ],
+          "nextAction": "Continue P03-02 with a bounded trusted supervisor closure/recovery protocol before scheduling or provider dispatch. Keep unknown capacity held until independently verified closure; preserve accepted native queued/cancelled and execution outcomes. Normal queue now selects newly unblockedP02-04 first; tax-payroll track selectsP04-03.",
+          "integratedCommit": "1c52f77c63599b26c4d90862c485db951f12ca66",
+          "acceptedAt": 1794942678873,
+          "evidence": {
+            "commit": "fcc62d46e2a8d464d7635da85cd4aac650b8cec9",
+            "integratedCommit": "1c52f77c63599b26c4d90862c485db951f12ca66",
+            "reviewer": "root",
+            "reviewed": true,
+            "summary": "Native document execution journal reconstructs attempts, bounded retries, cancelled/stale result fencing and review-required results; actual worker death and fresh-process recovery preserve unknown physical capacity; populated native restore recovers successful, exhausted and retryable work. FullP03-02 remains pending supervisor recovery, scheduling, fenced delivery/provider connection and operational history retention.",
+            "tests": [
+              {
+                "command": "Exact-source CI44155016720 job134293306383: all20steps succeeded unskipped; checkoutdd8ee0b tree8dfb788 equals published source1c52f77",
+                "passed": true
+              },
+              {
+                "command": "Independent review and combined source/build/typecheck; final native5execution+8queue tests, real process death, fresh recovery and populated restore",
+                "passed": true
+              }
+            ],
+            "qualification": "docs/development/candidates/two-track-20261117/accepted/qualification.json"
+          }
+        }
+      ]
+    },
+    "P04-01": {
+      "status": "done",
+      "priority": 401,
+      "discoveredDependencies": [],
+      "checkpoint": "Active isolated ledgerpoint-tax at base1bcb350d; explicit full register matrix in progress, original existing references retained. Root observed changed register, no published candidate yet; author stop19:00UTC.",
+      "evidence": {
+        "commit": "c9931ba777a780374995e64d61cde85c068ca003",
+        "integratedCommit": "1c52f77c63599b26c4d90862c485db951f12ca66",
+        "reviewer": "root",
+        "reviewed": true,
+        "summary": "Full declaration-register criteria accepted:29originalfamilies,258explicitvariants,909entity/variant/yearselections; official discovery provenance, examples/owners/coverage, fail-closed unknown combinations. Existing44cases/referencepacks preserved. This accepts scope declarations, not calculation engine or numeric fixture qualification.",
+        "tests": [
+          {
+            "command": "Exact-source CI44155016720 job134293306383: all20steps succeeded unskipped; checkoutdd8ee0b tree8dfb788 equals published source1c52f77",
+            "passed": true
+          },
+          {
+            "command": "Independent review and combined source/build/typecheck; final native5execution+8queue tests, real process death, fresh recovery and populated restore",
+            "passed": true
+          },
+          {
+            "command": "Independent140tax/payroll focusedtests allpass; finalCI reran unchanged reviewedregisterfiles",
+            "passed": true
+          }
+        ],
+        "qualification": "docs/development/candidates/two-track-20261117/accepted/qualification.json"
+      },
+      "acceptedOutcomes": [
+        {
+          "id": "official-payroll-fixture-handoff-20261116",
+          "scenario": "Eight existing PAYE/studentloan cases expose16pinned official input/expected-output examples and explicit missing fixture prerequisites without promoting enginequalification.",
+          "criteria": [
+            0,
+            1
+          ],
+          "remaining": [
+            "Full P04-01 supportedcase matrix remains nonexhaustive; tax cases need qualified statutory provenance and independent expected examples.",
+            "Plan1 notice_start_stop fixture needs authoritative effective notice/paymentdate eligibility and rule/rounding evidence before P04-03 qualification."
+          ],
+          "nextAction": "Qualify Plan1 notice eligibility with independent dated evidence using existing52841p->0p and52842p->100p weeklypair; reconcile P04-01 missing cases before downstream engine claims.",
+          "integratedCommit": "7f7da84ed2753e12a84ced3368567d8623847f32",
+          "acceptedAt": 1794843337620,
+          "evidence": {
+            "commit": "518332c4c0bb42962e1754bd7baa4c40adbcc441",
+            "integratedCommit": "7f7da84ed2753e12a84ced3368567d8623847f32",
+            "summary": "16official PAYE/student-loan examples across8existingcases expose concrete input/output and exactmissingfixtures. Reference-only; no parent/engine acceptance. Preserved author diff independently reviewed, finalsourceCI allgates and mergecheckoutfileequivalence verified.",
+            "reviewed": true,
+            "reviewer": "independent_review",
+            "tests": [
+              {
+                "command": "Independent exactauthor89tax/payrollchecks and combined168queue/caseregistrychecks passed; finalprojection3passed",
+                "passed": true
+              },
+              {
+                "command": "CI43897289919 job133404362392 final7f7da84 checkout07c9338 zero file differences; full build/source/security/browser/nativePG/plain+encryptedrestore/cleanup allpassed",
+                "passed": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "plan1-notice-timing-reference-20261116",
+          "scenario": "Sixteen authored synthetic Plan1 notice start/stop timing scenarios linked to official rules and pinned numeric boundary examples; reference qualification only, not a payroll engine.",
+          "criteria": [
+            0
+          ],
+          "remaining": [
+            "Complete supported tax/payroll case qualification and missing fixtures across original scope.",
+            "Freeze validated synthetic notice input/output and rule-version contract before runtime integration; retain all engine dependencies."
+          ],
+          "nextAction": "Implement bounded synthetic notice input/output contract and qualify combined timing/amount cases including zero, thresholds and conflicts; live employee notices are not a development prerequisite.",
+          "integratedCommit": "eb4bf2b229725c23c3324c22eca9feca00c2ff33",
+          "acceptedAt": 1794845443834,
+          "evidence": {
+            "commit": "f201062a2ce9bc83360edae25777f69fba3a33db",
+            "integratedCommit": "eb4bf2b229725c23c3324c22eca9feca00c2ff33",
+            "summary": "Sixteen authored synthetic Plan1 notice start/stop timing scenarios linked to official rules and pinned numeric boundary examples; reference qualification only, not a payroll engine.",
+            "reviewed": true,
+            "reviewer": "independent_review",
+            "tests": [
+              {
+                "command": "Independent matching-author focused tests and diff review",
+                "passed": true
+              },
+              {
+                "command": "Combined node tools/development/check.mjs: 1030 passed; full build/typecheck",
+                "passed": true
+              },
+              {
+                "command": "GitHub Actions 43903722452 job133426839772: source, security, disposable PostgreSQL, browser and encrypted restore; merge tree identical to eb4bf2",
+                "passed": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "synthetic-plan1-versioned-input-output-20261116",
+          "scenario": "Versioned executable synthetic Plan1 input boundary combines existing notice timing and exact deduction arithmetic, binds explicit verification assertions and rejects unsupported/conflicting inputs; unqualified reference only, no runtime adapter.",
+          "criteria": [
+            0,
+            1
+          ],
+          "remaining": [
+            "Complete every original supported tax/payroll case and missing official/independent fixtures; parent remains pending.",
+            "Complete P04-03 qualification and other existing engine dependencies before production payroll integration."
+          ],
+          "nextAction": "Qualify the remaining supported-case input/output examples and exceptional instructions against authoritative evidence; preserve original case scope and engine dependencies. No live employee data required for synthetic development.",
+          "integratedCommit": "99e547aa77608457427475bcb9e3ae3be7bd9ebd",
+          "acceptedAt": 1794846657981,
+          "evidence": {
+            "commit": "d5269ed4e56382e8c82eff399069718fe054e498",
+            "summary": "P04-01 bounded synthetic Plan1 input/output contract: exact contract/rule versions and synthetic purpose; each supplied notice requires contentdigest-bound explicit identity and first-practical-payday verification assertions. Combined function reuses existing timing and official-authority Job19 arithmetic; returns exact amount, trace, timing and reproducible inputdigest, always qualifiedfalse/notForPayrolltrue. Existing16dated fixtures unchanged. Originalcase still unsupported; no runtimeimports/newrates/DB/provider. Synthetic assertions suffice for this developmentcontract; no live employee dependency. Remaining full P04-01 matrix and P04-03 independent qualification; broader instructions/periods/plans/concurrentloans/corrections and payrollintegration remain. Next review synthetic combinedcontract then completeexistingcase/dependency gates before productionadapter. Author stoppedclean, independentreview required.",
+            "tests": [
+              {
+                "command": "node --test artifacts/api-server/src/services/payroll/contracts/*.test.mjs artifacts/api-server/src/services/tax/contracts/caseRegistry.test.mjs tools/payroll-specification/studentLoans.test.mjs — 156 passed on submitted tree",
+                "passed": true
+              },
+              {
+                "command": "git diff --check passed; rg plan1SyntheticContract artifacts/api-server/src excluding contracts found no runtime imports",
+                "passed": true
+              },
+              {
+                "command": "Independent exact-author review and133focused tests passed",
+                "passed": true
+              },
+              {
+                "command": "Combined1052sourcechecks/fullbuild and exact-sourceCI43907873654 job133441495586 all native/browser/plain+encrypted restore gates passed; tested7809ee8 tree28498292 equals published99e547aa",
+                "passed": true
+              }
+            ],
+            "reviewed": true,
+            "integratedCommit": "99e547aa77608457427475bcb9e3ae3be7bd9ebd",
+            "reviewer": "independent_review"
+          }
+        }
+      ]
+    },
+    "P04-03": {
+      "status": "running",
+      "priority": 403,
+      "discoveredDependencies": [],
+      "owner": "replit-fixture-implementer",
+      "tokenSha256": "e89dd7d8c5d557497e633ff1a20e8192d0c01e224af302fe3c5b5684b4f4d78c",
+      "leaseUntil": 1795015405158,
+      "workStarted": false
+    }
+  },
+  "appendedEvents": [
+    {
+      "at": 1794940442448,
+      "actor": "tax-register-implementer",
+      "type": "claim",
+      "taskId": "P04-01",
+      "tokenSha256": "cec6b00696650b5557fed3342ec216e9b7b55037e66014c47833cfd77e6fbed3",
+      "track": "tax-payroll"
+    },
+    {
+      "at": 1794940466680,
+      "actor": "durable-execution-implementer",
+      "type": "claim",
+      "taskId": "P03-02",
+      "tokenSha256": "4cac4db5a324f1a954e8f0b42c8003eb6ae6d729a42469867e49471febdd0355"
+    },
+    {
+      "at": 1794940749418,
+      "actor": "tax-register-implementer",
+      "type": "checkpoint",
+      "taskId": "P04-01",
+      "checkpoint": "Active isolated ledgerpoint-tax at base1bcb350d; explicit full register matrix in progress, original existing references retained. Root observed changed register, no published candidate yet; author stop19:00UTC."
+    },
+    {
+      "at": 1794940749776,
+      "actor": "durable-execution-implementer",
+      "type": "checkpoint",
+      "taskId": "P03-02",
+      "checkpoint": "Active isolated ledgerpoint-execution at base1bcb350d; native execution reconstruction/store/schema and additive migration in progress. Root observed leased files only; physical unknown closure stays held after crash. No published candidate yet; author stop19:00UTC."
+    },
+    {
+      "at": 1794941161936,
+      "actor": "tax-register-implementer",
+      "type": "submit",
+      "taskId": "P04-01",
+      "evidence": {
+        "commit": "c9931ba777a780374995e64d61cde85c068ca003",
+        "summary": "Declared all29 original VAT/payroll/Income Tax/Corporation Tax requirement families with258 variants,3taxyears and909 explicit entity/variant/year selections. Executable selection and required-input boundaries reject missing, unknown, contradictory or unqualified cases; no financial defaults or calculation adapter.",
+        "tests": [
+          {
+            "command": "node --test artifacts/api-server/src/services/tax/contracts/*.test.mjs artifacts/api-server/src/services/payroll/contracts/*.test.mjs",
+            "passed": true,
+            "passedCount": 140,
+            "failed": 0,
+            "skipped": 0,
+            "log": "tax-root-focused.log"
+          },
+          {
+            "command": "git diff --check",
+            "passed": true
+          },
+          {
+            "command": "Independent exact author/integration tree and file SHA256 verification",
+            "passed": true
+          }
+        ],
+        "reviewed": true,
+        "reviewer": "root",
+        "scope": "P04-01 declaration register closure; independent fixture qualification and actual engines remain separate pending work.",
+        "authorStopped": true
+      }
+    },
+    {
+      "at": 1794941398777,
+      "actor": "durable-execution-implementer",
+      "type": "checkpoint",
+      "taskId": "P03-02",
+      "checkpoint": "Native durable execution working tree includes claim/result/retry/restart/restore tests and independent review corrections for post-lock clock fencing and conservative corrupt-closure capacity. Typecheck and35registrytests passed; old25migrations/pins/overlay unchanged. Original sourceguard testfixture correction finishing; nativeDB qualification deferred to actual CI. Tax author stopped clean atc9931ba, independently reviewed140tests; root local integrated9793e9c. No implementation source published yet."
+    },
+    {
+      "at": 1794942002859,
+      "actor": "durable-execution-implementer",
+      "type": "submit",
+      "taskId": "P03-02",
+      "evidence": {
+        "commit": "f440616fcd07eaeb9395d254c53e7cee4dc31eec",
+        "summary": "Durable execution replay, attempts, bounded retry and result/cancel fencing reviewed. Unknown crash occupancy remains held. Stopped clean; native PostgreSQL/restart/restore CI pending before bounded outcome acceptance.",
+        "tests": [
+          {
+            "command": "20 focused extraction/replay tests;35 migration registry tests;API typecheck",
+            "passed": true
+          },
+          {
+            "command": "Combined node tools/development/check.mjs and full pnpm build/typecheck on integrated tree00a3ae",
+            "passed": true
+          }
+        ],
+        "integratedCommit": "305d9866d8965a937ebcbed5b586151252590c65",
+        "reviewer": "root",
+        "reviewed": true
+      }
+    },
+    {
+      "at": 1794942227419,
+      "actor": "root",
+      "type": "reject",
+      "taskId": "P03-02",
+      "reason": "CI44154195960 exposed existing privileged TRUNCATE assertion omitting the two new FK-dependent execution tables; update fixture to reach and verify original immutable trigger. No production permission change."
+    },
+    {
+      "at": 1794942227703,
+      "actor": "root",
+      "type": "recover",
+      "taskId": "P03-02",
+      "checkpoint": "Author f440616f stopped clean and integrated into e4c062b; native CI failed before execution suite on incomplete privileged truncate fixture. Recover only this exact candidate for reviewed harness correction."
+    },
+    {
+      "at": 1794942227914,
+      "actor": "durable-execution-implementer",
+      "type": "claim",
+      "taskId": "P03-02",
+      "tokenSha256": "56897d954aefd87a9844aa6be5e85f73b8e7d6dc8a988c00ceb33026c53688ed"
+    },
+    {
+      "at": 1794942337488,
+      "actor": "durable-execution-implementer",
+      "type": "submit",
+      "taskId": "P03-02",
+      "evidence": {
+        "commit": "fcc62d46e2a8d464d7635da85cd4aac650b8cec9",
+        "summary": "Preserved reviewed execution implementation; corrected privileged immutable-history fixture to include new FK dependencies. Stopped clean, independently reviewed; native CI pending.",
+        "tests": [
+          {
+            "command": "API typecheck and affected native bundle compile/syntax",
+            "passed": true
+          },
+          {
+            "command": "git diff --check and independent single-line SQL fixture review",
+            "passed": true
+          }
+        ],
+        "reviewer": "root",
+        "reviewed": true
+      }
+    },
+    {
+      "at": 1794942678511,
+      "actor": "root",
+      "type": "accept",
+      "taskId": "P04-01",
+      "evidence": {
+        "commit": "c9931ba777a780374995e64d61cde85c068ca003",
+        "integratedCommit": "1c52f77c63599b26c4d90862c485db951f12ca66",
+        "reviewer": "root",
+        "reviewed": true,
+        "summary": "Full declaration-register criteria accepted:29originalfamilies,258explicitvariants,909entity/variant/yearselections; official discovery provenance, examples/owners/coverage, fail-closed unknown combinations. Existing44cases/referencepacks preserved. This accepts scope declarations, not calculation engine or numeric fixture qualification.",
+        "tests": [
+          {
+            "command": "Exact-source CI44155016720 job134293306383: all20steps succeeded unskipped; checkoutdd8ee0b tree8dfb788 equals published source1c52f77",
+            "passed": true
+          },
+          {
+            "command": "Independent review and combined source/build/typecheck; final native5execution+8queue tests, real process death, fresh recovery and populated restore",
+            "passed": true
+          },
+          {
+            "command": "Independent140tax/payroll focusedtests allpass; finalCI reran unchanged reviewedregisterfiles",
+            "passed": true
+          }
+        ],
+        "qualification": "docs/development/candidates/two-track-20261117/accepted/qualification.json"
+      }
+    },
+    {
+      "at": 1794942678873,
+      "actor": "root",
+      "type": "accept-outcome",
+      "taskId": "P03-02",
+      "outcome": {
+        "id": "durable-intake-execution-20261117",
+        "scenario": "Native document execution journal reconstructs attempts, bounded retries, cancelled/stale result fencing and review-required results; actual worker death and fresh-process recovery preserve unknown physical capacity; populated native restore recovers successful, exhausted and retryable work.",
+        "criteria": [
+          0,
+          1
+        ],
+        "remaining": [
+          "Trusted supervisor proof/release for execution occupancy left unknown by process death.",
+          "Fenced outbox delivery and scheduling under explicit provider authority.",
+          "Configured native provider execution and prompt cross-process transport cancellation; OCR/email remain not_connected.",
+          "Operational history retention beyond conservative1000executed-job scan; preserve immutable source and audit history."
+        ],
+        "nextAction": "Continue P03-02 with a bounded trusted supervisor closure/recovery protocol before scheduling or provider dispatch. Keep unknown capacity held until independently verified closure; preserve accepted native queued/cancelled and execution outcomes. Normal queue now selects newly unblockedP02-04 first; tax-payroll track selectsP04-03.",
+        "integratedCommit": "1c52f77c63599b26c4d90862c485db951f12ca66"
+      },
+      "workersStopped": true,
+      "evidence": {
+        "commit": "fcc62d46e2a8d464d7635da85cd4aac650b8cec9",
+        "integratedCommit": "1c52f77c63599b26c4d90862c485db951f12ca66",
+        "reviewer": "root",
+        "reviewed": true,
+        "summary": "Native document execution journal reconstructs attempts, bounded retries, cancelled/stale result fencing and review-required results; actual worker death and fresh-process recovery preserve unknown physical capacity; populated native restore recovers successful, exhausted and retryable work. FullP03-02 remains pending supervisor recovery, scheduling, fenced delivery/provider connection and operational history retention.",
+        "tests": [
+          {
+            "command": "Exact-source CI44155016720 job134293306383: all20steps succeeded unskipped; checkoutdd8ee0b tree8dfb788 equals published source1c52f77",
+            "passed": true
+          },
+          {
+            "command": "Independent review and combined source/build/typecheck; final native5execution+8queue tests, real process death, fresh recovery and populated restore",
+            "passed": true
+          }
+        ],
+        "qualification": "docs/development/candidates/two-track-20261117/accepted/qualification.json"
+      }
+    },
+    {
+      "at": 1795012705006,
+      "actor": "payroll-access-implementer",
+      "type": "claim",
+      "taskId": "P02-04",
+      "tokenSha256": "c6908e1794aff739f2bc63be39f35d0bee9ac682027ca1e6dfb2f8a5798eff1c"
+    },
+    {
+      "at": 1795012705158,
+      "actor": "replit-fixture-implementer",
+      "type": "claim",
+      "taskId": "P04-03",
+      "tokenSha256": "e89dd7d8c5d557497e633ff1a20e8192d0c01e224af302fe3c5b5684b4f4d78c",
+      "track": "tax-payroll"
+    }
+  ],
+  "resultSha256": "911acd568a36cf4c9c3f8400c74a24076562c68da010691e72f10730a113b44f"
+}
