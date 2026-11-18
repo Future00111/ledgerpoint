@@ -1,0 +1,36 @@
+{
+  "evidence": {
+    "summary": "Owners and payroll preparers can download a single saved pay record as CSV. The file contains its effective date, annual salary in pence and currency. Each download requires current export rights and records a dedicated audit receipt.",
+    "reviewer": "root",
+    "reviewed": true,
+    "commit": "932f380f2f1942ad0ad291be45a44436da5abd59",
+    "integratedCommit": "74055330fa51112ae1da4567114a0ca8e457f34b",
+    "tests": [
+      {
+        "command": "Integrated build, typechecks and combined regression suite",
+        "passed": true
+      },
+      {
+        "command": "GitHub Actions 44374130426 on identical source tree, including native export authorization, Chromium attachment verification and populated encrypted restore",
+        "passed": true
+      }
+    ]
+  },
+  "outcome": {
+    "id": "payroll-pay-record-export-20261118",
+    "scenario": "Owners and payroll preparers can download a single saved pay record as CSV. The file contains its effective date, annual salary in pence and currency. Each download requires current export rights and records a dedicated audit receipt.",
+    "integratedCommit": "74055330fa51112ae1da4567114a0ca8e457f34b",
+    "criteria": [
+      0,
+      1
+    ],
+    "remaining": [
+      "Qualify remaining employee identifier, bank, personal-tax and export workflows.",
+      "Connect and qualify remaining specialist access workflows."
+    ],
+    "nextAction": "Qualify role-specific access to employee identifiers in the payroll workflow."
+  },
+  "queueRevision": 966,
+  "remainingParent": true,
+  "credits": null
+}

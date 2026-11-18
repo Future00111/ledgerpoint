@@ -1,0 +1,96 @@
+{
+  "reviewVersion": 1,
+  "reviewedAt": "2026-11-18T18:51:16.951Z",
+  "reviewer": "independent durable_execution_implementation reviewer",
+  "independentOfAuthors": true,
+  "baselineCommit": "3dcc1b11a7bedf4bcee611702f8abbf9e9343300",
+  "reviewedBrowserCommit": "727cb0892f6dc900c2e65f007a798f6793b60b8b",
+  "reviewedBrowserTree": "c5e6f66fc1922aa2b0d737c07f2d601ac17afa15",
+  "reviewedImplementationCommit": "932f380f2f1942ad0ad291be45a44436da5abd59",
+  "reviewedImplementationTree": "c5721aa55d3bc2647232da922657926ca33e0cbb",
+  "verdict": "approved_for_integration_and_disposable_native_ci",
+  "openFindings": [],
+  "correctionsRequired": [],
+  "browserScope": [
+    "artifacts/api-server/src/security/integration.test.ts",
+    "artifacts/ledgerly/src/features/payroll/payRecords/browserAcceptance.jsx",
+    "artifacts/ledgerly/src/features/payroll/payRecords/taxBrowserAcceptance.jsx",
+    "artifacts/ledgerly/src/features/payroll/payRecords/verifyCsvDownload.js"
+  ],
+  "implementationScope": "All 16 files changed by author 932f380 against 3dcc1b1: payroll CSV route/service, native and role tests, client/UI/CSV helpers, shared tax download mechanics, tests and documentation.",
+  "conclusions": [
+    "The root browser qualification requires the exact payroll CSV bytes, fixed payroll-pay-record.csv filename, and one owner export receipt tied to the persisted record. The existing committed-save retry, readback, reader projection and company-reset checks remain present. Readers cannot see a download control.",
+    "The shared verifyCsvDownload helper captures native fetch during module evaluation before each fixture installs its API wrapper. It preserves the prior tax Blob assertion and always restores the anchor method. Only fixed diagnostic stage names reach the test result endpoint.",
+    "Payroll export is separately authorized as payroll.export for exactly one current active owner or payroll_preparer membership under the company lock. Payroll readers and approvers can read but cannot export; tax and bookkeeping roles gain no payroll export permission.",
+    "The export selects no employee reference. It emits exactly one effective-date/exact-bigint-pence/GBP row with fixed header, CRLF and static filename. Native dates remain ISO strings; no salary arithmetic or floating-point conversion occurs.",
+    "Storage and append-only audit protections are checked inside the scoped transaction. A minimal verified export receipt commits before response headers or CSV disclosure. Errors contain no attachment or scope headers. HEAD returns 405 before export work; conditional GET uses a fresh audited 200 response through res.end; all responses remain no-store.",
+    "The payroll client validates status, media type, static filename, no-store and requested company/record response headers, then the exact bounded CSV against the loaded record. Redirects and wrong-scope or malformed responses fail closed without exposing raw response diagnostics.",
+    "Shared CsvDownloadButton and csvDownload retain the reviewed tax lifecycle and Blob cleanup. Payroll and tax keep separate closed permissions, routes, header names and CSV validation. Keyed scope/result removal cancels the generation before a stale response can create a file, including transports that ignore abort. Authorization failure clears prior sensitive UI.",
+    "Seven native payroll scenarios cover allowed roles, zero and bigint salary bounds, date year 0001/leap day/year 9999, SQL employee exclusion, equal-ID company scoping, reader/approver and other denials, HEAD/query/method/conditional behavior, revocation and both reader/approver demotions after lock wait, audit exception/silent suppression and storage/audit guard failure with restoration.",
+    "Documentation correctly limits the feature to one stored annual pay input and distinguishes server audit or requested browser download from a file actually saved or opened. No payroll calculation, pay run, payslip, RTI, schema or production changes are introduced."
+  ],
+  "checks": [
+    {
+      "name": "Independent payroll and tax model/client/export tests",
+      "command": "node --test artifacts/ledgerly/src/features/payroll/payRecords/model.test.mjs artifacts/ledgerly/src/features/payroll/payRecords/client.test.mjs artifacts/ledgerly/src/features/payroll/payRecords/tax.test.mjs artifacts/ledgerly/src/features/payroll/payRecords/taxExport.test.mjs artifacts/ledgerly/src/features/payroll/payRecords/payExport.test.mjs",
+      "result": "passed",
+      "tests": 29
+    },
+    {
+      "name": "Independent bundled SSR and roles tests",
+      "method": "Repository esbuild CommonJS bundles in fresh external directory, then node --test with unusable database target",
+      "files": [
+        "PayRecords.test.jsx",
+        "TaxPreparations.test.jsx",
+        "security/roles.test.ts"
+      ],
+      "result": "passed",
+      "tests": 23,
+      "breakdown": {
+        "paySSR": 5,
+        "taxSSR": 5,
+        "roles": 13
+      }
+    },
+    {
+      "name": "Actual payroll and tax HTTP router compatibility probe",
+      "method": "Compiled real company router on temporary loopback server with injected synthetic auth and unusable database URL",
+      "result": "passed",
+      "observed": "Both export routes return HEAD405/Allow GET/empty body/no attachment or scope metadata, and invalid-query400; all responses no-store, no database required."
+    },
+    {
+      "name": "Shared browser CSV helper behavioral probe",
+      "sourceCommit": "727cb0892f6dc900c2e65f007a798f6793b60b8b",
+      "result": "passed",
+      "observed": "Native fetch capture survives API transport override; exact contents and filenames checked; original anchor restored on success, content mismatch and filename failure for both payroll and tax."
+    },
+    {
+      "name": "Exact author native suite compilation and guarded loading",
+      "sourceCommit": "932f380f2f1942ad0ad291be45a44436da5abd59",
+      "result": "passed",
+      "warnings": 0,
+      "observed": "Fresh external CommonJS bundle rejects absent disposable socket before database work; no module resolution or network failure."
+    },
+    {
+      "name": "Combined payroll and tax browser compilation",
+      "result": "passed",
+      "warnings": 0,
+      "observed": "Exact 727cb08 fixture/helper modules plus 932f380 author UI compile for both browser journeys, importing shared CSV components and no Clerk/AuthContext/useCompany.",
+      "exactIntegratedSource": false
+    },
+    {
+      "name": "Final author clean state and whitespace validation",
+      "command": "git status --short; git diff --check 3dcc1b1 932f380",
+      "result": "passed"
+    }
+  ],
+  "uniqueIndependentFocusedTests": 52,
+  "limitations": [
+    "No PostgreSQL or Chromium runtime was executed by this reviewer. The coordinator must integrate the reviewed commits and pass exact-source build/typecheck and disposable browser/native/restore CI before acceptance.",
+    "The Blob-boundary browser assertion verifies the file content presented to browser download handling, not operating-system file persistence.",
+    "Author-reported broader tests and typechecks are separate evidence; this report claims only the independent checks listed above."
+  ],
+  "sourceChanges": false,
+  "queueActions": false,
+  "remoteActions": false
+}
