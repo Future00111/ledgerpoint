@@ -1,0 +1,25 @@
+diff --git a/docs/development/work-backlog.json b/docs/development/work-backlog.json
+--- a/docs/development/work-backlog.json
++++ b/docs/development/work-backlog.json
+@@ -298,7 +298,8 @@
+         "artifacts/api-server/src/security/roles.test.ts",
+         "artifacts/api-server/src/security/integration.test.ts",
+         "artifacts/api-server/src/services/tax/access/",
+-        "artifacts/api-server/src/services/payroll/access/"
++        "artifacts/api-server/src/services/payroll/access/",
++        "artifacts/api-server/src/routes/companies.ts"
+       ],
+       "kind": "implementation",
+       "approval": "approved"
+diff --git a/docs/development/work-state.json b/docs/development/work-state.json
+--- a/docs/development/work-state.json
++++ b/docs/development/work-state.json
+@@ -7136,7 +7136,7 @@
+       ]
+     }
+   ],
+-  "catalogDigest": "df1d49d22e3a0fff74ed2b375bbe7b86279de43f82d996c3085a3c9b50740b6f",
++  "catalogDigest": "5e86c173103402a6c097d9030aff3479165255a5adb32db747cee1efe4c32983",
+   "workerTokenMigration": {
+     "fromVersion": 2,
+     "source": {
