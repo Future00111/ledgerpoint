@@ -1,0 +1,1 @@
+{"reviewed":true,"reviewer":"root","authorCommit":"932f380f2f1942ad0ad291be45a44436da5abd59","summary":"Reviewed scoped payroll projection, permission gate, audit before response, attachment validation and cancellation, pay and tax regressions.","tests":["Independent focused payroll and tax client, model, role and rendered UI checks passed."]}
