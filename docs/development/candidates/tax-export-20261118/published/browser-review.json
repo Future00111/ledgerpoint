@@ -1,0 +1,106 @@
+{
+  "reviewVersion": 1,
+  "reviewedAt": "2026-11-18T18:30:55.327Z",
+  "reviewer": "independent durable_execution_implementation reviewer",
+  "independentOfAuthors": true,
+  "baselineCommit": "097522da19e18dd4c727c49c8b2b14278dc04360",
+  "reviewedBrowserCommit": "d1f9b28c4fbbb1dba4199be76886954195a9c497",
+  "reviewedBrowserTree": "d8ae5fca8da1f7ba1b879f4b652477bbfb82dc66",
+  "originalBrowserCommit": "8d62ff305963c106fd6b088e41cd8ba6f555f097",
+  "reviewedImplementationCommit": "fc5378b3cd78350ee110c2953507b913f1b09579",
+  "reviewedImplementationTree": "10f579e199c307d23dbbef2106471e204fa95919",
+  "verdict": "approved_for_integration_and_disposable_native_ci",
+  "openFindings": [],
+  "resolvedFindings": [
+    {
+      "severity": "low",
+      "finding": "CSV browser failure stage was not included in the fixed server diagnostic allowlist.",
+      "resolution": "Added the fixed csv-download label in d1f9b28; verified. No dynamic diagnostics were introduced."
+    }
+  ],
+  "browserScope": [
+    "artifacts/api-server/src/security/integration.test.ts",
+    "artifacts/ledgerly/src/features/payroll/payRecords/taxBrowserAcceptance.jsx"
+  ],
+  "implementationScope": "All 13 files changed by author fc5378b against 097522d: company CSV route, personal-tax service, native/role tests, CSV UI/client/helpers/tests and related documentation.",
+  "conclusions": [
+    "The browser reads the actual generated Blob at the anchor download boundary, requires the fixed personal-tax-input.csv filename and exact numeric CRLF CSV, restores the patched anchor method in finally, and verifies the submitter has no download control. Native assertions require one export receipt for the preparer while preserving the prior creation/retry/read scenario.",
+    "The actual HTTP route uses the separate personal_tax.export permission, current unique active company membership and company-lock ordering. Only owners and personal-tax preparers are admitted; submitter read access does not confer export authority.",
+    "The service selects no taxpayer identifier and validates canonical company/record scope, integer year and exact bigint pence. It builds one fixed year/pence/GBP CSV row without free text, formulas, configurable fields or identifiers.",
+    "Protected storage/audit checks and the verified minimal export receipt commit precede attachment and scope headers or CSV bytes. Denials and audit failures return bounded JSON with no attachment metadata. A receipt describes an authorised prepared response, not proof that a browser saved or opened a file.",
+    "Express implicit HEAD is explicitly rejected with 405 and Allow GET before the service, producing no export receipt. Query overrides and malformed identities fail closed. res.end avoids automatic conditional 304/ETag behavior; a conditional GET is a fresh 200 response with its own receipt. All route responses are no-store.",
+    "Client export uses authenticated same-origin no-store GET, disallows redirects, validates the media type, fixed filename, company/record scope headers and exact bounded CSV against the loaded record, and reads no private denial/error bodies.",
+    "The keyed actor/company/role workspace and layout-effect cleanup cancel download generations on result removal/unmount. A stale transport response cannot create a Blob even if it ignores abort. 401/403 clears previous sensitive fields; temporary link and object URL are released. Documentation correctly explains that an already initiated download cannot be retracted and server audit may commit after cancellation.",
+    "Seven native scenarios cover role admission, exact bigint CSV and redacted receipts, SQL-level taxpayer exclusion, equal-ID company isolation, deny cases, HEAD/query/method/conditional behavior, revocation after lock wait, audit exception/silent suppression and unsafe storage/guard refusal. Fixture protections are restored in finally. No schema, calculation, posting or filing authority is added."
+  ],
+  "checks": [
+    {
+      "name": "Independent frontend model/client/export checks",
+      "command": "node --test artifacts/ledgerly/src/features/payroll/payRecords/model.test.mjs artifacts/ledgerly/src/features/payroll/payRecords/client.test.mjs artifacts/ledgerly/src/features/payroll/payRecords/tax.test.mjs artifacts/ledgerly/src/features/payroll/payRecords/taxExport.test.mjs",
+      "result": "passed",
+      "tests": 23
+    },
+    {
+      "name": "Independent bundled SSR and role checks",
+      "method": "Repository esbuild CJS bundles in fresh temporary directory, then node --test with isolated dummy database target",
+      "files": [
+        "TaxPreparations.test.jsx",
+        "PayRecords.test.jsx",
+        "security/roles.test.ts"
+      ],
+      "result": "passed",
+      "tests": 22,
+      "breakdown": {
+        "taxSSR": 5,
+        "paySSR": 4,
+        "roles": 13
+      }
+    },
+    {
+      "name": "Final committed CSV cleanup verification",
+      "command": "node --test artifacts/ledgerly/src/features/payroll/payRecords/taxExport.test.mjs",
+      "sourceCommit": "fc5378b3cd78350ee110c2953507b913f1b09579",
+      "result": "passed",
+      "tests": 6,
+      "note": "Subset repeated after final nested-finally cleanup adjustment; unique focused test count remains 45."
+    },
+    {
+      "name": "Actual author HTTP router HEAD and invalid-query probes",
+      "method": "Compiled real createCompaniesRouter on temporary loopback server with injected synthetic auth and unusable database URL",
+      "result": "passed",
+      "observed": "HEAD 405, Allow GET, no-store, empty body, no attachment/scope headers; invalid-query GET 400/no-store/no attachment; no database required."
+    },
+    {
+      "name": "Exact final author native suite compilation and guarded module loading",
+      "sourceCommit": "fc5378b3cd78350ee110c2953507b913f1b09579",
+      "result": "passed",
+      "warnings": 0,
+      "observed": "Fresh external CommonJS bundle exited with Disposable socket required, not module/network failure; no PostgreSQL execution."
+    },
+    {
+      "name": "Root harness native/frontend compilation and old fixture preservation",
+      "sourceCommit": "d1f9b28c4fbbb1dba4199be76886954195a9c497",
+      "result": "passed",
+      "observed": "Zero compile warnings; guarded native loading; existing payroll and history browser fixture bytes unchanged."
+    },
+    {
+      "name": "Combined browser fixture and author UI compile",
+      "result": "passed",
+      "observed": "Exact d1f9b28 harness plus current author export component/client compiles without Clerk/AuthContext/useCompany imports.",
+      "exactIntegratedSource": false
+    },
+    {
+      "name": "Final author clean state and whitespace validation",
+      "command": "git status --short; git diff --check 097522d fc5378b",
+      "result": "passed"
+    }
+  ],
+  "limitations": [
+    "No PostgreSQL or Chromium runtime was executed by this reviewer. Coordinator must integrate both reviewed commits and pass exact-source build/typecheck plus disposable browser/native/restore CI before acceptance.",
+    "Browser Blob validation verifies the content presented to the download mechanism, not operating-system file persistence.",
+    "The independent review checks totaled 45 unique focused tests. Author-reported broader checks and typechecks are separate evidence, not claimed as reviewer executions."
+  ],
+  "sourceChanges": false,
+  "queueActions": false,
+  "remoteActions": false
+}

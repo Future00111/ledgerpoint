@@ -1,0 +1,1 @@
+{"reviewed":true,"reviewer":"root","authorCommit":"fc5378b3cd78350ee110c2953507b913f1b09579","summary":"Reviewed fixed-schema SQL projection and authenticated route, export-specific receipt, no-store and status handling, browser validation and cancellation, native and frontend tests.","tests":["95 focused checks, API and frontend typechecks, native compilation"]}

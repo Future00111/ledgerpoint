@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "destination_kind": "integration",
+  "pullRequest": 29,
+  "successorDraftRequired": false,
+  "authorityCommit": "4e404d488c3e17b41180ac34fb4b1541b4b7d464",
+  "authorityRevision": 569,
+  "coordinatorRunId": "tax-export-9a076f8b-4c04-4cb5-986b-933c85fcaba5",
+  "observedAt": 1795026681423,
+  "candidateTree": "5ff93f7a26b558634a6a161d01a37ca067a3e6b5",
+  "reviewedBy": "root",
+  "authorOrigin": {
+    "actor": "tax-export-author",
+    "commit": "fc5378b3cd78350ee110c2953507b913f1b09579",
+    "branch": "codex/personal-tax-export"
+  },
+  "updateRef": {
+    "repository_full_name": "Future00111/ledgerpoint",
+    "branch_name": "codex/whole-product-first-sprint",
+    "expected_sha": "097522da19e18dd4c727c49c8b2b14278dc04360",
+    "sha": "3dcc1b11a7bedf4bcee611702f8abbf9e9343300",
+    "force": false
+  },
+  "approvalGranted": false,
+  "sourcePublished": false
+}
