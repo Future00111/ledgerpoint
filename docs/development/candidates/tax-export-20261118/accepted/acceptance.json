@@ -1,0 +1,36 @@
+{
+  "evidence": {
+    "summary": "Owners and personal-tax preparers can explicitly download one annual employment-income input as CSV. Export checks current company rights, records its own audit receipt and omits the taxpayer reference.",
+    "reviewer": "root",
+    "reviewed": true,
+    "commit": "fc5378b3cd78350ee110c2953507b913f1b09579",
+    "integratedCommit": "3dcc1b11a7bedf4bcee611702f8abbf9e9343300",
+    "tests": [
+      {
+        "command": "Integrated build, typechecks and combined regression suite",
+        "passed": true
+      },
+      {
+        "command": "GitHub Actions 44370668482 on identical source tree, including native export authorization, Chromium attachment verification and populated encrypted restore",
+        "passed": true
+      }
+    ]
+  },
+  "outcome": {
+    "id": "personal-tax-input-export-20261118",
+    "scenario": "Owners and personal-tax preparers can explicitly download one annual employment-income input as CSV. Export checks current company rights, records its own audit receipt and omits the taxpayer reference.",
+    "integratedCommit": "3dcc1b11a7bedf4bcee611702f8abbf9e9343300",
+    "criteria": [
+      0,
+      1
+    ],
+    "remaining": [
+      "Qualify remaining employee identifier, bank, personal-tax and export workflows.",
+      "Connect and qualify remaining specialist access workflows."
+    ],
+    "nextAction": "Qualify the single-record payroll pay export with its own role and audit checks."
+  },
+  "queueRevision": 963,
+  "remainingParent": true,
+  "credits": null
+}
