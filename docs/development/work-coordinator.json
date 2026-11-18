@@ -1,64 +1,69 @@
 {
   "version": 2,
-  "revision": 565,
+  "revision": 567,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "097522da19e18dd4c727c49c8b2b14278dc04360",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "tax-ui-e50d1985-7abb-4bd7-9f7e-6a01c20bb6a6",
     "tokenSha256": "31df75a521cae5d83a5adc1212e9c63f1c2d4b1b79dfdf89b8fd023d26e51320",
     "acquiredAt": 1795024952633,
     "expiresAt": 1795028552633
   },
-  "lastOwner": {
-    "runId": "taxcreate-1795023879361",
-    "tokenSha256": "ffe1623906a7d6e65ae797e97268f7b541f888791804742147b74c077cb5f770",
-    "acquiredAt": 1795023879361,
-    "expiresAt": 1795027479361
-  },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "53d2614f48b9019d9355fc906eee20e03c33b669",
+    "sha": "2938d0f97412aa5fb4881fab584a82d648083f43",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "53d2614f48b9019d9355fc906eee20e03c33b669",
-        "path": "docs/development/candidates/tax-ui-20261118/published/published-queue-delta.json"
+        "sha": "2938d0f97412aa5fb4881fab584a82d648083f43",
+        "path": "docs/development/candidates/tax-ui-20261118/accepted/accepted-queue-delta.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "53d2614f48b9019d9355fc906eee20e03c33b669",
-        "path": "docs/development/candidates/tax-ui-20261118/published/source-review.json"
+        "sha": "2938d0f97412aa5fb4881fab584a82d648083f43",
+        "path": "docs/development/candidates/tax-ui-20261118/accepted/source-review.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "53d2614f48b9019d9355fc906eee20e03c33b669",
-        "path": "docs/development/candidates/tax-ui-20261118/published/browser-review.json"
+        "sha": "2938d0f97412aa5fb4881fab584a82d648083f43",
+        "path": "docs/development/candidates/tax-ui-20261118/accepted/browser-review.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "53d2614f48b9019d9355fc906eee20e03c33b669",
-        "path": "docs/development/candidates/tax-ui-20261118/published/publication-preflight.json"
+        "sha": "2938d0f97412aa5fb4881fab584a82d648083f43",
+        "path": "docs/development/candidates/tax-ui-20261118/accepted/ci.log"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "53d2614f48b9019d9355fc906eee20e03c33b669",
-        "path": "docs/development/candidates/tax-ui-20261118/published/combined.log"
+        "sha": "2938d0f97412aa5fb4881fab584a82d648083f43",
+        "path": "docs/development/candidates/tax-ui-20261118/accepted/ci.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "53d2614f48b9019d9355fc906eee20e03c33b669",
-        "path": "docs/development/candidates/tax-ui-20261118/published/build.log"
+        "sha": "2938d0f97412aa5fb4881fab584a82d648083f43",
+        "path": "docs/development/candidates/tax-ui-20261118/accepted/acceptance.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "2938d0f97412aa5fb4881fab584a82d648083f43",
+        "path": "docs/development/candidates/tax-ui-20261118/accepted/current-view.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "2938d0f97412aa5fb4881fab584a82d648083f43",
+        "path": "docs/development/candidates/tax-ui-20261118/accepted/run-metrics.json"
       }
     ],
     "runId": "tax-ui-e50d1985-7abb-4bd7-9f7e-6a01c20bb6a6",
-    "at": 1795025407040,
+    "at": 1795025643611,
     "codeHead": "097522da19e18dd4c727c49c8b2b14278dc04360"
   },
-  "updatedAt": 1795025407040,
+  "updatedAt": 1795025643612,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -146,14 +151,7 @@
       "ownerApproved": true
     }
   },
-  "activeWorkers": [
-    {
-      "actor": "tax-ui-author",
-      "task": "P02-04",
-      "status": "review",
-      "stopped": true
-    }
-  ],
+  "activeWorkers": [],
   "workersStopped": true,
   "discoveryRun": {
     "runId": "correction-discovery-1794927549982",
@@ -194,11 +192,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "53d2614f48b9019d9355fc906eee20e03c33b669",
-    "path": "docs/development/candidates/tax-ui-20261118/published/published-queue-delta.json",
-    "bytesSha256": "0641b82b579749c323afef92d718f9f28240a5041aa8ddf597d4c83df515f92a",
-    "queueSha256": "95b9bdafca908ce7a2d6bb06b2e5971fdf773f2934aae5cee39cc04a978fdcbf",
-    "revision": 959,
+    "sha": "2938d0f97412aa5fb4881fab584a82d648083f43",
+    "path": "docs/development/candidates/tax-ui-20261118/accepted/accepted-queue-delta.json",
+    "bytesSha256": "81dea3eeebea70bfb233a54eab2c4b9390340d9d1d390007c677329451b57fe6",
+    "queueSha256": "391576b36e27d289a820a0e0a1b82c9b1167fe9227aa8fee48525469b6763d0c",
+    "revision": 960,
     "catalogDigest": "e2062b766ab4d6c1925cec45996df85511974cc96a5873b02adbfe7392a3efbc"
   },
   "historyReference": {
@@ -228,7 +226,7 @@
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
     "baseRevision": 945,
-    "currentRevision": 959,
+    "currentRevision": 960,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
@@ -368,7 +366,7 @@
   },
   "twoTrackRun": {
     "startedAt": "2026-11-18T14:36:15.627Z",
-    "activity": "Tax input workspace published for native browser verification.",
+    "activity": "Accepted company workspace tax entry and role-limited readback in Chromium.",
     "providerCost": null,
     "credits": null,
     "publishedCommit": "097522da19e18dd4c727c49c8b2b14278dc04360",
