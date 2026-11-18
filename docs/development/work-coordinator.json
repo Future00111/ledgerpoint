@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "revision": 544,
+  "revision": 545,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "7a3553913fa5318f1a3c9c2734991df651735fbb",
+  "codeHead": "941247aec7ccc7a0d91f8c6adb539db49fbee146",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -21,19 +21,49 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "e53abc9a040cf4de7492844656a7094caacc3147",
+    "sha": "a7d2b74b79447dc1bf728d047d7e1f32bcd1ca1a",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "e53abc9a040cf4de7492844656a7094caacc3147",
-        "path": "docs/development/candidates/pay-ui-20261118/claimed/claimed-queue-delta.json"
+        "sha": "a7d2b74b79447dc1bf728d047d7e1f32bcd1ca1a",
+        "path": "docs/development/candidates/pay-ui-20261118/published/published-queue-delta.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "a7d2b74b79447dc1bf728d047d7e1f32bcd1ca1a",
+        "path": "docs/development/candidates/pay-ui-20261118/published/source-review.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "a7d2b74b79447dc1bf728d047d7e1f32bcd1ca1a",
+        "path": "docs/development/candidates/pay-ui-20261118/published/browser-review.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "a7d2b74b79447dc1bf728d047d7e1f32bcd1ca1a",
+        "path": "docs/development/candidates/pay-ui-20261118/published/browser-import-review.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "a7d2b74b79447dc1bf728d047d7e1f32bcd1ca1a",
+        "path": "docs/development/candidates/pay-ui-20261118/published/publication-preflight.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "a7d2b74b79447dc1bf728d047d7e1f32bcd1ca1a",
+        "path": "docs/development/candidates/pay-ui-20261118/published/combined.log"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "a7d2b74b79447dc1bf728d047d7e1f32bcd1ca1a",
+        "path": "docs/development/candidates/pay-ui-20261118/published/build.log"
       }
     ],
     "runId": "payui-1795020623087",
-    "at": 1795020916345,
-    "codeHead": "7a3553913fa5318f1a3c9c2734991df651735fbb"
+    "at": 1795021484353,
+    "codeHead": "941247aec7ccc7a0d91f8c6adb539db49fbee146"
   },
-  "updatedAt": 1795020916345,
+  "updatedAt": 1795021484353,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -125,11 +155,11 @@
     {
       "actor": "pay-ui-author",
       "task": "P02-04",
-      "status": "leased",
-      "stopped": false
+      "status": "review",
+      "stopped": true
     }
   ],
-  "workersStopped": false,
+  "workersStopped": true,
   "discoveryRun": {
     "runId": "correction-discovery-1794927549982",
     "startedAt": "2026-11-17T14:59:10.335Z",
@@ -169,11 +199,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "e53abc9a040cf4de7492844656a7094caacc3147",
-    "path": "docs/development/candidates/pay-ui-20261118/claimed/claimed-queue-delta.json",
-    "bytesSha256": "d854f74f371c0ce022160e25de7e93880014b374984c8271421a065aafe1e8cd",
-    "queueSha256": "bc71339fdaa838580a97c75f20cb001439230250b9e8656d7358b7d4efad4eaf",
-    "revision": 946,
+    "sha": "a7d2b74b79447dc1bf728d047d7e1f32bcd1ca1a",
+    "path": "docs/development/candidates/pay-ui-20261118/published/published-queue-delta.json",
+    "bytesSha256": "4e2d091c7e53e92fd3130ffca31071b4ec088eceb3dd6940472cc4af1c6db6e5",
+    "queueSha256": "547aaedaa7c35e6425c55a77bfa96ac1ad6988cf3a7da0cda3e2c866b47b8ed4",
+    "revision": 947,
     "catalogDigest": "e2062b766ab4d6c1925cec45996df85511974cc96a5873b02adbfe7392a3efbc"
   },
   "historyReference": {
@@ -203,7 +233,7 @@
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
     "baseRevision": 945,
-    "currentRevision": 946,
+    "currentRevision": 947,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
@@ -343,10 +373,10 @@
   },
   "twoTrackRun": {
     "startedAt": "2026-11-18T14:36:15.627Z",
-    "activity": "Company payroll entry and readback UI, including native browser acceptance.",
+    "activity": "Reviewed payroll screen and native Chromium test published; waiting for exact-tree CI.",
     "providerCost": null,
     "credits": null,
-    "publishedCommit": "2ec0fb120149fad9e8caec59047b61ab0020a93d",
+    "publishedCommit": "941247aec7ccc7a0d91f8c6adb539db49fbee146",
     "observedAt": "2026-11-18T14:59:09.452Z",
     "publishedTree": "e46c3b26fa0249d335f68412812275600fe634a1",
     "ciRun": 44350242253,
