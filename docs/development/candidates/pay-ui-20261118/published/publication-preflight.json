@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "destination_kind": "integration",
+  "pullRequest": 29,
+  "successorDraftRequired": false,
+  "authorityCommit": "eabd734d638cbbddcd065b11112448f322bc983c",
+  "authorityRevision": 544,
+  "coordinatorRunId": "payui-1795020623087",
+  "observedAt": 1795021443688,
+  "candidateTree": "881ddbde39e3ea28e1b88a18a74899870319bcbd",
+  "reviewedBy": "root",
+  "authorOrigin": {
+    "actor": "pay-ui-author",
+    "commit": "94e42c76375561309be535936ea4d1d6946e706c",
+    "branch": "codex/company-pay-screen"
+  },
+  "updateRef": {
+    "repository_full_name": "Future00111/ledgerpoint",
+    "branch_name": "codex/whole-product-first-sprint",
+    "expected_sha": "7a3553913fa5318f1a3c9c2734991df651735fbb",
+    "sha": "941247aec7ccc7a0d91f8c6adb539db49fbee146",
+    "force": false
+  },
+  "approvalGranted": false,
+  "sourcePublished": false
+}
