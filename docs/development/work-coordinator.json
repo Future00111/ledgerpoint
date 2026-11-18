@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "revision": 549,
+  "revision": 550,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "941247aec7ccc7a0d91f8c6adb539db49fbee146",
+  "codeHead": "ac5815c732e813211d62d712110fa547148da0c9",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -21,19 +21,44 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "31c66961bef4c2d093f2c4399d2bf6cebc1877c5",
+    "sha": "6e619c5741cf3b0405610b86b75eaf42b067cec4",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "31c66961bef4c2d093f2c4399d2bf6cebc1877c5",
-        "path": "docs/development/candidates/history-ui-20261118/claimed/claimed-queue-delta.json"
+        "sha": "6e619c5741cf3b0405610b86b75eaf42b067cec4",
+        "path": "docs/development/candidates/history-ui-20261118/published/published-queue-delta.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "6e619c5741cf3b0405610b86b75eaf42b067cec4",
+        "path": "docs/development/candidates/history-ui-20261118/published/source-review.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "6e619c5741cf3b0405610b86b75eaf42b067cec4",
+        "path": "docs/development/candidates/history-ui-20261118/published/browser-review.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "6e619c5741cf3b0405610b86b75eaf42b067cec4",
+        "path": "docs/development/candidates/history-ui-20261118/published/publication-preflight.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "6e619c5741cf3b0405610b86b75eaf42b067cec4",
+        "path": "docs/development/candidates/history-ui-20261118/published/combined.log"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "6e619c5741cf3b0405610b86b75eaf42b067cec4",
+        "path": "docs/development/candidates/history-ui-20261118/published/build.log"
       }
     ],
     "runId": "historyui-1795022009789",
-    "at": 1795022059475,
-    "codeHead": "941247aec7ccc7a0d91f8c6adb539db49fbee146"
+    "at": 1795022503817,
+    "codeHead": "ac5815c732e813211d62d712110fa547148da0c9"
   },
-  "updatedAt": 1795022059475,
+  "updatedAt": 1795022503817,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -125,11 +150,11 @@
     {
       "actor": "history-ui-author",
       "task": "P02-04",
-      "status": "leased",
-      "stopped": false
+      "status": "review",
+      "stopped": true
     }
   ],
-  "workersStopped": false,
+  "workersStopped": true,
   "discoveryRun": {
     "runId": "correction-discovery-1794927549982",
     "startedAt": "2026-11-17T14:59:10.335Z",
@@ -169,11 +194,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "31c66961bef4c2d093f2c4399d2bf6cebc1877c5",
-    "path": "docs/development/candidates/history-ui-20261118/claimed/claimed-queue-delta.json",
-    "bytesSha256": "1ba6648c3fceb3cc77a7b4314ce7581d41b7eaaf06ec5343616fe2e6bea3b163",
-    "queueSha256": "f24b4f2f8a9167e67aa1739c997260174a5c3d1f1b4e08f842e0007f57e3a05e",
-    "revision": 949,
+    "sha": "6e619c5741cf3b0405610b86b75eaf42b067cec4",
+    "path": "docs/development/candidates/history-ui-20261118/published/published-queue-delta.json",
+    "bytesSha256": "a13ddd8b8ee24118311db75de4b470bdf375f15f06152bd465bf597710e8c170",
+    "queueSha256": "e0e5dc095df006a71921b2c50c4a6066c2328d9c256fbd6628d791a4072224b9",
+    "revision": 950,
     "catalogDigest": "e2062b766ab4d6c1925cec45996df85511974cc96a5873b02adbfe7392a3efbc"
   },
   "historyReference": {
@@ -203,7 +228,7 @@
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
     "baseRevision": 945,
-    "currentRevision": 949,
+    "currentRevision": 950,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
@@ -343,10 +368,10 @@
   },
   "twoTrackRun": {
     "startedAt": "2026-11-18T14:36:15.627Z",
-    "activity": "Company owner access history",
+    "activity": "Owner history screen and browser journey on draft PR; exact-tree CI pending.",
     "providerCost": null,
     "credits": null,
-    "publishedCommit": "941247aec7ccc7a0d91f8c6adb539db49fbee146",
+    "publishedCommit": "ac5815c732e813211d62d712110fa547148da0c9",
     "observedAt": "2026-11-18T14:59:09.452Z",
     "publishedTree": "881ddbde39e3ea28e1b88a18a74899870319bcbd",
     "ciRun": 44354472642,
