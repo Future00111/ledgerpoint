@@ -1,0 +1,96 @@
+{
+  "task": "P02-04",
+  "actor": "membership-audit-author",
+  "baseLocalCommit": "7783301242532a4df66fff959ab2f8efe30e1320",
+  "basePublishedEquivalentPrefix": "ec5b31e",
+  "authorCommit": "ce63c0e42f660c8620d6f3d822b53ecad397c1f7",
+  "authorTree": "2dbd8e5d3e82283f7b87ec57b3d440c58e600ec0",
+  "branch": "codex/membership-audit-20261118",
+  "changedFiles": [
+    "artifacts/api-server/src/routes/companies.ts",
+    "artifacts/api-server/src/security/integration.test.ts",
+    "artifacts/api-server/src/services/payroll/access/README.md",
+    "artifacts/api-server/src/services/payroll/access/boundary.ts",
+    "artifacts/api-server/src/services/payroll/access/membershipAudit.ts"
+  ],
+  "files": [
+    {
+      "path": "artifacts/api-server/src/routes/companies.ts",
+      "bytes": 17225,
+      "sha256": "c3c7eddad9068cda74436a81cc1722e7fd4d34b5524077b0dde3e7fc04a9571a"
+    },
+    {
+      "path": "artifacts/api-server/src/security/integration.test.ts",
+      "bytes": 38789,
+      "sha256": "6be3b8351965051285b94c2fb3d20fff80d67ea2bf53f80e956a0134bbc91e7c"
+    },
+    {
+      "path": "artifacts/api-server/src/services/payroll/access/README.md",
+      "bytes": 3695,
+      "sha256": "0ae3ec45f44480e9258dd8642b6b54c1ffa0058c134538da9808992485cb6537"
+    },
+    {
+      "path": "artifacts/api-server/src/services/payroll/access/boundary.ts",
+      "bytes": 6445,
+      "sha256": "315d084366834842e9a402b1b43759a16bc324a2e244b58dd00640ffdf20a84c"
+    },
+    {
+      "path": "artifacts/api-server/src/services/payroll/access/membershipAudit.ts",
+      "bytes": 3315,
+      "sha256": "4cdb31f789ae628ef3ec3ba7d64b42f4917a7cf7034db7d3a5e4e2d8d0844d36"
+    }
+  ],
+  "patch": {
+    "file": "membership-audit.patch",
+    "bytes": 32797,
+    "sha256": "19b81e23858b4464dd2db713c5950c0c42a466b3cb40246248ec296659c10c62"
+  },
+  "scope": "Transactional protected redacted audit for specialised role grants, invitations, transitions, owner/self removal and company deletion; confirmed audit insert and company deletion; current native permission semantics preserved.",
+  "checks": [
+    {
+      "command": "node tools/development/check-company-access.mjs",
+      "passed": true,
+      "tests": 39,
+      "log": "focused.log",
+      "sha256": "5080f6894c7f9e4148fd341b5f57aedcd5ccc7670a0d2219c8a3e1a8a9217320"
+    },
+    {
+      "command": "pnpm --filter @workspace/api-server exec tsc -p tsconfig.json --noEmit",
+      "passed": true,
+      "log": "typecheck.log"
+    },
+    {
+      "command": "Exact security/integration.test.ts bundled as CJS with repository harness externals; node --check; changed implementation inputs and external import kinds verified",
+      "passed": true,
+      "nativeDatabasePassed": false,
+      "log": "native-compile.log"
+    },
+    {
+      "command": "git diff --cached --check before commit",
+      "passed": true
+    }
+  ],
+  "nativeScenariosAdded": 8,
+  "nativeQualification": "Requires exact-source disposable PostgreSQL CI. No PostgreSQL server is available locally; compiler success is not database acceptance.",
+  "reviewCorrections": [
+    "Normalize helper company UUID comparison without changing existing authorization checks",
+    "Require company DELETE RETURNING exact expected ID and test silent suppression rollback",
+    "Attest protected audit once for bulk membership removal",
+    "Tidy bulk insert indentation"
+  ],
+  "remaining": [
+    "Independent matching-commit review and disposable native PostgreSQL CI before acceptance.",
+    "Wire future native payroll/personal-tax record read/export/preparation/approval/submission routes, actual record ownership and qualified field projections.",
+    "Implement restricted sensitive audit retrieval and explicit role selection UI.",
+    "External submission remains separately gated by consent, reviewed payload, idempotency and provider authority.",
+    "Full original P02-04 acceptance remains pending connected native sensitive workflows."
+  ],
+  "independentReviewRequired": true,
+  "independentlyReviewed": false,
+  "stopped": true,
+  "worktreeClean": true,
+  "finishedAt": "2026-11-18T15:25:16.723870+00:00",
+  "providerCost": null,
+  "credits": null,
+  "noPushQueueOrProductionChanges": true
+}
