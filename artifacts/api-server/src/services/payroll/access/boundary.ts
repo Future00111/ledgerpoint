@@ -28,6 +28,9 @@ function invalid(): never { throw new SensitiveAccessError('SENSITIVE_REQUEST_IN
 function denied(): never { throw new SensitiveAccessError('SENSITIVE_ACCESS_DENIED'); }
 function unavailable(): never { throw new SensitiveAccessError('SENSITIVE_OPERATION_UNAVAILABLE'); }
 const uuid = (x: unknown): x is string => typeof x === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(x);
+// Bank records are keyed by existing employee references, which accept every native UUID variant.
+// This exception never changes company IDs or the resource contract of other actions.
+const employeeUuid = (x: unknown): x is string => typeof x === 'string' && x.length === 36 && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(x);
 const fields = ['action', 'actor_id', 'company_id', 'resource_company_id', 'resource_id'];
 
 function request(input: unknown, domain: 'payroll' | 'personal_tax'): SensitiveRequest {
@@ -36,7 +39,8 @@ function request(input: unknown, domain: 'payroll' | 'personal_tax'): SensitiveR
   if (Reflect.ownKeys(input).length !== fields.length || Object.keys(descriptors).sort().join('|') !== fields.join('|') ||
       Object.values(descriptors).some(d => !('value' in d))) invalid();
   const value = input as SensitiveRequest;
-  if (!uuid(value.company_id) || !uuid(value.resource_company_id) || !uuid(value.resource_id) ||
+  const validResource = value.action === 'payroll.bank.read' ? employeeUuid(value.resource_id) : uuid(value.resource_id);
+  if (!uuid(value.company_id) || !uuid(value.resource_company_id) || !validResource ||
       typeof value.actor_id !== 'string' || !/^[A-Za-z0-9_-]{1,200}$/.test(value.actor_id) ||
       !isSensitiveAction(value.action) || !value.action.startsWith(domain + '.')) invalid();
   if (value.resource_company_id.toLowerCase() !== value.company_id.toLowerCase()) denied();

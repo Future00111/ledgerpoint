@@ -5,23 +5,26 @@ through the existing Clerk-verified membership flow. Existing bookkeeping roles
 and posting permissions are unchanged. Specialized roles never gain generic
 company writes or native invoice draft authority.
 
-| Role | Payroll rights | Personal-tax rights |
-| --- | --- | --- |
-| owner | Read, export, prepare, approve | Read, export, prepare, submit |
-| payroll_reader | Read | None |
-| payroll_preparer | Read, export, prepare | None |
-| payroll_approver | Read, approve | None |
-| personal_tax_preparer | None | Read, export, prepare |
-| personal_tax_submitter | None | Read, submit |
-| admin, accountant, staff, member, read_only | None | None |
+| Role | Payroll-record rights | Bank-account fields | Personal-tax rights |
+| --- | --- | --- | --- |
+| owner | Read, export, prepare, approve | Full account number | Read, export, prepare, submit |
+| payroll_reader | Read | None | None |
+| payroll_preparer | Read, export, prepare | Full account number | None |
+| payroll_approver | Read, approve | Last four digits only | None |
+| personal_tax_preparer | None | None | Read, export, prepare |
+| personal_tax_submitter | None | None | Read, submit |
+| admin, accountant, staff, member, read_only | None | None | None |
 
-Read covers a scoped native salary, identifier or bank record; export is a
-separate action. Approval/submission do not grant preparation. Owner retains
+Payroll-record read covers scoped annual salary and permitted preparation
+references. Bank fields use the separate `payroll.bank.read` capability; ordinary
+`payroll.read` does not grant bank access. Export remains a separate action. Approval/submission do not grant preparation. Owner retains
 explicit full local rights. Submission permission never supplies HMRC consent,
 provider credentials or authority to send an external request.
 
 `withPayrollAccess` and `withPersonalTaxAccess` accept an exact request shape
-containing company, actor, resource company, resource UUID and action. They lock
+containing company, actor, resource company, resource UUID and action. Bank-read
+employee resources accept every native UUID variant; other resources and company
+IDs retain the original UUID contract. They lock
 the company and reload current membership before invoking trusted server code.
 Unknown/inactive/ambiguous roles, mismatched resource company, invalid action
 and request-supplied role/capabilities fail closed. The callback receives only
@@ -241,3 +244,30 @@ A client cancellation cannot prove that the server stopped before committing
 its receipt, and the receipt does not prove a file was saved or opened. This
 exports the stored annual input only, not a pay run, payslip, calculation or RTI
 submission, and does not close the remaining P02-04 workflows.
+
+`GET /api/companies/:id/payroll-bank-details/:employeeId` reads one synthetic-seeded
+employee bank-account number under the dedicated `payroll.bank.read` capability.
+An owner or payroll preparer receives exactly `{account_number: string}` with
+eight ASCII digits. An approver receives exactly `{last_four: string}` with four
+digits; SQL selects `right(account_number,4)` so the full number never reaches
+the approver result. The service explicitly allowlists full versus masked roles
+in addition to the capability check. Payroll readers and all other roles are
+denied. Employee references accept all native UUID variants, including nil; the
+company UUID and every non-bank resource contract are unchanged.
+
+The composite company/employee lookup uses the existing company lock and reloads
+unique active membership before choosing the projection. Missing/foreign rows
+share the same denial. Canonical-owned ordinary storage must give the runtime
+SELECT only, with no column INSERT/UPDATE grants. The normal protected audit
+receipt records actor, company, employee reference, action and current role;
+neither full nor partial account digits enter audit context or error messages.
+The response is released only after verified receipt insertion and commit;
+failed or silently suppressed receipts release no fields.
+
+All endpoint responses are `no-store`, including authentication failures. HEAD
+returns 405 without reading or auditing; query field/role/scope overrides are
+rejected. Successful GET has no ETag and is not converted to a conditional 304.
+There is no bank collection, export, mutation, sort code, payment instruction or
+external banking action. Storage and populated restore are coordinated separately
+with synthetic fixtures; this bounded read does not complete employee lifecycle
+or the remaining P02-04 scope.

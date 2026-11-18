@@ -274,6 +274,15 @@
         "personal-tax-preparations"
       ],
       "sha256": "e72f453a67e5d60a63579b3febee0978423e17e8ca158eb9d7c15067f92ebd85"
+    },
+    {
+      "id": "employee-bank-details",
+      "path": "lib/db/migrations/employee-bank-details.review.sql",
+      "contractVersion": 1,
+      "dependencies": [
+        "accounting-documents"
+      ],
+      "sha256": "6d26ebe54286b1ab3f6099015146da6fb8586e2b71f2844cf7d077fac4a7ecd7"
     }
   ],
   "securityOverlay": {

@@ -1,6 +1,6 @@
 import { SensitiveAccessError, type SensitiveContext } from './boundary';
 
-const stores = Object.freeze(['employee_pay_records', 'personal_tax_preparations'] as const);
+const stores = Object.freeze(['employee_pay_records', 'personal_tax_preparations', 'employee_bank_details'] as const);
 type SensitiveStore = typeof stores[number];
 const unavailable = (): never => { throw new SensitiveAccessError('SENSITIVE_OPERATION_UNAVAILABLE'); };
 

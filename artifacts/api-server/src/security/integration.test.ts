@@ -34,7 +34,7 @@ before(async () => {
   app.get('/pay-ui-bundle', (_req,res) => res.type('application/javascript').send(payBrowserScript));
   app.post('/pay-ui-result', (req,res) => {
     if (!reportPayBrowser) { res.sendStatus(404); return; }
-    const stage = ['entry','retry','csv-download','reader','company-change','initial','history','refresh','scope','empty','denial'].includes(req.body?.stage) ? req.body.stage : 'unknown';
+    const stage = ['entry','retry','csv-download','bank-detail','reader','company-change','initial','history','refresh','scope','empty','denial'].includes(req.body?.stage) ? req.body.stage : 'unknown';
     reportPayBrowser({ok: req.body?.ok === true, stage}); res.sendStatus(200);
   });
   app.use(createCompaniesRouter((req, res, next) => {
@@ -1228,11 +1228,17 @@ async function runPayrollBrowser(entry: 'browserAcceptance.jsx' | 'historyBrowse
   }
 }
 
-test("Chromium payroll screen retries a committed pay record, exports its salary CSV and clears restricted fields on scope changes", async () => {
+test("Chromium payroll screen preserves salary workflows and restricts employee bank details across role changes", async () => {
   const f = await fixture(), other = await fixture(), employee = randomUUID(), reader = 'synthetic-pay-reader-' + randomUUID();
   await addMember(f.company, reader, 'payroll_reader');
   await addMember(other.company, reader, 'payroll_reader');
-  await runPayrollBrowser('browserAcceptance.jsx', {company:f.company, other:other.company, owner:f.owner, reader, employee});
+  const approver = 'synthetic-pay-approver-' + randomUUID();
+  await addMember(f.company, approver, 'payroll_approver');
+  await admin.query('INSERT INTO public.employee_bank_details(company_id,employee_id,account_number) VALUES($1,$2,$3)',
+    [f.company, employee, '00123456']);
+  await runPayrollBrowser('browserAcceptance.jsx', {company:f.company, other:other.company, owner:f.owner, reader, employee, approver});
+  const bankReads = (await sensitiveAudit(f.company)).filter(row => row.capability === 'payroll.bank.read');
+  assert.deepEqual(bankReads.map(row => [row.actor_id, row.target_id]), [[f.owner,employee],[approver,employee]]);
   assert.equal((await storedPay(f.company)).length,1);
   assert.deepEqual((await storedPay(other.company)),[]);
   assert.equal((await payCreationAudits(f.company)).length,1);
@@ -2025,4 +2031,193 @@ test('pay export refuses unsafe record storage and unprotected audit before disc
   try { await unavailable(); } finally { await admin.query('ALTER TABLE public.accounting_audit_events ENABLE ALWAYS TRIGGER ledgerly_accounting_audit_events_guard'); }
   const response = await payExportRequest(payExportPath(f.company, f.id), f.owner);
   assert.equal(response.status, 200); assert.equal(response.body, expectedPayCsv(f.date, f.amount)); assert.equal((await payExportAudits(f.company)).length, 1);
+});
+
+const bankDetailsPath = (company: string, employee: string) => `/${company}/payroll-bank-details/${employee}`;
+const bankReadAudits = async (company: string) => (await sensitiveAudit(company)).filter(row => row.action === 'sensitive_access' && row.capability === 'payroll.bank.read');
+const bankDeniedBody = { error: 'Unable to complete this request. Please try again.', code: 'SENSITIVE_ACCESS_DENIED' };
+const bankUnavailableBody = { error: 'Unable to complete this request. Please try again.', code: 'SENSITIVE_OPERATION_UNAVAILABLE' };
+async function bankDetailsFixture(account = '00123456', employee: string = randomUUID()) {
+  const f = await fixture();
+  await admin.query('INSERT INTO public.employee_bank_details(company_id,employee_id,account_number) VALUES($1,$2,$3)', [f.company, employee, account]);
+  return { ...f, employee, account };
+}
+async function bankDetailsRequest(path: string, actor?: string, method = 'GET', headers: Record<string, string> = {}) {
+  const response = await fetch(base + path, { method, headers: { ...(actor ? { 'x-test-actor': actor } : {}), ...headers } });
+  return { status: response.status, body: await response.text(), headers: response.headers };
+}
+
+test('native bank lookup returns full digits only to owner/preparer and last four to approver with redacted distinct receipts', async () => {
+  const f = await bankDetailsFixture('00123456', '00000000-0000-0000-0000-000000000001');
+  for (const role of ['owner', 'payroll_preparer', 'payroll_approver']) {
+    const actor = role === 'owner' ? f.owner : 'synthetic-bank-role-' + randomUUID();
+    if (role !== 'owner') {
+      identities.add(actor);
+      assert.equal((await request(`/${f.company}/members`, 'POST', { user_id: actor, role }, f.owner)).status, 201);
+    }
+    const response = await bankDetailsRequest(bankDetailsPath(f.company.toUpperCase(), f.employee.toUpperCase()), actor);
+    assert.equal(response.status, 200); assert.equal(response.headers.get('cache-control'), 'no-store'); assert.equal(response.headers.get('etag'), null);
+    assert.deepEqual(JSON.parse(response.body), role === 'payroll_approver' ? { last_four: '3456' } : { account_number: '00123456' });
+    assert.deepEqual((await bankReadAudits(f.company)).find(row => row.actor_id === actor), {
+      action: 'sensitive_access', outcome: 'allowed', target_type: 'payroll_resource', target_id: f.employee,
+      actor_type: 'user', actor_id: actor, capability: 'payroll.bank.read', context: { contract: 'sensitive-access.v1', role }, journal_id: null, posting_effect_id: null,
+    });
+  }
+  assert.equal((await bankReadAudits(f.company)).length, 3); assert.deepEqual(await payReadAudits(f.company), []);
+  for (const sql of ['INSERT INTO public.employee_bank_details SELECT * FROM public.employee_bank_details WHERE false',
+    'UPDATE public.employee_bank_details SET account_number=account_number WHERE false', 'DELETE FROM public.employee_bank_details WHERE false', 'TRUNCATE public.employee_bank_details'])
+    await assert.rejects(() => pool.query(sql), (error: any) => error.code === '42501');
+  // Kept for independent populated restore to verify both full and masked projections.
+});
+
+test('bank employee UUIDs accept native variants and exact account strings retain zeros without exposing extra fields', async () => {
+  for (const employee of ['00000000-0000-0000-0000-000000000000', 'ffffffff-ffff-ffff-ffff-ffffffffffff']) {
+    const f = await bankDetailsFixture('00000000', employee), approver = 'synthetic-bank-zero-' + randomUUID();
+    await addMember(f.company, approver, 'payroll_approver');
+    const full = await bankDetailsRequest(bankDetailsPath(f.company, employee.toUpperCase()), f.owner);
+    assert.equal(full.status, 200); assert.deepEqual(JSON.parse(full.body), { account_number: '00000000' });
+    const masked = await bankDetailsRequest(bankDetailsPath(f.company, employee), approver);
+    assert.equal(masked.status, 200); assert.deepEqual(JSON.parse(masked.body), { last_four: '0000' });
+  }
+});
+
+test('bank lookup scopes the same employee reference to its company and denies missing or foreign rows identically', async () => {
+  const f = await bankDetailsFixture(), other = await bankDetailsFixture('87654321', f.employee);
+  await addMember(other.company, f.owner, 'payroll_approver');
+  const full = await bankDetailsRequest(bankDetailsPath(f.company, f.employee), f.owner);
+  const masked = await bankDetailsRequest(bankDetailsPath(other.company, f.employee), f.owner);
+  assert.equal(full.status, 200); assert.deepEqual(JSON.parse(full.body), { account_number: f.account });
+  assert.equal(masked.status, 200); assert.deepEqual(JSON.parse(masked.body), { last_four: '4321' });
+  for (const [company, employee, actor] of [[f.company, f.employee, other.owner], [other.company, randomUUID(), f.owner], [randomUUID(), f.employee, f.owner]]) {
+    const response = await bankDetailsRequest(bankDetailsPath(company!, employee!), actor!);
+    assert.equal(response.status, 403); assert.equal(response.headers.get('cache-control'), 'no-store'); assert.deepEqual(JSON.parse(response.body), bankDeniedBody);
+  }
+  assert.equal((await bankReadAudits(f.company)).length, 1); assert.equal((await bankReadAudits(other.company)).length, 1);
+});
+
+test('payroll readers and all unrelated, inactive, unknown, ambiguous or unauthenticated memberships receive no bank fields or receipts', async () => {
+  const f = await bankDetailsFixture(), other = await fixture(), actors = [other.owner];
+  for (const role of ['payroll_reader', 'admin', 'accountant', 'staff', 'member', 'read_only', 'personal_tax_preparer', 'personal_tax_submitter', 'unknown', null]) {
+    const actor = 'synthetic-bank-denied-' + randomUUID(); await addMember(f.company, actor, role); actors.push(actor);
+  }
+  for (const active of [false, null]) {
+    const actor = 'synthetic-bank-inactive-' + randomUUID(); await addMember(f.company, actor, 'payroll_preparer', active); actors.push(actor);
+  }
+  const ambiguous = 'synthetic-bank-ambiguous-' + randomUUID();
+  await addMember(f.company, ambiguous, 'payroll_approver'); await addMember(f.company, ambiguous, 'owner', false); actors.push(ambiguous);
+  const anonymous = await bankDetailsRequest(bankDetailsPath(f.company, f.employee));
+  assert.equal(anonymous.status, 401); assert.equal(anonymous.headers.get('cache-control'), 'no-store');
+  for (const actor of actors) {
+    const response = await bankDetailsRequest(bankDetailsPath(f.company, f.employee), actor);
+    assert.equal(response.status, 403); assert.equal(response.headers.get('cache-control'), 'no-store'); assert.deepEqual(JSON.parse(response.body), bankDeniedBody);
+  }
+  assert.deepEqual(await bankReadAudits(f.company), []);
+});
+
+test('bank routes reject implicit HEAD, malformed scope and overrides; no collection/export/mutation exists', async () => {
+  const f = await bankDetailsFixture();
+  const head = await bankDetailsRequest(bankDetailsPath(f.company, f.employee), f.owner, 'HEAD');
+  assert.equal(head.status, 405); assert.equal(head.body, ''); assert.equal(head.headers.get('allow'), 'GET'); assert.equal(head.headers.get('cache-control'), 'no-store');
+  for (const suffix of ['?role=owner', '?fields=account_number', '?action=payroll.read', `?company_id=${randomUUID()}`, '?masked=false']) {
+    const response = await bankDetailsRequest(bankDetailsPath(f.company, f.employee) + suffix, f.owner);
+    assert.equal(response.status, 400); assert.equal(response.headers.get('cache-control'), 'no-store');
+    assert.deepEqual(JSON.parse(response.body), { error: 'Unable to complete this request. Please try again.', code: 'SENSITIVE_REQUEST_INVALID' });
+  }
+  for (const [company, employee] of [['not-company', f.employee], [f.company, 'not-employee'], [f.company, encodeURIComponent(f.employee + '\n')],
+    ['00000000-0000-0000-0000-000000000000', f.employee]]) {
+    const response = await bankDetailsRequest(bankDetailsPath(company!, employee!), f.owner);
+    assert.equal(response.status, 400); assert.equal(response.headers.get('cache-control'), 'no-store');
+  }
+  for (const method of ['POST', 'PUT', 'PATCH', 'DELETE']) {
+    const response = await bankDetailsRequest(bankDetailsPath(f.company, f.employee), f.owner, method);
+    assert.equal(response.status, 404); assert.equal(response.headers.get('cache-control'), 'no-store');
+  }
+  for (const path of [`/${f.company}/payroll-bank-details`, bankDetailsPath(f.company, f.employee) + '/export.csv']) {
+    const response = await bankDetailsRequest(path, f.owner);
+    assert.equal(response.status, 404); assert.equal(response.headers.get('cache-control'), 'no-store');
+  }
+  assert.deepEqual(await bankReadAudits(f.company), []);
+  const fresh = await bankDetailsRequest(bankDetailsPath(f.company, f.employee), f.owner, 'GET', { 'if-none-match': '*' });
+  assert.equal(fresh.status, 200); assert.deepEqual(JSON.parse(fresh.body), { account_number: f.account }); assert.equal(fresh.headers.get('etag'), null);
+  assert.equal((await bankReadAudits(f.company)).length, 1);
+});
+
+test('bank read projection rechecks preparer revocation and approver/reader demotion after the company lock', async () => {
+  for (const next of ['inactive', 'payroll_reader', 'payroll_approver']) {
+    const f = await bankDetailsFixture(), actor = 'synthetic-bank-race-' + randomUUID(); await addMember(f.company, actor, 'payroll_preparer');
+    const blocker = await admin.connect(); let pending: ReturnType<typeof bankDetailsRequest> | undefined;
+    try {
+      await blocker.query('BEGIN'); const { rows: [{ pid }] } = await blocker.query('SELECT pg_backend_pid() pid');
+      await blocker.query('SELECT id FROM public.companies WHERE id=$1 FOR UPDATE', [f.company]);
+      pending = bankDetailsRequest(bankDetailsPath(f.company, f.employee), actor);
+      const deadline = Date.now() + 5000; let waiting = false;
+      while (Date.now() < deadline) {
+        waiting = (await admin.query("SELECT EXISTS(SELECT 1 FROM pg_stat_activity WHERE usename='ledgerly_api' AND $1::int=ANY(pg_blocking_pids(pid))) waiting", [pid])).rows[0].waiting;
+        if (waiting) break; await new Promise(resolve => setTimeout(resolve, 10));
+      }
+      assert.equal(waiting, true);
+      if (next === 'inactive') await blocker.query('UPDATE public.company_users SET is_active=false WHERE company_id=$1 AND user_id=$2', [f.company, actor]);
+      else await blocker.query('UPDATE public.company_users SET role=$3 WHERE company_id=$1 AND user_id=$2', [f.company, actor, next]);
+      await blocker.query('COMMIT'); const response = await pending; assert.equal(response.headers.get('cache-control'), 'no-store');
+      if (next === 'payroll_approver') {
+        assert.equal(response.status, 200); assert.deepEqual(JSON.parse(response.body), { last_four: '3456' });
+        assert.deepEqual((await bankReadAudits(f.company)).map(row => row.context.role), ['payroll_approver']);
+      } else {
+        assert.equal(response.status, 403); assert.deepEqual(JSON.parse(response.body), bankDeniedBody); assert.deepEqual(await bankReadAudits(f.company), []);
+      }
+    } finally { await blocker.query('ROLLBACK'); blocker.release(); if (pending) await pending; }
+  }
+});
+
+test('bank audit exceptions or silently skipped receipts prevent both full and masked disclosure with no successful read receipt', async () => {
+  for (const failure of ['exception', 'skip']) {
+    const f = await bankDetailsFixture(), approver = 'synthetic-bank-fault-' + randomUUID(); await addMember(f.company, approver, 'payroll_approver');
+    const before = await sensitiveAudit(f.company);
+    await admin.query(`CREATE FUNCTION public.synthetic_bank_read_audit_failure() RETURNS trigger LANGUAGE plpgsql AS $$
+      BEGIN IF NEW.company_id='${f.company}'::uuid AND NEW.capability='payroll.bank.read' THEN ${failure === 'skip' ? 'RETURN NULL;' : "RAISE EXCEPTION 'synthetic-private-bank-diagnostic';"} END IF; RETURN NEW; END $$`);
+    await admin.query('CREATE TRIGGER synthetic_bank_read_audit_failure BEFORE INSERT ON public.accounting_audit_events FOR EACH ROW EXECUTE FUNCTION public.synthetic_bank_read_audit_failure()');
+    try {
+      for (const actor of [f.owner, approver]) {
+        const response = await bankDetailsRequest(bankDetailsPath(f.company, f.employee), actor);
+        assert.equal(response.status, 503); assert.equal(response.headers.get('cache-control'), 'no-store'); assert.deepEqual(JSON.parse(response.body), bankUnavailableBody);
+        assert.deepEqual(await sensitiveAudit(f.company), before);
+      }
+      assert.equal(JSON.stringify(logs).includes('synthetic-private-bank-diagnostic'), false);
+      assert.deepEqual((await pool.query('SELECT account_number FROM public.employee_bank_details WHERE company_id=$1 AND employee_id=$2', [f.company, f.employee])).rows, [{ account_number: f.account }]);
+    } finally {
+      await admin.query('DROP TRIGGER synthetic_bank_read_audit_failure ON public.accounting_audit_events');
+      await admin.query('DROP FUNCTION public.synthetic_bank_read_audit_failure()');
+    }
+  }
+});
+
+test('bank reads refuse absent storage, column-only mutation grants and unprotected audit then recover', async () => {
+  const f = await bankDetailsFixture();
+  const unavailable = async () => {
+    const response = await bankDetailsRequest(bankDetailsPath(f.company, f.employee), f.owner);
+    assert.equal(response.status, 503); assert.equal(response.headers.get('cache-control'), 'no-store'); assert.deepEqual(JSON.parse(response.body), bankUnavailableBody);
+    assert.deepEqual(await bankReadAudits(f.company), []);
+  };
+  await admin.query('ALTER TABLE public.employee_bank_details RENAME TO synthetic_missing_bank_details');
+  try { await unavailable(); } finally { await admin.query('ALTER TABLE public.synthetic_missing_bank_details RENAME TO employee_bank_details'); }
+  for (const privilege of ['INSERT', 'UPDATE']) {
+    await admin.query(`GRANT ${privilege}(account_number) ON public.employee_bank_details TO ledgerly_api`);
+    try { await unavailable(); } finally { await admin.query(`REVOKE ${privilege}(account_number) ON public.employee_bank_details FROM ledgerly_api`); }
+  }
+  await admin.query('ALTER TABLE public.accounting_audit_events DISABLE TRIGGER ledgerly_accounting_audit_events_guard');
+  try { await unavailable(); } finally { await admin.query('ALTER TABLE public.accounting_audit_events ENABLE ALWAYS TRIGGER ledgerly_accounting_audit_events_guard'); }
+  const response = await bankDetailsRequest(bankDetailsPath(f.company, f.employee), f.owner);
+  assert.equal(response.status, 200); assert.deepEqual(JSON.parse(response.body), { account_number: f.account }); assert.equal((await bankReadAudits(f.company)).length, 1);
+});
+
+test('bank storage enforces exactly eight ASCII digits and unique company employee while preserving native UUID values', async () => {
+  const f = await bankDetailsFixture();
+  for (const account of ['1234567', '123456789', '-1234567', '+1234567', '1234 678', '１２３４５６７８', '12345678\n', ' 12345678', '12345678 '])
+    await assert.rejects(() => admin.query('INSERT INTO public.employee_bank_details(company_id,employee_id,account_number) VALUES($1,$2,$3)',
+      [f.company, randomUUID(), account]), (error: any) => error.code === '23514');
+  await assert.rejects(() => admin.query('INSERT INTO public.employee_bank_details(company_id,employee_id,account_number) VALUES($1,$2,NULL)',
+    [f.company, randomUUID()]), (error: any) => error.code === '23502');
+  await assert.rejects(() => admin.query('INSERT INTO public.employee_bank_details(company_id,employee_id,account_number) VALUES($1,$2,$3)',
+    [f.company, f.employee, '12345678']), (error: any) => error.code === '23505');
+  assert.deepEqual(await bankReadAudits(f.company), []);
 });

@@ -115,6 +115,8 @@ export async function recoverApplicationArchive({ Client, directory, archive, so
     assertPaymentAttemptRecovery(nativeRuntimeAcceptance);
     if (nativeRuntimeAcceptance.personalTaxCreateReplayVerified !== true)
       throw new Error('Restored personal-tax creation replay verification is required');
+    if (nativeRuntimeAcceptance.payrollBankReadVerified !== true)
+      throw new Error('Restored payroll bank-detail projections are required');
     if (nativeRuntimeAcceptance.personalTaxReadVerified !== true)
       throw new Error('Restored personal-tax role projection acceptance is missing.');
     if (nativeRuntimeAcceptance.payRecordReplayVerified !== true)

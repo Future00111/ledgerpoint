@@ -9,6 +9,7 @@
  * GET    /api/companies/:id/specialist-access-history — bounded audited owner-only history
  * GET    /api/companies/:id/payroll-pay-records/:recordId — audited pay fields by payroll role
  * GET    /api/companies/:id/payroll-pay-records/:recordId/export.csv — audited single-pay export
+ * GET    /api/companies/:id/payroll-bank-details/:employeeId — audited role-projected bank account
  * GET    /api/companies/:id/personal-tax-preparations/:recordId — audited annual draft input by tax role
  * GET    /api/companies/:id/personal-tax-preparations/:recordId/export.csv — audited single-input export
  * POST   /api/companies/:id/personal-tax-preparations — create/replay an annual draft input (owner/preparer)
@@ -33,6 +34,7 @@ import { auditSpecializedMembershipChange, auditSpecializedMembershipChanges } f
 import { SensitiveAccessError } from "../services/payroll/access/boundary";
 import { readSpecialistAccessHistory } from "../services/payroll/access/membershipHistory";
 import { readPayRecord, createPayRecord, exportPayRecord } from "../services/payroll/access/payRecord";
+import { readEmployeeBankDetails } from "../services/payroll/access/bankDetails";
 import { readPersonalTaxPreparation, createPersonalTaxPreparation, exportPersonalTaxPreparation } from "../services/tax/access/preparationRecord";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
@@ -88,11 +90,24 @@ const clerkIdentityLookup: CompanyIdentityLookup = {
 export function createCompaniesRouter(auth: RequestHandler = requireAuth, identities: CompanyIdentityLookup = clerkIdentityLookup) {
 const router = Router();
 // Apply before authentication so denied/unauthenticated responses also cannot be cached.
-router.use(["/:id/specialist-access-history", "/:id/payroll-pay-records", "/:id/personal-tax-preparations"], (_req, res, next) => {
+router.use(["/:id/specialist-access-history", "/:id/payroll-pay-records", "/:id/personal-tax-preparations", "/:id/payroll-bank-details"], (_req, res, next) => {
   res.set("Cache-Control", "no-store");
   next();
 });
 router.use(auth);
+
+router.get("/:id/payroll-bank-details/:employeeId", async (req: Request, res: Response) => {
+  if (req.method !== 'GET') { res.set('Allow', 'GET').status(405).end(); return; }
+  try {
+    if (Object.keys(req.query).length > 0) throw new SensitiveAccessError("SENSITIVE_REQUEST_INVALID");
+    const { userId } = req as AuthenticatedRequest;
+    const result = await readEmployeeBankDetails(req.params["id"] as string, userId, req.params["employeeId"] as string);
+    // Release only the committed projection, without ETag/conditional response caching.
+    res.status(200).set('Content-Type', 'application/json; charset=utf-8').end(JSON.stringify(result));
+  } catch (error) {
+    companyError(req, res, error, "employee bank details read error");
+  }
+});
 
 router.get("/:id/personal-tax-preparations/:recordId/export.csv", async (req: Request, res: Response) => {
   // Express otherwise treats HEAD as GET. An explicit download is the only audited export action.

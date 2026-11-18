@@ -112,6 +112,25 @@ query caches or URLs. An already requested browser download cannot be retracted.
 The server can commit its audit after client cancellation; neither that receipt
 nor the UI's download-request message proves that a file was saved or opened.
 
+## Employee bank lookup
+
+The pay-record workspace has a separate explicit **Look up bank details** action.
+It uses an internal employee UUID, including native nil or non-versioned UUIDs,
+and the current company. Owners and payroll preparers receive exactly an
+eight-digit account number; payroll approvers receive only four final digits.
+Payroll readers and other roles have no bank lookup controls. There is no bank
+export, mutation, account directory or automatic fetch on mount.
+
+The GET client rejects unexpected fields and role projections, uses credentials
+with no cache or redirects, and never exposes server response bodies in errors.
+Actor/company/role changes remount the lookup; editing the employee or starting
+another lookup immediately clears the previous result. Abort plus generation
+checks prevent delayed responses from restoring stale values, including when
+the transport ignores cancellation. Denial or a missing record clears the input
+and result. Account data stays only in the current component and never enters
+browser storage, shared query caches, CSV downloads or page URLs. Each native
+successful lookup remains subject to current server authorization and audit.
+
 ## Pay record CSV
 
 Owners and payroll preparers can select **Download CSV** after a native pay record

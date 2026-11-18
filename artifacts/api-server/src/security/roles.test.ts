@@ -6,6 +6,7 @@ import { COMPANY_ROLES, SENSITIVE_ACTIONS, canAccessSensitiveData } from "./role
 import { withPayrollAccess } from "../services/payroll/access/service";
 import { withPersonalTaxAccess } from "../services/tax/access/service";
 import { readSpecialistAccessHistory } from "../services/payroll/access/membershipHistory";
+import { readEmployeeBankDetails } from "../services/payroll/access/bankDetails";
 import { readPayRecord, exportPayRecord, parsePayRecordCreation } from "../services/payroll/access/payRecord";
 import { readPersonalTaxPreparation, exportPersonalTaxPreparation, parsePersonalTaxPreparationCreation } from "../services/tax/access/preparationRecord";
 import { requireReadOnlySensitiveStorage } from "../services/payroll/access/recordStorage";
@@ -28,8 +29,8 @@ test("sensitive rights separate bookkeeping, records, export, preparation and ap
   const expected: Record<string, readonly string[]> = {
     owner: SENSITIVE_ACTIONS,
     payroll_reader: ["payroll.read"],
-    payroll_preparer: ["payroll.read", "payroll.export", "payroll.prepare"],
-    payroll_approver: ["payroll.read", "payroll.approve"],
+    payroll_preparer: ["payroll.read", "payroll.export", "payroll.prepare", "payroll.bank.read"],
+    payroll_approver: ["payroll.read", "payroll.approve", "payroll.bank.read"],
     personal_tax_preparer: ["personal_tax.read", "personal_tax.export", "personal_tax.prepare"],
     personal_tax_submitter: ["personal_tax.read", "personal_tax.submit"],
   };
@@ -104,7 +105,7 @@ test("shared sensitive record storage accepts only closed relations and canonica
     can_mutate: false, can_insert_column: false, can_update_column: false };
   const calls: unknown[] = [];
   const context = (rows: unknown[]) => ({ query: async (sql: string, values: unknown[]) => { calls.push({ sql, values }); return { rows, rowCount: rows.length }; } }) as any;
-  for (const store of ['employee_pay_records', 'personal_tax_preparations'] as const) {
+  for (const store of ['employee_pay_records', 'personal_tax_preparations', 'employee_bank_details'] as const) {
     await requireReadOnlySensitiveStorage(context([safe]), store);
     assert.deepEqual((calls.at(-1) as any).values, [store]);
     assert.match((calls.at(-1) as any).sql, /c\.relname=\$1/);
@@ -184,4 +185,23 @@ test("creation command protection uses a closed signature map and refuses unsafe
   for (const command of ['constructor', 'public.other()', 'personal_tax;DROP TABLE companies', '', null, {}])
     await assert.rejects(() => requireSensitiveCreationCommand(context([safe]), command as any), /SENSITIVE_OPERATION_UNAVAILABLE/);
   assert.equal(calls.length, before);
+});
+
+test("bank lookup accepts native employee UUID variants only for its distinct action and rejects forged scope before I/O", async () => {
+  const company = '11111111-1111-4111-8111-111111111111', other = '22222222-2222-4222-8222-222222222222';
+  let calls = 0;
+  const operation = async () => { calls++; return 'private'; };
+  for (const employee of ['00000000-0000-0000-0000-000000000000', '00000000-0000-0000-0000-000000000001', 'FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF']) {
+    const scope = { company_id: company, actor_id: 'synthetic-owner', resource_company_id: other, resource_id: employee, action: 'payroll.bank.read' };
+    // Different company is rejected after valid bank-specific UUID parsing, without connecting to a database.
+    await assert.rejects(() => withPayrollAccess(scope, operation), /SENSITIVE_ACCESS_DENIED/);
+    for (const action of SENSITIVE_ACTIONS.filter(action => action !== 'payroll.bank.read' && action.startsWith('payroll.')))
+      await assert.rejects(() => withPayrollAccess({ ...scope, action }, operation), /SENSITIVE_REQUEST_INVALID/);
+    await assert.rejects(() => withPersonalTaxAccess(scope, operation), /SENSITIVE_REQUEST_INVALID/);
+  }
+  for (const [scope, actor, employee] of [['invalid', 'synthetic-owner', other], [company, 'synthetic@example.test', other],
+    [company, 'synthetic-owner', '../other-employee'], [company, 'synthetic-owner', other + '\n'], [company, 'synthetic-owner', ''],
+    ['00000000-0000-0000-0000-000000000000', 'synthetic-owner', other]])
+    await assert.rejects(() => readEmployeeBankDetails(scope!, actor!, employee!), /SENSITIVE_REQUEST_INVALID/);
+  assert.equal(calls, 0);
 });

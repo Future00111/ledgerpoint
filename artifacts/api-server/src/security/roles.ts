@@ -13,7 +13,7 @@ export function canWriteCompanyData(role: unknown): boolean {
   return typeof role === "string" && ["owner", "admin", "accountant", "staff", "member"].includes(role);
 }
 
-export const SENSITIVE_ACTIONS = Object.freeze(["payroll.read", "payroll.export", "payroll.prepare", "payroll.approve",
+export const SENSITIVE_ACTIONS = Object.freeze(["payroll.read", "payroll.export", "payroll.prepare", "payroll.approve", "payroll.bank.read",
   "personal_tax.read", "personal_tax.export", "personal_tax.prepare", "personal_tax.submit"] as const);
 export type SensitiveAction = typeof SENSITIVE_ACTIONS[number];
 
@@ -22,8 +22,8 @@ export type SensitiveAction = typeof SENSITIVE_ACTIONS[number];
 const sensitiveRights: Readonly<Partial<Record<CompanyRole, readonly SensitiveAction[]>>> = Object.freeze({
   owner: SENSITIVE_ACTIONS,
   payroll_reader: ["payroll.read"],
-  payroll_preparer: ["payroll.read", "payroll.export", "payroll.prepare"],
-  payroll_approver: ["payroll.read", "payroll.approve"],
+  payroll_preparer: ["payroll.read", "payroll.export", "payroll.prepare", "payroll.bank.read"],
+  payroll_approver: ["payroll.read", "payroll.approve", "payroll.bank.read"],
   personal_tax_preparer: ["personal_tax.read", "personal_tax.export", "personal_tax.prepare"],
   personal_tax_submitter: ["personal_tax.read", "personal_tax.submit"],
 });

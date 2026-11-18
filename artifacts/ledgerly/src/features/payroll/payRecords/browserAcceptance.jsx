@@ -61,13 +61,25 @@ async function exercise() {
   stage = 'csv-download';
   await verifyCsvDownload(await ready('Download CSV'), 'payroll-pay-record.csv',
     'effective_from,annual_salary_pence,currency\r\n2026-04-06,4525075,GBP\r\n', wait);
+  stage = 'bank-detail';
+  const lookupBank = async () => {
+    fill(await wait(() => input('Employee UUID for bank lookup'), 'bank lookup'), fixture.employee);
+    (await ready('Look up bank details')).click();
+  };
+  await lookupBank();
+  await wait(() => text().includes('00123456'), 'full account');
+  mount(fixture.company, fixture.approver, 'payroll_approver');
+  await wait(() => !text().includes('00123456') && input('Employee UUID for bank lookup')?.value === '', 'prior account cleared');
+  await lookupBank();
+  await wait(() => text().includes('Account number ending') && text().includes('3456'), 'masked account');
+  if (text().includes('00123456')) throw Error('Approver projection');
   stage = 'reader';
   mount(fixture.company, fixture.reader, 'payroll_reader');
   await wait(() => !button('Save pay record') && !text().includes('45,250.75'), 'reader scope reset');
   fill(await wait(() => input('Pay record ID'), 'lookup input'), requests[0]);
   (await ready('Look up pay record')).click();
   await wait(() => text().includes('45,250.75'), 'reader native readback');
-  if (button('Download CSV') || text().includes(fixture.employee) || input('Employee reference')) throw Error('Reader projection');
+  if (button('Look up bank details') || text().includes('Account number ending') || button('Download CSV') || text().includes(fixture.employee) || input('Employee reference')) throw Error('Reader projection');
   stage = 'company-change';
   mount(fixture.other, fixture.reader, 'payroll_reader');
   await wait(() => !text().includes('45,250.75') && input('Pay record ID')?.value === '', 'company scope reset');

@@ -5,6 +5,7 @@ import { payRecordsClient } from './client.mjs';
 import { buildIntent, formatSalary, payrollPermissions } from './model.mjs';
 import { PayExportButton } from './PayExportButton';
 import { useSensitiveEntry } from './useSensitiveEntry';
+import { BankDetailsLookup } from './BankDetailsLookup';
 
 const blankForm = () => ({ employee: '', date: '', salary: '' });
 
@@ -17,7 +18,7 @@ export function PayRecordsWorkspace(props) {
   return <ScopedPayRecords key={JSON.stringify([actorId, companyId, role])} {...props} />;
 }
 
-function ScopedPayRecords({ companyId, companyName, role, client = payRecordsClient, onRefreshAccess }) {
+function ScopedPayRecords({ companyId, companyName, actorId, role, client = payRecordsClient, bankClient, onRefreshAccess }) {
   const canPrepare = payrollPermissions(role).prepare;
   const { id, form, attempt, phase, lookupId, record, message, validation, busy, locked, save, lookup, fresh, update, changeLookup, denyAccess } =
     useSensitiveEntry({ companyId, role, client, canPrepare, blankForm, buildIntent, savedMessage: 'Pay record saved.' });
@@ -59,6 +60,7 @@ function ScopedPayRecords({ companyId, companyName, role, client = payRecordsCli
         {record && <PayExportButton key={record.id} companyId={companyId} record={record} role={role} client={client} onDenied={denyAccess} />}
       </section>
     </div>
+    <BankDetailsLookup companyId={companyId} actorId={actorId} role={role} client={bankClient} />
   </div>;
 }
 
