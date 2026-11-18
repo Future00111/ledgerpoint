@@ -1,0 +1,131 @@
+{
+  "task": "P02-04",
+  "actor": "history-read-author",
+  "baseCommit": "7c70001028ea7228e8b4bbab9ba83d5edeca261f",
+  "authorCommit": "a0552d6a628cad69ca5fb8399921daebc808b458",
+  "authorTree": "f1c31510fd03535c46367c359b49d7b2361bc9f7",
+  "branch": "codex/specialist-access-history",
+  "changedFiles": [
+    "artifacts/api-server/src/routes/companies.ts",
+    "artifacts/api-server/src/security/integration.test.ts",
+    "artifacts/api-server/src/security/roles.test.ts",
+    "artifacts/api-server/src/services/payroll/access/README.md",
+    "artifacts/api-server/src/services/payroll/access/membershipHistory.ts"
+  ],
+  "files": [
+    {
+      "path": "artifacts/api-server/src/routes/companies.ts",
+      "bytes": 18086,
+      "sha256": "2b921a467806b990bc1e259ea882dec96cd0a44647e852070de4685f2ea56efe"
+    },
+    {
+      "path": "artifacts/api-server/src/security/integration.test.ts",
+      "bytes": 58768,
+      "sha256": "ce1ca07eb61cf7f63ef12fc8aaef68f6416eee02f27f40a6cd2c98a5f48c768e"
+    },
+    {
+      "path": "artifacts/api-server/src/security/roles.test.ts",
+      "bytes": 4628,
+      "sha256": "6febfed65f344f46df4606545246de769558e4774cccd95b1d883a6eca087d9a"
+    },
+    {
+      "path": "artifacts/api-server/src/services/payroll/access/README.md",
+      "bytes": 5882,
+      "sha256": "19a440709c194bb5bcc0a912d41102bec2cfc11c0a352f06904b7f8c137863f7"
+    },
+    {
+      "path": "artifacts/api-server/src/services/payroll/access/membershipHistory.ts",
+      "bytes": 5855,
+      "sha256": "4044bd4bd28add2ce25ef3d919206950ab182b8d131afe4ab593522d779e8628"
+    }
+  ],
+  "patch": {
+    "file": "history-author.patch",
+    "bytes": 29765,
+    "sha256": "9f393152678e2f436c21372c048cbec8c5ec05968852571f876afd8efde00faa"
+  },
+  "scope": "Normal authenticated GET /api/companies/:id/specialist-access-history: company-locked current unique active owner authority, bounded persisted membership history with allowlisted metadata and atomic audited read.",
+  "response": {
+    "limit": 50,
+    "hasMore": "51st row sentinel",
+    "ordering": "created_at DESC, id DESC",
+    "eventFields": [
+      "id",
+      "occurred_at",
+      "membership_id",
+      "operation",
+      "previous_role",
+      "next_role",
+      "previous_active",
+      "next_active"
+    ],
+    "excluded": [
+      "stored actor identity",
+      "target user identity",
+      "emails/names",
+      "arbitrary context",
+      "monetary values",
+      "other sensitive audit actions"
+    ],
+    "noPaginationOrQueryParameters": true,
+    "cacheControl": "no-store before auth, including normal error responses"
+  },
+  "audit": "Separate sensitive_membership_history_read action; authenticated actor/company plus fixed contract, count/limit/has_more. Protected storage attested; insertion confirmed by returned ID; empty and nonempty results released only after transaction commit. Read receipts excluded from results.",
+  "checks": [
+    {
+      "command": "node tools/development/check-company-access.mjs",
+      "passed": true,
+      "tests": 40,
+      "log": "author-focused.log",
+      "sha256": "f49371199ac49a5685d58f003f6b47158e9e708e1252dcad094bd9acd4ee1ce6"
+    },
+    {
+      "command": "pnpm --filter @workspace/api-server exec tsc -p tsconfig.json --noEmit",
+      "passed": true,
+      "log": "author-typecheck.log"
+    },
+    {
+      "command": "Exact security/integration.test.ts bundled CJS with harness externals; node --check; changed source inclusion and import kinds verified",
+      "passed": true,
+      "nativeDatabasePassed": false,
+      "log": "author-native-compile.log"
+    },
+    {
+      "command": "git diff --cached --check before commit",
+      "passed": true
+    }
+  ],
+  "nativeScenariosAdded": 8,
+  "nativeScenarios": [
+    "Real route grants/invitations/transitions and retained deleted-membership history; redacted projection and repeat-read receipts",
+    "Audited empty results and nonrecursive receipts",
+    "No-store and denial for unauthenticated/ordinary/specialised/foreign/inactive/ambiguous callers; no caller role/scope overrides",
+    "Owner revocation and demotion races after company lock",
+    "Raised or silently skipped audit insertion denies both empty and populated reads without receipts or private diagnostics",
+    "Missing guard or column UPDATE privilege denies reads",
+    "55-row timestamp/UUID ordering, fixed 50-row limit/has_more, ignored arbitrary context/actor PII and preserved historical null flags",
+    "Missing/unknown/contradictory metadata or invalid target reference fails closed with no successful-read receipt"
+  ],
+  "reviewCorrections": [
+    "Cache-Control middleware before router authentication",
+    "Exclude historical actor identity entirely",
+    "Require expected context keys explicitly; distinguish absent keys from explicit JSON null",
+    "Validate operation-specific role transitions while retaining historical nullable active flags"
+  ],
+  "nativeQualification": "Exact-source disposable PostgreSQL CI required; no local database runtime pass claimed.",
+  "remaining": [
+    "Independent matching-commit review and exact-source disposable native PostgreSQL CI.",
+    "No history UI or pagination; older history is indicated by has_more but not exposed by this endpoint. Deleted companies remain inaccessible.",
+    "Wire native payroll/personal-tax record read/export/preparation/approval/submission routes and qualified field projections; retrieval of other sensitive audit actions remains pending.",
+    "Full original P02-04 acceptance remains pending connected native sensitive workflows."
+  ],
+  "schemaGrantsAndRunnerUnchanged": true,
+  "independentReviewRequired": true,
+  "independentlyReviewed": false,
+  "stopped": true,
+  "worktreeClean": true,
+  "finishedAt": "2026-11-18T15:54:57.808223+00:00",
+  "providerCost": null,
+  "credits": null,
+  "noPushQueueOrProductionChanges": true
+}
