@@ -1,0 +1,689 @@
+{
+  "format": "exact-queue-delta-v1",
+  "base": {
+    "format": "ledgerpoint-queue-reference-v1",
+    "repository": "Future00111/ledgerpoint",
+    "ref": "refs/heads/codex/ledgerly-work-queue-state",
+    "sha": "7baa16b6803002b5b1aef102da897b713b9dd49c",
+    "path": "docs/development/candidates/pay-ui-20261118/migration/queue-base.json",
+    "bytesSha256": "a4701f43fbc337ec084241e0d460a16ad484ba875f64b729214db63a77a22774",
+    "queueSha256": "9bf5b01a62f22f4adedd89126e11a2a941b08a706f551916f4d2ed4be1f04376",
+    "revision": 945,
+    "catalogDigest": "e2062b766ab4d6c1925cec45996df85511974cc96a5873b02adbfe7392a3efbc"
+  },
+  "fromRevision": 945,
+  "revision": 961,
+  "taskReplacements": {
+    "P02-04": {
+      "status": "running",
+      "priority": 204,
+      "discoveredDependencies": [],
+      "checkpoint": "Qualify the next outstanding specialist access workflow against the product backlog.",
+      "evidence": {
+        "summary": "The company workspace supports annual employment-income entry, safe retries and role-limited lookup. Changing company clears the displayed tax input.",
+        "reviewer": "root",
+        "reviewed": true,
+        "commit": "4e89dcb0760125816a67e25b00388168e426b404",
+        "integratedCommit": "097522da19e18dd4c727c49c8b2b14278dc04360",
+        "tests": [
+          {
+            "command": "Integrated build, typechecks and combined regression suite",
+            "passed": true
+          },
+          {
+            "command": "GitHub Actions 44366636822 on identical source tree, including native personal-tax field projection, role and audit checks plus populated encrypted restore",
+            "passed": true
+          }
+        ]
+      },
+      "acceptedOutcomes": [
+        {
+          "id": "sensitive-role-audited-boundary-20261118",
+          "scenario": "Native membership-controlled specialized payroll/personal-tax rights and internal transaction boundary; current-role revocation fencing, wrong-role/company denial and atomic redacted audit before disclosure. Synthetic native transaction scenarios, with no sensitive-record endpoint claimed.",
+          "criteria": [
+            0,
+            1
+          ],
+          "remaining": [
+            "Wire actual native salary, identifier, bank-data and personal-tax record reads, exports, preparation, approval and submission to these boundaries with record ownership and field projection. Those sensitive record schemas/routes are not implemented by this outcome.",
+            "Audit specialized role assignment/removal in the existing native membership flow and provide appropriate sensitive audit retrieval and UI choices.",
+            "External submission requires separately reviewed payload, consent, identity, idempotency and provider authority; no network operation is authorized by the local permission.",
+            "Qualify the connected customer workflows before full P02-04 acceptance."
+          ],
+          "nextAction": "Reconcile P02-02 ownership and arrange an explicit narrow nonoverlapping lease for role-assignment auditing in the existing membership flow; implement and qualify that real route before adding more access abstractions. Wire native sensitive record paths as their actual schemas/producers become available.",
+          "integratedCommit": "3de4c5de8f0f6414cef14ef5589f28b4b6c3e994",
+          "acceptedAt": 1795013916929,
+          "evidence": {
+            "commit": "8a218dedf5786fe2376ab6690164f4087578d7cb",
+            "integratedCommit": "3de4c5de8f0f6414cef14ef5589f28b4b6c3e994",
+            "reviewer": "root",
+            "reviewed": true,
+            "summary": "Native membership-controlled specialized payroll/personal-tax rights and internal transaction boundary; current-role revocation fencing, wrong-role/company denial and atomic redacted audit before disclosure. Synthetic native transaction scenarios, with no sensitive-record endpoint claimed.",
+            "tests": [
+              {
+                "command": "Root independent diff/source review and exact-source CI44329382408 job134889313211: all20steps successful without skips, tree58ab00801fc097080625a7e684277e6a2586bb3e",
+                "passed": true
+              },
+              {
+                "command": "Combined local1132tests and build/typechecks; six native sensitive-access scenarios and38fixturetests passed in integratedCI",
+                "passed": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "specialist-membership-audit-20261118",
+          "scenario": "Grants, invitations and role transitions commit protected audit evidence atomically. Default restricted delete attempts preserve memberships and history. Conditional removal audit and rollback were verified with temporary disposable-only DELETE grants.",
+          "integratedCommit": "7c70001028ea7228e8b4bbab9ba83d5edeca261f",
+          "criteria": [
+            0,
+            1
+          ],
+          "remaining": [
+            "Connect payroll and personal-tax record reads, exports and changes to scoped record ownership and field projections.",
+            "Implement authorized audit retrieval and appropriate UI for specialist access."
+          ],
+          "nextAction": "Identify the first actual sensitive record schema and implement a company-scoped read with field projection and its permitted and denied scenarios.",
+          "acceptedAt": 1795016307697,
+          "evidence": {
+            "summary": "Grants, invitations and role transitions commit protected audit evidence atomically. Default restricted delete attempts preserve memberships and history. Conditional removal audit and rollback were verified with temporary disposable-only DELETE grants.",
+            "reviewer": "root",
+            "reviewed": true,
+            "commit": "990403882dd3d7c9f2680450a121cba228399a8b",
+            "integratedCommit": "7c70001028ea7228e8b4bbab9ba83d5edeca261f",
+            "tests": [
+              {
+                "command": "Integrated build, typechecks and combined regression suite",
+                "passed": true
+              },
+              {
+                "command": "GitHub Actions 44337279646 on identical source tree, including native membership integration and restore checks",
+                "passed": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "specialist-membership-history-20261118",
+          "scenario": "A current active company owner can read a bounded projection of persisted specialist membership changes, with atomic protected access evidence and tenant isolation.",
+          "integratedCommit": "422e278ae4b28f7837a577eae05c48b599964414",
+          "criteria": [
+            0,
+            1
+          ],
+          "remaining": [
+            "Connect payroll and personal-tax record reads, exports and changes to scoped record ownership and field projections.",
+            "Connect the owner-facing history UI and cover outstanding sensitive-record workflows."
+          ],
+          "nextAction": "Define the first native employee pay record and its write/read ownership, then qualify permitted and denied role-specific fields on that record.",
+          "acceptedAt": 1795017608454,
+          "evidence": {
+            "summary": "A current active company owner can read a bounded projection of persisted specialist membership changes, with atomic protected access evidence and tenant isolation.",
+            "reviewer": "root",
+            "reviewed": true,
+            "commit": "a0552d6a628cad69ca5fb8399921daebc808b458",
+            "integratedCommit": "422e278ae4b28f7837a577eae05c48b599964414",
+            "tests": [
+              {
+                "command": "Integrated build, typechecks and combined regression suite",
+                "passed": true
+              },
+              {
+                "command": "GitHub Actions 44341326338 on identical source tree, including native membership integration and restore checks",
+                "passed": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "employee-pay-record-read-20261118",
+          "scenario": "Authorised payroll roles can retrieve a tenant-scoped annual GBP pay record with the field projection for their current role and an atomic audit receipt.",
+          "integratedCommit": "48ca7414debce81d9ae40fa3323fc21167a1d3cb",
+          "criteria": [
+            0,
+            1
+          ],
+          "remaining": [
+            "Add audited write ownership and input validation for employee pay records; complete remaining bank, identifier, personal-tax and export workflows.",
+            "Connect the owner-facing history UI and cover outstanding sensitive-record workflows."
+          ],
+          "nextAction": "Connect an authorised payroll preparer to the creation of a dated employee pay record with idempotency, an atomic audit receipt and verified re-read.",
+          "acceptedAt": 1795019139826,
+          "evidence": {
+            "summary": "Authorised payroll roles can retrieve a tenant-scoped annual GBP pay record with the field projection for their current role and an atomic audit receipt.",
+            "reviewer": "root",
+            "reviewed": true,
+            "commit": "23957ed8abe6772841e43bebf3178a43bb8f63b8",
+            "integratedCommit": "48ca7414debce81d9ae40fa3323fc21167a1d3cb",
+            "tests": [
+              {
+                "command": "Integrated build, typechecks and combined regression suite",
+                "passed": true
+              },
+              {
+                "command": "GitHub Actions 44346441064 on identical source tree, including native pay record role tests and populated encrypted restore checks",
+                "passed": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "employee-pay-record-create-20261118",
+          "scenario": "An active owner or payroll preparer creates a dated annual pay record with an atomic mutation receipt; equivalent retries return the original record and changed intent conflicts.",
+          "integratedCommit": "2ec0fb120149fad9e8caec59047b61ab0020a93d",
+          "criteria": [
+            0,
+            1
+          ],
+          "remaining": [
+            "Build the employee pay entry and readback screen, and qualify remaining sensitive pay, personal-tax and export workflows.",
+            "Connect the owner-facing history UI and cover outstanding sensitive-record workflows."
+          ],
+          "nextAction": "Connect pay entry and readback to the company payroll screen, preserving the supplied record ID across retries and showing role-appropriate fields.",
+          "acceptedAt": 1795020354683,
+          "evidence": {
+            "summary": "An active owner or payroll preparer creates a dated annual pay record with an atomic mutation receipt; equivalent retries return the original record and changed intent conflicts.",
+            "reviewer": "root",
+            "reviewed": true,
+            "commit": "e67cc883a3598a00dcf2235259b7d4cd1e0203c0",
+            "integratedCommit": "2ec0fb120149fad9e8caec59047b61ab0020a93d",
+            "tests": [
+              {
+                "command": "Integrated build, typechecks and combined regression suite",
+                "passed": true
+              },
+              {
+                "command": "GitHub Actions 44350242253 on identical source tree, including native pay record role tests and populated encrypted restore checks",
+                "passed": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "employee-pay-screen-20261118",
+          "scenario": "The company payroll screen allows authorised dated pay entry, reuse of a stable ID after a lost response, and readback with role-scoped fields.",
+          "integratedCommit": "941247aec7ccc7a0d91f8c6adb539db49fbee146",
+          "criteria": [
+            0,
+            1
+          ],
+          "remaining": [
+            "Qualify remaining employee identifier, bank, personal-tax and export workflows.",
+            "Connect the owner-facing history UI and cover outstanding sensitive-record workflows."
+          ],
+          "nextAction": "Connect the owner-only specialist access history to the company workspace and verify company and role changes in the browser.",
+          "acceptedAt": 1795021692116,
+          "evidence": {
+            "summary": "The company payroll screen allows authorised dated pay entry, reuse of a stable ID after a lost response, and readback with role-scoped fields.",
+            "reviewer": "root",
+            "reviewed": true,
+            "commit": "94e42c76375561309be535936ea4d1d6946e706c",
+            "integratedCommit": "941247aec7ccc7a0d91f8c6adb539db49fbee146",
+            "tests": [
+              {
+                "command": "Integrated build, typechecks and combined regression suite",
+                "passed": true
+              },
+              {
+                "command": "GitHub Actions 44354472642 on identical source tree, including native Chromium pay entry, lost-response retry, readback, role and company switching, and populated restore checks",
+                "passed": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "owner-access-history-screen-20261118",
+          "scenario": "Current owners explicitly review dated changes to specialist membership roles and active status in their company, with bounded native history, audited reads and scoped state clearing.",
+          "integratedCommit": "ac5815c732e813211d62d712110fa547148da0c9",
+          "criteria": [
+            0,
+            1
+          ],
+          "remaining": [
+            "Qualify remaining employee identifier, bank, personal-tax and export workflows.",
+            "Connect and qualify remaining specialist access workflows."
+          ],
+          "nextAction": "Define the first company-scoped personal-tax preparation record and qualify role-specific reads and protected audit receipts.",
+          "acceptedAt": 1795022705399,
+          "evidence": {
+            "summary": "Current owners explicitly review dated changes to specialist membership roles and active status in their company, with bounded native history, audited reads and scoped state clearing.",
+            "reviewer": "root",
+            "reviewed": true,
+            "commit": "ffccacfc37ca4ed89b8237e5031a77dac5d53a68",
+            "integratedCommit": "ac5815c732e813211d62d712110fa547148da0c9",
+            "tests": [
+              {
+                "command": "Integrated build, typechecks and combined regression suite",
+                "passed": true
+              },
+              {
+                "command": "GitHub Actions 44357722911 on identical source tree, including native Chromium access history, audited refresh, stale response isolation, denied access and populated restore checks",
+                "passed": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "personal-tax-preparation-read-20261118",
+          "scenario": "Current company owners and tax preparers can read an annual employment-income preparation input and its internal taxpayer reference. Submitters can read the year and exact amount with the reference excluded. Reads are audited.",
+          "integratedCommit": "79d34d2cc8fcf731b156752305b89d1234495e24",
+          "criteria": [
+            0,
+            1
+          ],
+          "remaining": [
+            "Qualify remaining employee identifier, bank, personal-tax and export workflows.",
+            "Connect and qualify remaining specialist access workflows."
+          ],
+          "nextAction": "Enable authorised owners and personal-tax preparers to create an annual employment-income input with a stable request identity, protected audit and conflict-safe retries.",
+          "acceptedAt": 1795023702272,
+          "evidence": {
+            "summary": "Current company owners and tax preparers can read an annual employment-income preparation input and its internal taxpayer reference. Submitters can read the year and exact amount with the reference excluded. Reads are audited.",
+            "reviewer": "root",
+            "reviewed": true,
+            "commit": "f2a2dcedad99dbb34516828b2b5842586eed84bb",
+            "integratedCommit": "79d34d2cc8fcf731b156752305b89d1234495e24",
+            "tests": [
+              {
+                "command": "Integrated build, typechecks and combined regression suite",
+                "passed": true
+              },
+              {
+                "command": "GitHub Actions 44360777186 on identical source tree, including native personal-tax field projection, role and audit checks plus populated encrypted restore",
+                "passed": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "personal-tax-preparation-create-20261118",
+          "scenario": "Current owners and personal-tax preparers can record annual employment income. Matching retries reuse the record, conflicting requests are rejected, and the single creation receipt survives encrypted restore.",
+          "integratedCommit": "9d6d27e77e19690c8d77e02a59b20c81b094e840",
+          "criteria": [
+            0,
+            1
+          ],
+          "remaining": [
+            "Qualify remaining employee identifier, bank, personal-tax and export workflows.",
+            "Connect and qualify remaining specialist access workflows."
+          ],
+          "nextAction": "Add annual employment-income entry and role-appropriate readback to the company workspace.",
+          "acceptedAt": 1795024691838,
+          "evidence": {
+            "summary": "Current owners and personal-tax preparers can record annual employment income. Matching retries reuse the record, conflicting requests are rejected, and the single creation receipt survives encrypted restore.",
+            "reviewer": "root",
+            "reviewed": true,
+            "commit": "6c99410d2ed185c21d5a3917bd8cfd03f028a637",
+            "integratedCommit": "9d6d27e77e19690c8d77e02a59b20c81b094e840",
+            "tests": [
+              {
+                "command": "Integrated build, typechecks and combined regression suite",
+                "passed": true
+              },
+              {
+                "command": "GitHub Actions 44363819716 on identical source tree, including native personal-tax field projection, role and audit checks plus populated encrypted restore",
+                "passed": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "personal-tax-workspace-20261118",
+          "scenario": "The company workspace supports annual employment-income entry, safe retries and role-limited lookup. Changing company clears the displayed tax input.",
+          "integratedCommit": "097522da19e18dd4c727c49c8b2b14278dc04360",
+          "criteria": [
+            0,
+            1
+          ],
+          "remaining": [
+            "Qualify remaining employee identifier, bank, personal-tax and export workflows.",
+            "Connect and qualify remaining specialist access workflows."
+          ],
+          "nextAction": "Qualify the next outstanding specialist access workflow against the product backlog.",
+          "acceptedAt": 1795025614030,
+          "evidence": {
+            "summary": "The company workspace supports annual employment-income entry, safe retries and role-limited lookup. Changing company clears the displayed tax input.",
+            "reviewer": "root",
+            "reviewed": true,
+            "commit": "4e89dcb0760125816a67e25b00388168e426b404",
+            "integratedCommit": "097522da19e18dd4c727c49c8b2b14278dc04360",
+            "tests": [
+              {
+                "command": "Integrated build, typechecks and combined regression suite",
+                "passed": true
+              },
+              {
+                "command": "GitHub Actions 44366636822 on identical source tree, including native personal-tax field projection, role and audit checks plus populated encrypted restore",
+                "passed": true
+              }
+            ]
+          }
+        }
+      ],
+      "owner": "tax-export-author",
+      "tokenSha256": "60bb5b54ae97dc71d32e497d8f5d1c3481227e23a114a9313c47c36684fb8313",
+      "leaseUntil": 1795028723559,
+      "workStarted": false
+    }
+  },
+  "appendedEvents": [
+    {
+      "at": 1795020894979,
+      "actor": "pay-ui-author",
+      "type": "claim",
+      "taskId": "P02-04",
+      "tokenSha256": "9eebf2e859dc1bdbe1e89a0a32b836619b21f6f2b75ddbd64d61282b850b87e7",
+      "track": "tax-payroll"
+    },
+    {
+      "at": 1795021412450,
+      "actor": "pay-ui-author",
+      "type": "submit",
+      "taskId": "P02-04",
+      "evidence": {
+        "commit": "94e42c76375561309be535936ea4d1d6946e706c",
+        "summary": "Company payroll entry and readback through role-scoped UI",
+        "tests": [
+          {
+            "command": "12 model/client/route tests, four render/navigation tests, frontend typecheck",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1795021692116,
+      "actor": "root",
+      "type": "accept-outcome",
+      "taskId": "P02-04",
+      "outcome": {
+        "id": "employee-pay-screen-20261118",
+        "scenario": "The company payroll screen allows authorised dated pay entry, reuse of a stable ID after a lost response, and readback with role-scoped fields.",
+        "integratedCommit": "941247aec7ccc7a0d91f8c6adb539db49fbee146",
+        "criteria": [
+          0,
+          1
+        ],
+        "remaining": [
+          "Qualify remaining employee identifier, bank, personal-tax and export workflows.",
+          "Connect the owner-facing history UI and cover outstanding sensitive-record workflows."
+        ],
+        "nextAction": "Connect the owner-only specialist access history to the company workspace and verify company and role changes in the browser."
+      },
+      "workersStopped": true,
+      "evidence": {
+        "summary": "The company payroll screen allows authorised dated pay entry, reuse of a stable ID after a lost response, and readback with role-scoped fields.",
+        "reviewer": "root",
+        "reviewed": true,
+        "commit": "94e42c76375561309be535936ea4d1d6946e706c",
+        "integratedCommit": "941247aec7ccc7a0d91f8c6adb539db49fbee146",
+        "tests": [
+          {
+            "command": "Integrated build, typechecks and combined regression suite",
+            "passed": true
+          },
+          {
+            "command": "GitHub Actions 44354472642 on identical source tree, including native Chromium pay entry, lost-response retry, readback, role and company switching, and populated restore checks",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1795022034701,
+      "actor": "history-ui-author",
+      "type": "claim",
+      "taskId": "P02-04",
+      "tokenSha256": "514cc3b94cc83ace05362c6c57fda08fc3589580758b8f3a77e7d89b36ec5901",
+      "track": "tax-payroll"
+    },
+    {
+      "at": 1795022429896,
+      "actor": "history-ui-author",
+      "type": "submit",
+      "taskId": "P02-04",
+      "evidence": {
+        "commit": "ffccacfc37ca4ed89b8237e5031a77dac5d53a68",
+        "summary": "Owner-facing audited specialist access history",
+        "tests": [
+          {
+            "command": "29 focused model/client/render/route checks and frontend typecheck",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1795022705399,
+      "actor": "root",
+      "type": "accept-outcome",
+      "taskId": "P02-04",
+      "outcome": {
+        "id": "owner-access-history-screen-20261118",
+        "scenario": "Current owners explicitly review dated changes to specialist membership roles and active status in their company, with bounded native history, audited reads and scoped state clearing.",
+        "integratedCommit": "ac5815c732e813211d62d712110fa547148da0c9",
+        "criteria": [
+          0,
+          1
+        ],
+        "remaining": [
+          "Qualify remaining employee identifier, bank, personal-tax and export workflows.",
+          "Connect and qualify remaining specialist access workflows."
+        ],
+        "nextAction": "Define the first company-scoped personal-tax preparation record and qualify role-specific reads and protected audit receipts."
+      },
+      "workersStopped": true,
+      "evidence": {
+        "summary": "Current owners explicitly review dated changes to specialist membership roles and active status in their company, with bounded native history, audited reads and scoped state clearing.",
+        "reviewer": "root",
+        "reviewed": true,
+        "commit": "ffccacfc37ca4ed89b8237e5031a77dac5d53a68",
+        "integratedCommit": "ac5815c732e813211d62d712110fa547148da0c9",
+        "tests": [
+          {
+            "command": "Integrated build, typechecks and combined regression suite",
+            "passed": true
+          },
+          {
+            "command": "GitHub Actions 44357722911 on identical source tree, including native Chromium access history, audited refresh, stale response isolation, denied access and populated restore checks",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1795023010740,
+      "actor": "tax-record-author",
+      "type": "claim",
+      "taskId": "P02-04",
+      "tokenSha256": "e7750eaf6f2b8b6b2c71e9098385454539b377a2bf22730f676a012f800e1fc9",
+      "track": "tax-payroll"
+    },
+    {
+      "at": 1795023420354,
+      "actor": "tax-record-author",
+      "type": "submit",
+      "taskId": "P02-04",
+      "evidence": {
+        "commit": "f2a2dcedad99dbb34516828b2b5842586eed84bb",
+        "summary": "Audited field-scoped personal tax preparation read",
+        "tests": [
+          {
+            "command": "Focused access tests, API typecheck and native test bundle syntax",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1795023702272,
+      "actor": "root",
+      "type": "accept-outcome",
+      "taskId": "P02-04",
+      "outcome": {
+        "id": "personal-tax-preparation-read-20261118",
+        "scenario": "Current company owners and tax preparers can read an annual employment-income preparation input and its internal taxpayer reference. Submitters can read the year and exact amount with the reference excluded. Reads are audited.",
+        "integratedCommit": "79d34d2cc8fcf731b156752305b89d1234495e24",
+        "criteria": [
+          0,
+          1
+        ],
+        "remaining": [
+          "Qualify remaining employee identifier, bank, personal-tax and export workflows.",
+          "Connect and qualify remaining specialist access workflows."
+        ],
+        "nextAction": "Enable authorised owners and personal-tax preparers to create an annual employment-income input with a stable request identity, protected audit and conflict-safe retries."
+      },
+      "workersStopped": true,
+      "evidence": {
+        "summary": "Current company owners and tax preparers can read an annual employment-income preparation input and its internal taxpayer reference. Submitters can read the year and exact amount with the reference excluded. Reads are audited.",
+        "reviewer": "root",
+        "reviewed": true,
+        "commit": "f2a2dcedad99dbb34516828b2b5842586eed84bb",
+        "integratedCommit": "79d34d2cc8fcf731b156752305b89d1234495e24",
+        "tests": [
+          {
+            "command": "Integrated build, typechecks and combined regression suite",
+            "passed": true
+          },
+          {
+            "command": "GitHub Actions 44360777186 on identical source tree, including native personal-tax field projection, role and audit checks plus populated encrypted restore",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1795023901646,
+      "actor": "tax-create-author",
+      "type": "claim",
+      "taskId": "P02-04",
+      "tokenSha256": "308bd7821022738a324346fa3786f083435cbf2f6c5d039b12d0a17eb3ce75b7",
+      "track": "tax-payroll"
+    },
+    {
+      "at": 1795024426840,
+      "actor": "tax-create-author",
+      "type": "submit",
+      "taskId": "P02-04",
+      "evidence": {
+        "commit": "6c99410d2ed185c21d5a3917bd8cfd03f028a637",
+        "summary": "Audited tax input creation and conflict-safe retries",
+        "tests": [
+          {
+            "command": "Focused access suite (48 tests), API typecheck and native test compilation",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1795024691838,
+      "actor": "root",
+      "type": "accept-outcome",
+      "taskId": "P02-04",
+      "outcome": {
+        "id": "personal-tax-preparation-create-20261118",
+        "scenario": "Current owners and personal-tax preparers can record annual employment income. Matching retries reuse the record, conflicting requests are rejected, and the single creation receipt survives encrypted restore.",
+        "integratedCommit": "9d6d27e77e19690c8d77e02a59b20c81b094e840",
+        "criteria": [
+          0,
+          1
+        ],
+        "remaining": [
+          "Qualify remaining employee identifier, bank, personal-tax and export workflows.",
+          "Connect and qualify remaining specialist access workflows."
+        ],
+        "nextAction": "Add annual employment-income entry and role-appropriate readback to the company workspace."
+      },
+      "workersStopped": true,
+      "evidence": {
+        "summary": "Current owners and personal-tax preparers can record annual employment income. Matching retries reuse the record, conflicting requests are rejected, and the single creation receipt survives encrypted restore.",
+        "reviewer": "root",
+        "reviewed": true,
+        "commit": "6c99410d2ed185c21d5a3917bd8cfd03f028a637",
+        "integratedCommit": "9d6d27e77e19690c8d77e02a59b20c81b094e840",
+        "tests": [
+          {
+            "command": "Integrated build, typechecks and combined regression suite",
+            "passed": true
+          },
+          {
+            "command": "GitHub Actions 44363819716 on identical source tree, including native personal-tax field projection, role and audit checks plus populated encrypted restore",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1795024993560,
+      "actor": "tax-ui-author",
+      "type": "claim",
+      "taskId": "P02-04",
+      "tokenSha256": "9a6bd4a7d3d7f4854e70ac0202672902f033cb575aac8d0250bd539ab9149071",
+      "track": "tax-payroll"
+    },
+    {
+      "at": 1795025335788,
+      "actor": "tax-ui-author",
+      "type": "submit",
+      "taskId": "P02-04",
+      "evidence": {
+        "commit": "4e89dcb0760125816a67e25b00388168e426b404",
+        "summary": "Company workspace tax input form and role-limited readback",
+        "tests": [
+          {
+            "command": "26 model/client/route tests, 14 render/navigation tests, frontend typecheck",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1795025614030,
+      "actor": "root",
+      "type": "accept-outcome",
+      "taskId": "P02-04",
+      "outcome": {
+        "id": "personal-tax-workspace-20261118",
+        "scenario": "The company workspace supports annual employment-income entry, safe retries and role-limited lookup. Changing company clears the displayed tax input.",
+        "integratedCommit": "097522da19e18dd4c727c49c8b2b14278dc04360",
+        "criteria": [
+          0,
+          1
+        ],
+        "remaining": [
+          "Qualify remaining employee identifier, bank, personal-tax and export workflows.",
+          "Connect and qualify remaining specialist access workflows."
+        ],
+        "nextAction": "Qualify the next outstanding specialist access workflow against the product backlog."
+      },
+      "workersStopped": true,
+      "evidence": {
+        "summary": "The company workspace supports annual employment-income entry, safe retries and role-limited lookup. Changing company clears the displayed tax input.",
+        "reviewer": "root",
+        "reviewed": true,
+        "commit": "4e89dcb0760125816a67e25b00388168e426b404",
+        "integratedCommit": "097522da19e18dd4c727c49c8b2b14278dc04360",
+        "tests": [
+          {
+            "command": "Integrated build, typechecks and combined regression suite",
+            "passed": true
+          },
+          {
+            "command": "GitHub Actions 44366636822 on identical source tree, including native personal-tax field projection, role and audit checks plus populated encrypted restore",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1795026023559,
+      "actor": "tax-export-author",
+      "type": "claim",
+      "taskId": "P02-04",
+      "tokenSha256": "60bb5b54ae97dc71d32e497d8f5d1c3481227e23a114a9313c47c36684fb8313"
+    }
+  ],
+  "resultSha256": "af3c20afbf361893287a18c74d999ce1e36c5e2f1e08d6d09214633646cb0cb8"
+}
