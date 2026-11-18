@@ -217,7 +217,7 @@
       "dependencies": [
         "accounting-documents"
       ],
-      "sha256": "6f97b8130fb60a5f988c45dc2c5118b1febe72fd30f39a660a65c55506c7f6b4"
+      "sha256": "4ff1cfc51e934ce12e0348c326cee22c0c4e05cd97a0cdf0f57f3b2b66b421b6"
     }
   ],
   "securityOverlay": {
