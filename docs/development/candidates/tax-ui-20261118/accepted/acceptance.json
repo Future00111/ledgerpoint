@@ -1,0 +1,36 @@
+{
+  "evidence": {
+    "summary": "The company workspace supports annual employment-income entry, safe retries and role-limited lookup. Changing company clears the displayed tax input.",
+    "reviewer": "root",
+    "reviewed": true,
+    "commit": "4e89dcb0760125816a67e25b00388168e426b404",
+    "integratedCommit": "097522da19e18dd4c727c49c8b2b14278dc04360",
+    "tests": [
+      {
+        "command": "Integrated build, typechecks and combined regression suite",
+        "passed": true
+      },
+      {
+        "command": "GitHub Actions 44366636822 on identical source tree, including native personal-tax field projection, role and audit checks plus populated encrypted restore",
+        "passed": true
+      }
+    ]
+  },
+  "outcome": {
+    "id": "personal-tax-workspace-20261118",
+    "scenario": "The company workspace supports annual employment-income entry, safe retries and role-limited lookup. Changing company clears the displayed tax input.",
+    "integratedCommit": "097522da19e18dd4c727c49c8b2b14278dc04360",
+    "criteria": [
+      0,
+      1
+    ],
+    "remaining": [
+      "Qualify remaining employee identifier, bank, personal-tax and export workflows.",
+      "Connect and qualify remaining specialist access workflows."
+    ],
+    "nextAction": "Qualify the next outstanding specialist access workflow against the product backlog."
+  },
+  "queueRevision": 960,
+  "remainingParent": true,
+  "credits": null
+}
