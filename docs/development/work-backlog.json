@@ -298,7 +298,8 @@
         "artifacts/api-server/src/security/roles.test.ts",
         "artifacts/api-server/src/security/integration.test.ts",
         "artifacts/api-server/src/services/tax/access/",
-        "artifacts/api-server/src/services/payroll/access/"
+        "artifacts/api-server/src/services/payroll/access/",
+        "artifacts/api-server/src/routes/companies.ts"
       ],
       "kind": "implementation",
       "approval": "approved"
