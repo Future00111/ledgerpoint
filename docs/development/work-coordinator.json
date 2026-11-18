@@ -1,64 +1,69 @@
 {
   "version": 2,
-  "revision": 550,
+  "revision": 552,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "ac5815c732e813211d62d712110fa547148da0c9",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "historyui-1795022009789",
     "tokenSha256": "949699ce2df8e4ac19ba6041c57701d63ee51e3e3c90b9defab664f5a8965ecc",
     "acquiredAt": 1795022009789,
     "expiresAt": 1795025609789
   },
-  "lastOwner": {
-    "runId": "payui-1795020623087",
-    "tokenSha256": "91a3c8dc72d3743d252387bb1410282012722e4426fa188f67cead7377710a35",
-    "acquiredAt": 1795020623087,
-    "expiresAt": 1795026023087
-  },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "6e619c5741cf3b0405610b86b75eaf42b067cec4",
+    "sha": "791a7e1ca0f900eed3e543eb7c540457203e7813",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "6e619c5741cf3b0405610b86b75eaf42b067cec4",
-        "path": "docs/development/candidates/history-ui-20261118/published/published-queue-delta.json"
+        "sha": "791a7e1ca0f900eed3e543eb7c540457203e7813",
+        "path": "docs/development/candidates/history-ui-20261118/accepted/accepted-queue-delta.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "6e619c5741cf3b0405610b86b75eaf42b067cec4",
-        "path": "docs/development/candidates/history-ui-20261118/published/source-review.json"
+        "sha": "791a7e1ca0f900eed3e543eb7c540457203e7813",
+        "path": "docs/development/candidates/history-ui-20261118/accepted/ci.log"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "6e619c5741cf3b0405610b86b75eaf42b067cec4",
-        "path": "docs/development/candidates/history-ui-20261118/published/browser-review.json"
+        "sha": "791a7e1ca0f900eed3e543eb7c540457203e7813",
+        "path": "docs/development/candidates/history-ui-20261118/accepted/ci.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "6e619c5741cf3b0405610b86b75eaf42b067cec4",
-        "path": "docs/development/candidates/history-ui-20261118/published/publication-preflight.json"
+        "sha": "791a7e1ca0f900eed3e543eb7c540457203e7813",
+        "path": "docs/development/candidates/history-ui-20261118/accepted/acceptance.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "6e619c5741cf3b0405610b86b75eaf42b067cec4",
-        "path": "docs/development/candidates/history-ui-20261118/published/combined.log"
+        "sha": "791a7e1ca0f900eed3e543eb7c540457203e7813",
+        "path": "docs/development/candidates/history-ui-20261118/accepted/source-review.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "6e619c5741cf3b0405610b86b75eaf42b067cec4",
-        "path": "docs/development/candidates/history-ui-20261118/published/build.log"
+        "sha": "791a7e1ca0f900eed3e543eb7c540457203e7813",
+        "path": "docs/development/candidates/history-ui-20261118/accepted/browser-review.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "791a7e1ca0f900eed3e543eb7c540457203e7813",
+        "path": "docs/development/candidates/history-ui-20261118/accepted/current-view.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "791a7e1ca0f900eed3e543eb7c540457203e7813",
+        "path": "docs/development/candidates/history-ui-20261118/accepted/run-metrics.json"
       }
     ],
     "runId": "historyui-1795022009789",
-    "at": 1795022503817,
+    "at": 1795022739153,
     "codeHead": "ac5815c732e813211d62d712110fa547148da0c9"
   },
-  "updatedAt": 1795022503817,
+  "updatedAt": 1795022739156,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -146,14 +151,7 @@
       "ownerApproved": true
     }
   },
-  "activeWorkers": [
-    {
-      "actor": "history-ui-author",
-      "task": "P02-04",
-      "status": "review",
-      "stopped": true
-    }
-  ],
+  "activeWorkers": [],
   "workersStopped": true,
   "discoveryRun": {
     "runId": "correction-discovery-1794927549982",
@@ -194,11 +192,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "6e619c5741cf3b0405610b86b75eaf42b067cec4",
-    "path": "docs/development/candidates/history-ui-20261118/published/published-queue-delta.json",
-    "bytesSha256": "a13ddd8b8ee24118311db75de4b470bdf375f15f06152bd465bf597710e8c170",
-    "queueSha256": "e0e5dc095df006a71921b2c50c4a6066c2328d9c256fbd6628d791a4072224b9",
-    "revision": 950,
+    "sha": "791a7e1ca0f900eed3e543eb7c540457203e7813",
+    "path": "docs/development/candidates/history-ui-20261118/accepted/accepted-queue-delta.json",
+    "bytesSha256": "8f2fbe745f48e9260b38dc511d966230ac409ac48a976abdf40e86c613d5f454",
+    "queueSha256": "7efad243ffd7d93c1fd75d168070952a02016cb34bcc28ca111ee1ecdce6bfa2",
+    "revision": 951,
     "catalogDigest": "e2062b766ab4d6c1925cec45996df85511974cc96a5873b02adbfe7392a3efbc"
   },
   "historyReference": {
@@ -228,7 +226,7 @@
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
     "baseRevision": 945,
-    "currentRevision": 950,
+    "currentRevision": 951,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
@@ -368,18 +366,18 @@
   },
   "twoTrackRun": {
     "startedAt": "2026-11-18T14:36:15.627Z",
-    "activity": "Owner history screen and browser journey on draft PR; exact-tree CI pending.",
+    "activity": "Owner specialist access history screen accepted with audited native reads, stale response and denial proof.",
     "providerCost": null,
     "credits": null,
     "publishedCommit": "ac5815c732e813211d62d712110fa547148da0c9",
     "observedAt": "2026-11-18T14:59:09.452Z",
-    "publishedTree": "881ddbde39e3ea28e1b88a18a74899870319bcbd",
-    "ciRun": 44354472642,
+    "publishedTree": "ea197c50a593ea8c71365f1ca3291ca3df85d9b4",
+    "ciRun": 44357722911,
     "ciJob": 134889313211,
     "acceptedOutcomes": [
-      "employee-pay-screen-20261118"
+      "owner-access-history-screen-20261118"
     ],
-    "queueRevision": 949,
+    "queueRevision": 951,
     "migration": {
       "published": "7a3553913fa5318f1a3c9c2734991df651735fbb",
       "archive": "7baa16b6803002b5b1aef102da897b713b9dd49c",
