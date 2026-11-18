@@ -1,64 +1,69 @@
 {
   "version": 2,
-  "revision": 575,
+  "revision": 577,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "74055330fa51112ae1da4567114a0ca8e457f34b",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "pay-export-4fdc63b4-79e2-4cf2-942f-70c19be39345",
     "tokenSha256": "0d6ffe1f72893e224562ff39e1518dd01af22412f20f2b6200da5f7dab8f1a7e",
     "acquiredAt": 1795027594210,
     "expiresAt": 1795031194210
   },
-  "lastOwner": {
-    "runId": "tax-export-9a076f8b-4c04-4cb5-986b-933c85fcaba5",
-    "tokenSha256": "6145261b39787c186ae29a354a47a5fa4be5af7d7cc008afd2a864a919663102",
-    "acquiredAt": 1795026003096,
-    "expiresAt": 1795029603096
-  },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "6b1cbe35e03618c5bc35c4e22144709f4546ff29",
+    "sha": "80abff0af9fa3ae312af6bcd5af87e04fc7fd139",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "6b1cbe35e03618c5bc35c4e22144709f4546ff29",
-        "path": "docs/development/candidates/pay-export-20261118/published/published-queue-delta.json"
+        "sha": "80abff0af9fa3ae312af6bcd5af87e04fc7fd139",
+        "path": "docs/development/candidates/pay-export-20261118/accepted/accepted-queue-delta.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "6b1cbe35e03618c5bc35c4e22144709f4546ff29",
-        "path": "docs/development/candidates/pay-export-20261118/published/source-review.json"
+        "sha": "80abff0af9fa3ae312af6bcd5af87e04fc7fd139",
+        "path": "docs/development/candidates/pay-export-20261118/accepted/source-review.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "6b1cbe35e03618c5bc35c4e22144709f4546ff29",
-        "path": "docs/development/candidates/pay-export-20261118/published/browser-review.json"
+        "sha": "80abff0af9fa3ae312af6bcd5af87e04fc7fd139",
+        "path": "docs/development/candidates/pay-export-20261118/accepted/browser-review.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "6b1cbe35e03618c5bc35c4e22144709f4546ff29",
-        "path": "docs/development/candidates/pay-export-20261118/published/publication-preflight.json"
+        "sha": "80abff0af9fa3ae312af6bcd5af87e04fc7fd139",
+        "path": "docs/development/candidates/pay-export-20261118/accepted/ci.log"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "6b1cbe35e03618c5bc35c4e22144709f4546ff29",
-        "path": "docs/development/candidates/pay-export-20261118/published/combined.log"
+        "sha": "80abff0af9fa3ae312af6bcd5af87e04fc7fd139",
+        "path": "docs/development/candidates/pay-export-20261118/accepted/ci.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "6b1cbe35e03618c5bc35c4e22144709f4546ff29",
-        "path": "docs/development/candidates/pay-export-20261118/published/build.log"
+        "sha": "80abff0af9fa3ae312af6bcd5af87e04fc7fd139",
+        "path": "docs/development/candidates/pay-export-20261118/accepted/acceptance.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "80abff0af9fa3ae312af6bcd5af87e04fc7fd139",
+        "path": "docs/development/candidates/pay-export-20261118/accepted/current-view.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "80abff0af9fa3ae312af6bcd5af87e04fc7fd139",
+        "path": "docs/development/candidates/pay-export-20261118/accepted/run-metrics.json"
       }
     ],
     "runId": "pay-export-4fdc63b4-79e2-4cf2-942f-70c19be39345",
-    "at": 1795027908269,
+    "at": 1795028086734,
     "codeHead": "74055330fa51112ae1da4567114a0ca8e457f34b"
   },
-  "updatedAt": 1795027908269,
+  "updatedAt": 1795028086736,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -146,14 +151,7 @@
       "ownerApproved": true
     }
   },
-  "activeWorkers": [
-    {
-      "actor": "pay-export-author",
-      "task": "P02-04",
-      "status": "review",
-      "stopped": true
-    }
-  ],
+  "activeWorkers": [],
   "workersStopped": true,
   "discoveryRun": {
     "runId": "correction-discovery-1794927549982",
@@ -194,11 +192,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "6b1cbe35e03618c5bc35c4e22144709f4546ff29",
-    "path": "docs/development/candidates/pay-export-20261118/published/published-queue-delta.json",
-    "bytesSha256": "03578cf8698d3107229a5538b63aae106bf48f1dcb5b59ac2939e9c1d56dc350",
-    "queueSha256": "57bfcc42c477f3008bd8842bf68b61a57f08bbd0924ec1cdcd0b84e0205dc659",
-    "revision": 965,
+    "sha": "80abff0af9fa3ae312af6bcd5af87e04fc7fd139",
+    "path": "docs/development/candidates/pay-export-20261118/accepted/accepted-queue-delta.json",
+    "bytesSha256": "45f9192f3e1643a64da974488ad96a2828f308746aadeb349acbc8b9ca98e271",
+    "queueSha256": "d9f03d603a2e7e0493b0e9c8fa447f3ccf2f3dcd7abab614ab79d50997263c11",
+    "revision": 966,
     "catalogDigest": "e2062b766ab4d6c1925cec45996df85511974cc96a5873b02adbfe7392a3efbc"
   },
   "historyReference": {
@@ -228,7 +226,7 @@
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
     "baseRevision": 945,
-    "currentRevision": 965,
+    "currentRevision": 966,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
@@ -368,7 +366,7 @@
   },
   "twoTrackRun": {
     "startedAt": "2026-11-18T14:36:15.627Z",
-    "activity": "Payroll CSV published for native browser and PostgreSQL verification.",
+    "activity": "Accepted audited payroll CSV download in Chromium and PostgreSQL. Next is role-specific employee identifier access.",
     "providerCost": null,
     "credits": null,
     "publishedCommit": "74055330fa51112ae1da4567114a0ca8e457f34b",
