@@ -1,0 +1,56 @@
+diff --git a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
+index 06e8271..2f96870 100644
+--- a/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
++++ b/artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts
+@@ -1881,2 +1881,3 @@ for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${
+    const nativeFetch=window.fetch.bind(window);let captures=0,saves=0,posts=0,observed=0,discountPosts=0,recoveries=0,refundPosts=0,refundResponses=0,savedId=null;
++   let ledgerGate;
+    let stage='mount';
+@@ -1895,2 +1896,3 @@ for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${
+     const response=await nativeFetch(path,{...options,headers});
++    if(ledgerGate && path.includes('/accounting-reports?')) await ledgerGate;
+     if(isRefund&&response.ok)refundResponses++;
+@@ -1954,4 +1956,11 @@ for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${
+     if(discountPosts!==1)throw Error('Recovery resubmitted discount');
++    let releaseLedger;
++    ledgerGate=new Promise(resolve=>{releaseLedger=resolve;});
+     mount('/payments?event='+payment.id,'refund');
+     const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent===text);
++    await wait(()=>button('Record refund'));
++    for(const action of ['Record payment','Allocate','Undo allocation','Record refund','Reverse payment']){
++      if(!button(action)?.disabled)throw Error(action+' enabled before ledger readiness');
++    }
++    releaseLedger();
+     await wait(()=>button('Record payment')&&!button('Record payment').disabled&&button('Record refund')&&!button('Record refund').disabled);button('Record refund').click();
+diff --git a/artifacts/ledgerly/src/pages/Payments.jsx b/artifacts/ledgerly/src/pages/Payments.jsx
+index 776a983..8587990 100644
+--- a/artifacts/ledgerly/src/pages/Payments.jsx
++++ b/artifacts/ledgerly/src/pages/Payments.jsx
+@@ -91,4 +91,6 @@ function CompanyPayments({ company, companyName }) {
+   };
++  const ledgerReady = Boolean(ledger.data) && !ledger.loading && !ledger.error;
++  const paymentReady = Boolean(context?.configuration) && ledgerReady;
+   const start = (kind = 'payment', payment = null) => {
+-    if (busy || unresolved || !canPost || !context?.configuration || !ledger.data || ledger.error) return false;
++    if (busy || unresolved || !canPost || !paymentReady) return false;
+     requestScope.invalidate(); recovery.clearRecorded(); setClosingRecovery(false);
+@@ -108,3 +110,3 @@ function CompanyPayments({ company, companyName }) {
+     const shortcut = shortcutGate.take({ entry: location.key, intent: params.get('new'), contextLoaded: !!context,
+-      canPost, configured: !!context?.configuration, ledgerReady: !!ledger.data && !ledger.error && !ledger.loading,
++      canPost, configured: !!context?.configuration, ledgerReady,
+       busy, unresolved, formOpen: !!form });
+@@ -119,3 +121,3 @@ function CompanyPayments({ company, companyName }) {
+     const key = `${company}:${documentId}`;
+-    if (documentId && canPost && context?.configuration && ledger.data && !ledger.error && openedDocument.current !== key) {
++    if (documentId && canPost && paymentReady && openedDocument.current !== key) {
+       const item = ledger.data.open_items.find(d => d.id === documentId && d.party_id === params.get('party_id'));
+@@ -171,3 +173,3 @@ function CompanyPayments({ company, companyName }) {
+     <PageHeader eyebrow="Money in and out" title="Payments" description="Record money already received or paid, then follow its allocations and remaining balance." context={companyName}
+-      actions={<PaymentToolbar capabilities={context?.capabilities} busy={busy || unresolved} ready={!!context?.configuration && !!ledger.data && !ledger.error} onSetup={() => setSetup(value => !value)} onStart={() => start()} />} />
++      actions={<PaymentToolbar capabilities={context?.capabilities} busy={busy || unresolved} ready={paymentReady} onSetup={() => setSetup(value => !value)} onStart={() => start()} />} />
+     <PaymentOverview payments={payments} filters={filters} onChange={setFilters} />
+@@ -189,3 +191,3 @@ function CompanyPayments({ company, companyName }) {
+     <p className="text-xs leading-5 text-muted-foreground">Recording a payment here does not instruct a bank transfer. Allocations, refunds and reversals are reviewed before they change your accounts.</p>
+-    <Dialog open={!!detail && !form} onOpenChange={v => { if (!v) setDetail(null); }}><DialogContent className="max-h-[90vh] overflow-auto sm:max-w-3xl"><DialogHeader><DialogTitle>{detail?.reference}</DialogTitle><DialogDescription>{detail?.source.party_name} · Payment history and remaining balance</DialogDescription></DialogHeader>{detail && <><PaymentBalanceSummary payment={detail} />{partyStatementPath && <Link to={partyStatementPath} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-primary underline underline-offset-4">View account statement<ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>}<PaymentHistoryActions capabilities={context?.capabilities} payment={detail} disabled={busy || unresolved} onStart={start} /><p className="text-xs text-muted-foreground">Undo allocations before reversing a payment. Refunds and reversals remain separate events in the audit history.</p><PaymentEventHistory events={detail.events} labels={labels} /></>}</DialogContent></Dialog>
++    <Dialog open={!!detail && !form} onOpenChange={v => { if (!v) setDetail(null); }}><DialogContent className="max-h-[90vh] overflow-auto sm:max-w-3xl"><DialogHeader><DialogTitle>{detail?.reference}</DialogTitle><DialogDescription>{detail?.source.party_name} · Payment history and remaining balance</DialogDescription></DialogHeader>{detail && <><PaymentBalanceSummary payment={detail} />{partyStatementPath && <Link to={partyStatementPath} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-primary underline underline-offset-4">View account statement<ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>}<PaymentHistoryActions capabilities={context?.capabilities} payment={detail} disabled={busy || unresolved || !paymentReady} onStart={start} /><p className="text-xs text-muted-foreground">Undo allocations before reversing a payment. Refunds and reversals remain separate events in the audit history.</p><PaymentEventHistory events={detail.events} labels={labels} /></>}</DialogContent></Dialog>
+     <Dialog open={!!form} onOpenChange={v => { if (!v) closeForm(); }}><DialogContent className="max-h-[92vh] overflow-auto sm:max-w-4xl"><DialogHeader><DialogTitle>{form ? labels[form.kind] : ''}</DialogTitle><DialogDescription>Review the amount and accounting entries before confirming. No bank transfer is made.</DialogDescription></DialogHeader><ErrorBox error={unresolved ? null : error} />{unresolved && <PaymentRecoveryPanel state={recoveryState} capabilities={context?.capabilities} closing={closingRecovery} onCheck={() => recovery.check()} onRetry={() => recovery.retry(context?.capabilities)} onClose={() => setClosingRecovery(true)} onKeep={() => setClosingRecovery(false)} onAbandon={abandonRecovery} />}{form && <>

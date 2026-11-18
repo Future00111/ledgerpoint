@@ -134,3 +134,113 @@ test('review response cannot substitute different quantity or price under the sa
  await session.load();await session.review(form());await session.post();
  assert.equal(session.state.status,'ready');assert.equal(session.state.pending,null);assert.equal(calls.length,0);
 });
+
+const discovered=()=>({request_id:requestId,document_id:documentId,revision:nextRevision,journal_id:journal,effective_date:'2026-10-30',reason:'Agreed price correction'});
+const discovery=receipts=>({company_id:companyId,document_id:documentId,receipts,has_more:false});
+function discoverySetup(overrides={},options={}) {
+ const calls=[];const client={discoverCorrections:async(...args)=>{calls.push(['list',...args]);return discovery([discovered()]);},
+  recoverCorrection:async(...args)=>{calls.push(['receipt',...args]);return {state:'known',request_id:requestId,document_id:documentId,receipt:receipt()};},
+  commitCorrection:async()=>{throw Error('discovery must not post');},reviewCorrection:async()=>{throw Error('discovery must not review');},...overrides};
+ return {session:createCorrectionController({client,companyId,documentId,discoveryMode:true,...options}),calls};
+}
+test('lost-reference discovery requires explicit selection and a fresh bound receipt without any post',async()=>{
+ let remembered=null;const {session,calls}=discoverySetup({}, {rememberRequest:id=>remembered=id});
+ await session.load();assert.equal(session.state.status,'discovery');assert.equal(session.state.receipt,null);assert.equal(remembered,null);
+ assert.equal(calls.length,1);assert.ok(Object.isFrozen(session.state.candidates[0]));
+ await session.review(form());await session.post();assert.equal(calls.length,1);
+ await session.selectReceipt(journal);assert.equal(calls.length,1);
+ await session.selectReceipt(requestId);assert.equal(remembered,requestId);assert.equal(calls.length,2);
+ assert.deepEqual(calls[1].slice(0,4),['receipt',companyId,documentId,requestId]);
+ assert.equal(session.state.status,'posted');assert.equal(session.state.receipt.journal_id,journal);assert.equal(session.state.pending,null);
+});
+test('empty, malformed and denied discovery never authorizes a fresh correction',async()=>{
+ for(const result of [discovery([]),{...discovery([]),company_id:documentId},{...discovery([]),document_id:companyId},
+  {...discovery([]),has_more:'yes'},discovery([discovered(),discovered()]),discovery(Array(101).fill(discovered())),
+  discovery([{...discovered(),request_id:'bad'}]),discovery([{...discovered(),document_id:companyId}]),
+  discovery([{...discovered(),journal_id:'bad'}]),discovery([{...discovered(),revision:'bad'}]),
+  discovery([{...discovered(),effective_date:'2026-02-30'}]),discovery([{...discovered(),review_token:token}]),
+  Object.assign(Error('Denied'),{status:403})]) {
+  const {session}=discoverySetup({discoverCorrections:async()=>{if(result instanceof Error)throw result;return result;}});
+  await session.load();await session.review(form());await session.post();session.discardReview();
+  assert.equal(session.state.status,'discovery');assert.equal(session.state.pending,null);assert.equal(session.state.receipt,null);
+  assert.ok(session.state.candidates?.length===0||session.state.candidates===null);
+ }
+});
+test('fresh selection verification rejects unknown, denied or substituted request/document/revision/journal',async()=>{
+ for(const result of [{state:'unknown',request_id:requestId,document_id:documentId},Object.assign(Error('Removed member'),{status:404}),
+  {state:'known',request_id:journal,document_id:documentId,receipt:receipt()},
+  {state:'known',request_id:requestId,document_id:companyId,receipt:receipt()},
+  ...[{id:journal},{document_id:companyId},{revision:revision},{journal_id:revision}].map(change=>({state:'known',request_id:requestId,document_id:documentId,receipt:{...receipt(),...change}}))]) {
+  let remembered;const {session}=discoverySetup({recoverCorrection:async()=>{if(result instanceof Error)throw result;return result;}},{rememberRequest:id=>remembered=id});
+  await session.load();await session.selectReceipt(requestId);await session.review(form());await session.post();
+  assert.equal(session.state.status,'unknown');assert.equal(session.state.receipt,null);assert.equal(session.state.requestId,requestId);assert.equal(remembered,requestId);
+ }
+});
+test('failed locator persistence does not select or verify; disposal fences late list and receipt responses',async()=>{
+ const {session,calls}=discoverySetup({}, {rememberRequest:()=>{throw Error('History unavailable');}});
+ await session.load();await session.selectReceipt(requestId);assert.equal(calls.length,1);assert.equal(session.state.requestId,null);assert.equal(session.state.status,'discovery');
+ for(const phase of ['list','receipt']) {
+  const late=deferred(),seen=[];const old=discoverySetup(phase==='list'?{discoverCorrections:()=>late.promise}:{recoverCorrection:()=>late.promise},{onState:s=>seen.push(s)}).session;
+  let action;if(phase==='list')action=old.load();else{await old.load();action=old.selectReceipt(requestId);}
+  old.dispose();const count=seen.length;late.resolve(phase==='list'?discovery([discovered()]):{state:'known',request_id:requestId,document_id:documentId,receipt:receipt()});await action;
+  assert.equal(seen.length,count);assert.notEqual(old.state.status,'posted');
+ }
+});
+test('a stored selected UUID reload performs only native receipt recovery; discovery metadata is not persisted',async()=>{
+ const {session,calls}=discoverySetup({}, {recoveryRequestId:requestId});await session.load();
+ assert.equal(calls.length,1);assert.equal(calls[0][0],'receipt');assert.equal(session.state.status,'posted');assert.equal(session.state.candidates,null);
+});
+test('an unverified selected correction cannot be replaced by a different candidate',async()=>{
+ const another={...discovered(),request_id:revision,revision:companyId,journal_id:documentId};let lists=0,reads=0,remembered;
+ const {session}=discoverySetup({discoverCorrections:async()=>{lists++;return discovery([discovered(),another]);},
+  recoverCorrection:async()=>{reads++;return {state:'unknown',request_id:requestId,document_id:documentId};}}, {rememberRequest:id=>remembered=id});
+ await session.load();await session.selectReceipt(requestId);await session.selectReceipt(another.request_id);await session.discover();
+ assert.equal(session.state.status,'unknown');assert.equal(session.state.requestId,requestId);assert.equal(remembered,requestId);
+ assert.equal(session.state.selectedReceipt.request_id,requestId);assert.equal(reads,1);assert.equal(lists,1);
+});
+test('changing company disposes the old discovery without exposing its delayed receipt in the new scope',async()=>{
+ const late=deferred(),oldEvents=[];const old=discoverySetup({recoverCorrection:()=>late.promise},{onState:s=>oldEvents.push(s)}).session;
+ await old.load();const pending=old.selectReceipt(requestId);old.dispose();const count=oldEvents.length;
+ const other=createCorrectionController({companyId:documentId,documentId:companyId,discoveryMode:true,client:{
+  discoverCorrections:async(c,d)=>({company_id:c,document_id:d,has_more:false,receipts:[]})}});
+ await other.load();late.resolve({state:'known',request_id:requestId,document_id:documentId,receipt:receipt()});await pending;
+ assert.equal(oldEvents.length,count);assert.equal(other.state.status,'discovery');assert.deepEqual(other.state.candidates,[]);assert.equal(other.state.receipt,null);
+});
+
+const attemptBinding=()=>({expected_revision:revision,request_hash:'sha256:'+'b'.repeat(64),review_hash:'sha256:'+'c'.repeat(64)});
+const pendingResult=(state='pending')=>({state,request_id:requestId,document_id:documentId,...attemptBinding()});
+const pendingCandidate=(state='pending')=>({request_id:requestId,document_id:documentId,state,expected_revision:revision,effective_date:'2026-10-30',reason:'Pending reviewed correction'});
+test('pending discovery and terminal discovery require fresh verification, confirmation and another GET before fresh review',async()=>{
+ let terminal=false,reads=0,writes=0,forgot=0,loads=0;
+ const {session}=discoverySetup({discoverCorrections:async()=>({...discovery([]),pending:[pendingCandidate()]}),recoverCorrection:async()=>{reads++;return pendingResult(terminal?'no_effect':'pending');},
+  terminateCorrectionAttempt:async(c,d,id,b)=>{writes++;assert.deepEqual([c,d,id,b],[companyId,documentId,requestId,attemptBinding()]);terminal=true;return pendingResult('no_effect');},
+  correctionContext:async()=>{loads++;return context();}},{forgetRequest:()=>forgot++});
+ await session.load();await session.selectReceipt(requestId);assert.equal(session.state.outcome,'pending');await session.confirmClosure();assert.equal(writes,0);
+ await session.requestClosure();assert.equal(reads,2);assert.equal(session.state.confirming,true);await session.confirmClosure();
+ assert.equal(reads,3);assert.equal(writes,1);assert.equal(forgot,0);assert.equal(session.state.outcome,'no_effect');
+ await session.post();await session.continueFresh();assert.equal(reads,4);assert.equal(forgot,1);assert.equal(loads,1);assert.equal(session.state.status,'ready');assert.equal(session.state.requestId,null);
+ const lost=discoverySetup({discoverCorrections:async()=>({...discovery([]),pending:[pendingCandidate('no_effect')]}),recoverCorrection:async()=>pendingResult('no_effect')}).session;
+ await lost.load();await lost.selectReceipt(requestId);assert.equal(lost.state.outcome,'no_effect');
+});
+test('canonical closure response is verified afresh; malformed or denied terminal GET never unlocks',async()=>{
+ for(const result of [Object.assign(Error('Denied'),{status:403}),{...pendingResult('no_effect'),review_hash:token},{...pendingResult('no_effect'),document_id:companyId}]){
+  let mode='pending',forgot=0;const {session}=discoverySetup({recoverCorrection:async()=>{if(mode==='pending')return pendingResult();if(result instanceof Error)throw result;return result;},terminateCorrectionAttempt:async()=>{mode='terminal';return pendingResult('no_effect');}},{recoveryRequestId:requestId,forgetRequest:()=>forgot++});
+  await session.load();await session.requestClosure();await session.confirmClosure();await session.continueFresh();assert.equal(forgot,0);assert.equal(session.state.status,'unknown');assert.equal(session.state.requestId,requestId);
+ }
+ let reads=0;const {session}=discoverySetup({recoverCorrection:async()=>++reads<3?pendingResult():{state:'known',request_id:requestId,document_id:documentId,receipt:receipt()},terminateCorrectionAttempt:async()=>({state:'known',request_id:requestId,document_id:documentId,receipt:receipt()})},{recoveryRequestId:requestId});
+ await session.load();await session.requestClosure();await session.confirmClosure();assert.equal(reads,3);assert.equal(session.state.status,'posted');
+});
+test('admitted definitive errors preserve identity; disposal and failed locator cleanup fence terminal progression',async()=>{
+ const first=setup({commitCorrection:async()=>{throw Object.assign(Error('Admitted failure'),{status:409,correctionAttemptAdmitted:true});}});await first.session.load();await first.session.review(form());await first.session.post();assert.equal(first.session.state.status,'unknown');assert.equal(first.session.state.requestId,requestId);
+ const cleanup=discoverySetup({recoverCorrection:async()=>pendingResult('no_effect')},{recoveryRequestId:requestId,forgetRequest:()=>{throw Error('No history');}}).session;
+ await cleanup.load();await cleanup.continueFresh();assert.equal(cleanup.state.requestId,requestId);assert.equal(cleanup.state.status,'unknown');
+ const late=deferred(),seen=[];const old=discoverySetup({recoverCorrection:async()=>pendingResult(),terminateCorrectionAttempt:()=>late.promise},{recoveryRequestId:requestId,onState:s=>seen.push(s)}).session;
+ await old.load();await old.requestClosure();const pending=old.confirmClosure();old.dispose();const count=seen.length;late.resolve(pendingResult('no_effect'));await pending;assert.equal(seen.length,count);
+});
+test('malformed pending discovery and substituted admission revision cannot authorize closure',async()=>{
+ for(const candidate of [{...pendingCandidate(),state:'failed'},{...pendingCandidate(),expected_revision:'bad'},{...pendingCandidate(),review_token:token},{...pendingCandidate(),document_id:companyId}]){
+  const {session}=discoverySetup({discoverCorrections:async()=>({...discovery([]),pending:[candidate]})});await session.load();assert.equal(session.state.candidates,null);await session.requestClosure();assert.equal(session.state.confirming,false);
+ }
+ const {session}=discoverySetup({discoverCorrections:async()=>({...discovery([]),pending:[pendingCandidate()]}),recoverCorrection:async()=>({...pendingResult(),expected_revision:nextRevision})});
+ await session.load();await session.selectReceipt(requestId);await session.requestClosure();assert.equal(session.state.status,'unknown');assert.equal(session.state.binding,null);assert.equal(session.state.confirming,false);
+});

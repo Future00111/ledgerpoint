@@ -52,6 +52,14 @@ export function assertApplicationRoles(roles, memberships) {
   if (JSON.stringify(roles) !== JSON.stringify(expected) || memberships.length !== 0)
     throw new Error('Application recovery requires the exact restricted role contract.');
 }
+export function assertPaymentAttemptRecovery(result) {
+  const proof = result?.paymentAttemptRecovery;
+  const required = ['persistedRequestBindings', 'restoredPendingClosed', 'terminalRequestsFenced',
+    'recordedReplaySingleEffect', 'readOnlyDiscoveryPreserved', 'unknownAndCrossCompanyIsolated', 'immutableRuntimeHistory'];
+  if (!proof || JSON.stringify(proof.states) !== JSON.stringify(['pending', 'no_effect', 'recorded']) ||
+      required.some(key => proof[key] !== true))
+    throw new Error('Native payment-attempt recovery acceptance is missing or incomplete.');
+}
 export async function recoverApplicationArchive({ Client, directory, archive, source, before, fingerprintDatabase, assertSameFingerprint, nativeRuntime }) {
   assertApplicationArchive({ directory, archive });
   if (realpathSync(directory) !== directory || realpathSync(archive) !== archive) throw new Error('Recovery source must not use symlinks.');
@@ -104,6 +112,15 @@ export async function recoverApplicationArchive({ Client, directory, archive, so
       throw new Error('Prepared native application runtime acceptance fixture is required.');
     nativeRuntimeAcceptance = runApplicationRuntime({ phase: 'verify', socket,
       bundle: nativeRuntime.bundle, fixture: nativeRuntime.fixture });
+    assertPaymentAttemptRecovery(nativeRuntimeAcceptance);
+    if (nativeRuntimeAcceptance.personalTaxCreateReplayVerified !== true)
+      throw new Error('Restored personal-tax creation replay verification is required');
+    if (nativeRuntimeAcceptance.payrollBankReadVerified !== true)
+      throw new Error('Restored payroll bank-detail projections are required');
+    if (nativeRuntimeAcceptance.personalTaxReadVerified !== true)
+      throw new Error('Restored personal-tax role projection acceptance is missing.');
+    if (nativeRuntimeAcceptance.payRecordReplayVerified !== true)
+      throw new Error('Restored pay record replay acceptance is missing.');
     // Runtime writes are restricted to the new cluster; the archive source stays intact.
     assertSameFingerprint(before, await fingerprintDatabase(source));
     verified = true;

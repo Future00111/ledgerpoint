@@ -165,7 +165,7 @@ test('correction HTTP routes require authentication, company scope, capability a
   const history=await request(f.company,`${path}/corrections`);assert.equal(history.status,200);assert.equal(history.data.amendments.length,1);assert.equal(history.data.amendments[0].journal_id,posted.data.journal_id);
 });
 
-test('correction outcome recovers committed history read-only after reload; rollback stays unknown and permissions are current',async()=>{
+test('correction outcome recovers committed history read-only after reload; rollback stays pending and permissions are current',async()=>{
   const f=await fixture(),doc=await postNew(f,'sales_invoice',source(f.customer,'excluding_vat',['STANDARD']));
   const r=await review(f,doc),path=`/accounting-documents/${doc.id}/corrections/operations/${r.intent.request_id}`;
   const before=await counts(f);
@@ -184,7 +184,7 @@ test('correction outcome recovers committed history read-only after reload; roll
   const later=await current(f,doc),second=await review(f,later,intent(later,'95','2026-10-25'));
   const unknown=`/accounting-documents/${doc.id}/corrections/operations/${second.intent.request_id}`;
   await assert.rejects(()=>commit(f,later,second,async()=>{throw Error('recovery rollback');}),/recovery rollback/);
-  assert.equal((await request(f.company,unknown)).data.state,'unknown');assert.deepEqual(await counts(f),snapshot);
+  assert.equal((await request(f.company,unknown)).data.state,'pending');assert.deepEqual(await counts(f),snapshot);
   await commit(f,later,second);
   assert.equal((await request(f.company,path)).data.receipt.revision,posted.revision);
   await admin.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2',[f.company,actor]);

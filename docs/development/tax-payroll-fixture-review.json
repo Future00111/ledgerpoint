@@ -1,0 +1,51 @@
+{
+  "task": "P04-03",
+  "actor": "replit-fixture-implementer",
+  "preparedAt": "2026-11-18",
+  "baseCommit": "1c52f77c63599b26c4d90862c485db951f12ca66",
+  "baseTree": "8dfb788aabd7bd7769d252f808f104da53b82c6b",
+  "status": "submitted_bounded_fixture_candidate_not_independently_approved",
+  "parentStatus": "pending",
+  "qualified": false,
+  "notForPayroll": true,
+  "independentReviewer": null,
+  "costAndCredits": "unknown",
+  "scope": "2026-27 Plan1 regular weekly software deductions and authored dated SL1/SL2 scenarios only. No engine, register, existing reference, demo or database changes.",
+  "fixture": {
+    "path": "artifacts/api-server/src/services/payroll/fixtures/plan1-weekly-2026-27.json",
+    "sha256": "9a2ba1d4f708d369e7fe58648107be4fc5498c49224dfccb2291a9f835af61e2",
+    "officialArithmeticRows": 6,
+    "authoredArithmeticRows": 6,
+    "authoredNoticeRows": 12,
+    "unsupportedContextRows": 10
+  },
+  "sources": {
+    "path": "artifacts/api-server/src/services/payroll/fixtures/plan1-weekly-2026-27.sources.json",
+    "sha256": "a761e1c26cc11fa6809faef60b19979e0e14c9ae667c706c4eb40e45e335bc33",
+    "pinMeaning": "SHA-256 of exact UTF-8 local bytes. Notice source file contains selected excerpts, not full-page archives; dates are observation dates unless marked otherwise. Existing arithmetic text, reference JSON and official ODS retain their own verified hashes."
+  },
+  "preparationEvidence": [
+    "Inspected pinned ODS content.xml Plan_1 rows11-16 directly, independently of the implementation; exact-method GBP pay/deduction pairs: 528.41/0,528.42/1,528.52/1,661.75/13,1783.97/114,2106.29/143.",
+    "Worked decimal witnesses from HMRC annual GBP26900 /52 truncated to GBP517.30 and9% excess, truncated to whole GBP. Test expectations are literals, not trace-generated.",
+    "Read official CSLM17010, CSLM17015 and special-rules guidance on2026-11-18. Same-day notice date is not first payday AFTER that date; practical payroll availability must be supplied, not inferred from receipt alone.",
+    "Synthetic verification booleans and notice digests bind assertions only; they do not authenticate real HMRC notices or establish real cutoffs. No independent-human or professional approval claimed."
+  ],
+  "validation": {
+    "command": "node --test artifacts/api-server/src/services/payroll/fixtures/plan1-weekly-2026-27.test.mjs",
+    "discovery": "tools/development/check.mjs recursively discovers .test.mjs under artifacts/api-server/src/services; combined runner not executed for this bounded fixture task.",
+    "checks": [
+      "Pinned evidence bytes and official subset agree; original reference declarations remain unqualified.",
+      "Threshold and whole-pound penny boundaries, first/last tax-year dates, prior-year continuing notice.",
+      "SL1/SL2 stated date versus supplied first practical payday, missed cutoffs, employee request without HMRC stop.",
+      "Corrections, concurrent loans, other years/plans/periods and exceptional instructions throw even after a stop; no zero fallback.",
+      "Missing synthetic authenticity/availability assertions, duplicate notices, altered binding and wrong employment reject.",
+      "Original application case still returns CASE_NOT_QUALIFIED."
+    ]
+  },
+  "remainingAcceptance": [
+    "Root independently reviews exact source interpretation, hand-worked amounts, notice assumptions and candidate diff before accepting this bounded fixture pack.",
+    "Professional payroll review and genuine notice provenance, ingestion/audit, practical payroll cutoffs and eligibility are not qualified.",
+    "Other plans/years/periods, PAYE/NI/tax families, corrections, concurrent loans, protected earnings, P45/starter/GNS and exceptional contexts remain pending within fullP04-03.",
+    "No production payroll authority, calculation-engine readiness, connected payroll journey, filing or blanket statutory qualification is established."
+  ]
+}
