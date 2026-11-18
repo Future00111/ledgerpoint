@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 518,
+  "revision": 519,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "ec5b31e504673035604a802dd05e5f469ffbad8f",
@@ -21,29 +21,19 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "0bba917ef43fd69b8c52c57d9b270f45e4823775",
+    "sha": "199c9a2b3dfabc4db5520895c7a40ae20468cac6",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "0bba917ef43fd69b8c52c57d9b270f45e4823775",
-        "path": "docs/development/candidates/role-audit-20261118/migration/queue-base.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "0bba917ef43fd69b8c52c57d9b270f45e4823775",
-        "path": "docs/development/candidates/role-audit-20261118/migration/review.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "0bba917ef43fd69b8c52c57d9b270f45e4823775",
-        "path": "docs/development/candidates/role-audit-20261118/migration/disclosure-review.json"
+        "sha": "199c9a2b3dfabc4db5520895c7a40ae20468cac6",
+        "path": "docs/development/candidates/role-audit-20261118/claimed/claimed-queue-delta.json"
       }
     ],
     "runId": "role-audit-1795014864638",
-    "at": 1795014989109,
+    "at": 1795015048933,
     "codeHead": "ec5b31e504673035604a802dd05e5f469ffbad8f"
   },
-  "updatedAt": 1795014989109,
+  "updatedAt": 1795015048933,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -131,8 +121,14 @@
       "ownerApproved": true
     }
   },
-  "activeWorkers": [],
-  "workersStopped": true,
+  "activeWorkers": [
+    {
+      "actor": "membership-audit-author",
+      "task": "P02-04",
+      "stopped": false
+    }
+  ],
+  "workersStopped": false,
   "discoveryRun": {
     "runId": "correction-discovery-1794927549982",
     "startedAt": "2026-11-17T14:59:10.335Z",
@@ -172,11 +168,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "0bba917ef43fd69b8c52c57d9b270f45e4823775",
-    "path": "docs/development/candidates/role-audit-20261118/migration/queue-base.json",
-    "bytesSha256": "4781ea04dadc6d7e97522f52d23ec48a84c3f5ee309c2b7c093ab10b55614770",
-    "queueSha256": "26f1abfffe95f78111996bf032059402cfab3db410b0e3f9adf8b62353b18787",
-    "revision": 922,
+    "sha": "199c9a2b3dfabc4db5520895c7a40ae20468cac6",
+    "path": "docs/development/candidates/role-audit-20261118/claimed/claimed-queue-delta.json",
+    "bytesSha256": "37a6f33b7d69e72511018e93b380fdd05b8a45ecdd9b0a3ffaffc53020047a5b",
+    "queueSha256": "f2d3bfbd0af6629f258a9240d0412610972c6d264441aa1a2a2775efb6cfd205",
+    "revision": 924,
     "catalogDigest": "5e86c173103402a6c097d9030aff3479165255a5adb32db747cee1efe4c32983"
   },
   "historyReference": {
@@ -195,7 +191,7 @@
       "constraint": "Current fixture waits for loaded readiness; financial safeguards remain fail-closed."
     }
   ],
-  "worktreesClean": true,
+  "worktreesClean": false,
   "queueHydration": {
     "required": true,
     "note": "queueState is an immutable reference, not a runnable queue. Fetch the exact artifact, verify byte and resolved queue digests and catalogue digest, validate with core.mjs, then hydrate before CLI init/scheduling/currentView. Never initialize an archived base alone. Existing coordinator ownership/fencing and expected-head publication remain unchanged.",
@@ -206,7 +202,7 @@
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
     "baseRevision": 922,
-    "currentRevision": 922,
+    "currentRevision": 924,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
@@ -346,10 +342,10 @@
   },
   "twoTrackRun": {
     "startedAt": "2026-11-18T14:36:15.627Z",
-    "activity": "Reviewed ownership migration published; q922 unchanged apart from catalog identity; ready to claim two tracks.",
+    "activity": "Membership role auditing claimed",
     "providerCost": null,
     "credits": null,
-    "publishedCommit": "3de4c5de8f0f6414cef14ef5589f28b4b6c3e994",
+    "publishedCommit": "ec5b31e504673035604a802dd05e5f469ffbad8f",
     "observedAt": "2026-11-18T14:59:09.452Z",
     "publishedTree": "58ab00801fc097080625a7e684277e6a2586bb3e",
     "ciRun": 44329382408,
