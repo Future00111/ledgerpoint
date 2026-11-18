@@ -75,7 +75,7 @@ async function exercise() {
   if (text().includes('00123456')) throw Error('Approver projection');
   stage = 'reader';
   mount(fixture.company, fixture.reader, 'payroll_reader');
-  await wait(() => !button('Save pay record') && !text().includes('45,250.75'), 'reader scope reset');
+  await wait(() => !input('Employee UUID for bank lookup') && !text().includes('Account number ending') && !button('Save pay record') && !text().includes('45,250.75'), 'reader scope reset');
   fill(await wait(() => input('Pay record ID'), 'lookup input'), requests[0]);
   (await ready('Look up pay record')).click();
   await wait(() => text().includes('45,250.75'), 'reader native readback');
