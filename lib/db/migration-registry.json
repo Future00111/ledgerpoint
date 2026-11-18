@@ -209,6 +209,15 @@
         "durable-jobs"
       ],
       "sha256": "4d40f0c36ca3de578c1abc1a904b57967dd5de84180f4f558491ebf40f6a4d88"
+    },
+    {
+      "id": "employee-pay-records",
+      "path": "lib/db/migrations/employee-pay-records.review.sql",
+      "contractVersion": 1,
+      "dependencies": [
+        "accounting-documents"
+      ],
+      "sha256": "6f97b8130fb60a5f988c45dc2c5118b1febe72fd30f39a660a65c55506c7f6b4"
     }
   ],
   "securityOverlay": {

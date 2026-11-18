@@ -7,6 +7,7 @@
  * DELETE /api/companies/:id                  — delete company (owner only)
  * GET    /api/companies/:id/members          — list members of a company
  * GET    /api/companies/:id/specialist-access-history — bounded audited owner-only history
+ * GET    /api/companies/:id/payroll-pay-records/:recordId — audited pay fields by payroll role
  * POST   /api/companies/:id/members          — add a member by Clerk user_id
  * PUT    /api/companies/:id/members/:userId  — change a member's role (owner only)
  * DELETE /api/companies/:id/members/:userId  — remove a member (owner can remove anyone; member can remove self)
@@ -26,6 +27,7 @@ import { queryAdapter } from "../services/accountingDocuments/core";
 import { auditSpecializedMembershipChange, auditSpecializedMembershipChanges } from "../services/payroll/access/membershipAudit";
 import { SensitiveAccessError } from "../services/payroll/access/boundary";
 import { readSpecialistAccessHistory } from "../services/payroll/access/membershipHistory";
+import { readPayRecord } from "../services/payroll/access/payRecord";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -79,11 +81,22 @@ const clerkIdentityLookup: CompanyIdentityLookup = {
 export function createCompaniesRouter(auth: RequestHandler = requireAuth, identities: CompanyIdentityLookup = clerkIdentityLookup) {
 const router = Router();
 // Apply before authentication so denied/unauthenticated responses also cannot be cached.
-router.use("/:id/specialist-access-history", (_req, res, next) => {
+router.use(["/:id/specialist-access-history", "/:id/payroll-pay-records"], (_req, res, next) => {
   res.set("Cache-Control", "no-store");
   next();
 });
 router.use(auth);
+
+router.get("/:id/payroll-pay-records/:recordId", async (req: Request, res: Response) => {
+  try {
+    if (Object.keys(req.query).length > 0) throw new SensitiveAccessError("SENSITIVE_REQUEST_INVALID");
+    const { userId } = req as AuthenticatedRequest;
+    const record = await readPayRecord(req.params["id"] as string, userId, req.params["recordId"] as string);
+    res.json(record);
+  } catch (error) {
+    companyError(req, res, error, "payroll pay record read error");
+  }
+});
 
 router.get("/:id/specialist-access-history", async (req: Request, res: Response) => {
   try {

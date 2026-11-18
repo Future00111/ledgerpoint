@@ -82,11 +82,32 @@ failure returns no history. All endpoint responses, including unauthenticated
 failures, use `Cache-Control: no-store`. This endpoint does not expose other
 sensitive audit actions or add an access-management UI.
 
+`GET /api/companies/:id/payroll-pay-records/:recordId` reads one persisted GBP
+annual pay record from `public.employee_pay_records`. The fixed response has
+`id`, `effective_from`, `annual_salary_pence` (an exact decimal integer string)
+and `currency: "GBP"`. Current owners and `payroll_preparer` members additionally
+receive the internal `employee_id`; `payroll_reader` and `payroll_approver` do not
+select or return that column. Ordinary bookkeeping and personal-tax roles receive
+no fields. Bank, NINO, names and other identifiers are outside this record model.
+
+The existing sensitive boundary locks the company, reloads unique active
+membership, selects the role's fields with exact company/record predicates and
+commits a redacted `payroll.read` receipt before returning. The record store must
+be an ordinary table owned by the canonical owner with runtime SELECT only,
+including no column INSERT/UPDATE grants. Missing/foreign records share a denial;
+audit or storage protection failure releases no salary or employee reference.
+All route responses use `no-store`, including authentication failures. Query
+overrides, collections, exports and record mutation endpoints are absent.
+
+This slice reads synthetic administrator-seeded records in disposable tests. It
+does not create live employee records, calculate payroll, or add a pay-record UI.
+The additive schema and its populated restore checks are coordinated separately.
+
 Native disposable tests exercise the boundary with synthetic payloads and
 transactional fixture mutations, current membership races, audit failure and
-existing owner-only membership assignment. No employee/personal-tax record
-schema, public sensitive-record route, actual export or external submission is
-introduced. Wiring every future native record/read/export/change route,
+existing owner-only membership assignment. Complete employee lifecycle,
+personal-tax records, actual exports and external submission remain absent.
+Wiring the remaining native record/read/export/change routes,
 qualified field projection and retrieval of other sensitive audit actions
 remain required before full P02-04 acceptance. These helpers are not evidence
 that those absent workflows are secured or implemented.

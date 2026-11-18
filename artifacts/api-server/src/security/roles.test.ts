@@ -6,6 +6,7 @@ import { COMPANY_ROLES, SENSITIVE_ACTIONS, canAccessSensitiveData } from "./role
 import { withPayrollAccess } from "../services/payroll/access/service";
 import { withPersonalTaxAccess } from "../services/tax/access/service";
 import { readSpecialistAccessHistory } from "../services/payroll/access/membershipHistory";
+import { readPayRecord } from "../services/payroll/access/payRecord";
 
 test("legacy compatibility writes accept only the five known write roles", () => {
   for (const role of ["owner", "admin", "accountant", "staff", "member"]) {
@@ -74,5 +75,13 @@ test("specialist history rejects malformed company and actor identities before d
     ['11111111-1111-4111-8111-111111111111', ''],
     ['11111111-1111-4111-8111-111111111111', 'owner\nprivate']]) {
     await assert.rejects(() => readSpecialistAccessHistory(company!, actor!), /SENSITIVE_REQUEST_INVALID/);
+  }
+});
+
+test("native pay reads reject malformed path identities before database access", async () => {
+  const company = '11111111-1111-4111-8111-111111111111', record = '22222222-2222-4222-8222-222222222222';
+  for (const [scope, actor, id] of [['invalid', 'synthetic-owner', record], [company, 'synthetic@example.test', record],
+    [company, 'synthetic-owner', '00000000-0000-0000-0000-000000000000'], [company, 'synthetic-owner', '../other-record']]) {
+    await assert.rejects(() => readPayRecord(scope!, actor!, id!), /SENSITIVE_REQUEST_INVALID/);
   }
 });

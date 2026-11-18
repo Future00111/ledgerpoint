@@ -777,3 +777,181 @@ test("malformed projected historical metadata fails closed without a successful 
   const response = await request(historyPath(f.company), 'GET', undefined, f.owner);
   assert.equal(response.status, 503); assert.equal(response.body.includes('synthetic-private'), false); assert.deepEqual(await historyReceipts(f.company), []);
 });
+
+const payRecordPath = (company: string, id: string) => `/${company}/payroll-pay-records/${id}`;
+async function payRecordFixture(amount = '4800000', employee = randomUUID()) {
+  const f = await fixture(), id = randomUUID();
+  await admin.query(`INSERT INTO public.employee_pay_records(company_id,id,employee_id,effective_from,annual_salary_pence)
+    VALUES($1,$2,$3,'2026-04-06',$4::bigint)`, [f.company, id, employee, amount]);
+  return { ...f, id, employee, amount };
+}
+const payReadAudits = async (company: string) => (await sensitiveAudit(company)).filter(row => row.action === 'sensitive_access' && row.capability === 'payroll.read');
+
+test("native pay reads select and audit exact salary fields by current payroll role", async () => {
+  const f = await payRecordFixture('4800000', '00000000-0000-0000-0000-000000000001');
+  for (const role of ['owner', 'payroll_preparer', 'payroll_reader', 'payroll_approver']) {
+    const actor = role === 'owner' ? f.owner : `synthetic-pay-role-${randomUUID()}`;
+    if (role !== 'owner') {
+      identities.add(actor);
+      assert.equal((await request(`/${f.company}/members`, 'POST', { user_id: actor, role }, f.owner)).status, 201);
+    }
+    const response = await request(payRecordPath(f.company.toUpperCase(), f.id.toUpperCase()), 'GET', undefined, actor);
+    assert.equal(response.status, 200, response.body); assert.equal(response.cacheControl, 'no-store');
+    const expected = { id: f.id, effective_from: '2026-04-06', annual_salary_pence: f.amount, currency: 'GBP',
+      ...(['owner', 'payroll_preparer'].includes(role) ? { employee_id: f.employee } : {}) };
+    assert.deepEqual(JSON.parse(response.body), expected);
+    if (['payroll_reader', 'payroll_approver'].includes(role)) assert.equal(response.body.includes(f.employee), false);
+    const audit = (await payReadAudits(f.company)).find(row => row.actor_id === actor)!;
+    assert.deepEqual(audit, { action: 'sensitive_access', outcome: 'allowed', target_type: 'payroll_resource',
+      target_id: f.id, actor_type: 'user', actor_id: actor, capability: 'payroll.read',
+      context: { contract: 'sensitive-access.v1', role }, journal_id: null, posting_effect_id: null });
+  }
+  assert.equal((await payReadAudits(f.company)).length, 4);
+  for (const sql of ['INSERT INTO public.employee_pay_records SELECT * FROM public.employee_pay_records WHERE false',
+    'UPDATE public.employee_pay_records SET annual_salary_pence=annual_salary_pence WHERE false',
+    'DELETE FROM public.employee_pay_records WHERE false', 'TRUNCATE public.employee_pay_records']) {
+    await assert.rejects(() => pool.query(sql), (error: any) => error.code === '42501');
+  }
+});
+
+test("native pay reads preserve zero and bigint amounts beyond safe JavaScript integer precision", async () => {
+  for (const amount of ['0', '9007199254740993', '9223372036854775807']) {
+    const f = await payRecordFixture(amount);
+    const response = await request(payRecordPath(f.company, f.id), 'GET', undefined, f.owner);
+    assert.equal(response.status, 200, response.body);
+    assert.equal(JSON.parse(response.body).annual_salary_pence, amount);
+    assert.equal(typeof JSON.parse(response.body).annual_salary_pence, 'string');
+    assert.equal(JSON.stringify(await payReadAudits(f.company)).includes(`"annual_salary_pence"`), false);
+  }
+});
+
+test("pay storage rejects negative salary and duplicate employee effective dates while nil path UUID is unsupported", async () => {
+  const f = await payRecordFixture();
+  await assert.rejects(() => admin.query(`INSERT INTO public.employee_pay_records
+    (company_id,id,employee_id,effective_from,annual_salary_pence) VALUES($1,$2,$3,'2026-04-06',-1)`,
+    [f.company, randomUUID(), randomUUID()]), (error: any) => error.code === '23514');
+  await assert.rejects(() => admin.query(`INSERT INTO public.employee_pay_records
+    (company_id,id,employee_id,effective_from,annual_salary_pence) VALUES($1,$2,$3,'2026-04-06',10)`,
+    [f.company, randomUUID(), f.employee]), (error: any) => error.code === '23505');
+  await assert.rejects(() => admin.query(`INSERT INTO public.employee_pay_records
+    (company_id,id,employee_id,effective_from,annual_salary_pence) VALUES($1,$2,$3,'2026-04-06',10)`,
+    [f.company, '00000000-0000-0000-0000-000000000000', randomUUID()]), (error: any) => error.code === '23514');
+  const response = await request(payRecordPath(f.company, '00000000-0000-0000-0000-000000000000'), 'GET', undefined, f.owner);
+  assert.equal(response.status, 400); assert.equal(response.cacheControl, 'no-store');
+  assert.deepEqual(await payReadAudits(f.company), []);
+});
+
+test("native pay records deny ordinary, personal-tax, inactive, ambiguous and foreign access without disclosure or audit", async () => {
+  const f = await payRecordFixture(), other = await payRecordFixture('7654321'), actors = [other.owner];
+  for (const role of ['admin', 'accountant', 'staff', 'member', 'read_only', 'personal_tax_preparer', 'personal_tax_submitter', 'unknown', null]) {
+    const actor = `synthetic-denied-pay-${randomUUID()}`; await addMember(f.company, actor, role); actors.push(actor);
+  }
+  for (const active of [false, null]) {
+    const actor = `synthetic-inactive-pay-${randomUUID()}`; await addMember(f.company, actor, 'payroll_preparer', active); actors.push(actor);
+  }
+  const ambiguous = `synthetic-ambiguous-pay-${randomUUID()}`;
+  await addMember(f.company, ambiguous, 'payroll_preparer'); await addMember(f.company, ambiguous, 'payroll_reader', false); actors.push(ambiguous);
+  const anonymous = await request(payRecordPath(f.company, f.id));
+  assert.equal(anonymous.status, 401); assert.equal(anonymous.cacheControl, 'no-store');
+  for (const actor of actors) {
+    const response = await request(payRecordPath(f.company, f.id), 'GET', undefined, actor);
+    assert.equal(response.status, 403); assert.equal(response.cacheControl, 'no-store');
+    for (const value of [f.amount, f.employee, 'annual_salary_pence']) assert.equal(response.body.includes(value), false);
+  }
+  for (const [company, id] of [[f.company, other.id], [other.company, f.id], [f.company, randomUUID()]]) {
+    const response = await request(payRecordPath(company!, id!), 'GET', undefined, f.owner);
+    assert.equal(response.status, 403); assert.equal(response.cacheControl, 'no-store');
+    assert.equal(response.body.includes(other.amount), false);
+  }
+  assert.deepEqual(await payReadAudits(f.company), []); assert.deepEqual(await payReadAudits(other.company), []);
+});
+
+test("pay read paths reject overrides and expose no collections, exports or mutation endpoints", async () => {
+  const f = await payRecordFixture();
+  for (const suffix of ['?role=owner', '?fields=employee_id', '?action=payroll.export', `?company_id=${randomUUID()}`]) {
+    const response = await request(payRecordPath(f.company, f.id) + suffix, 'GET', undefined, f.owner);
+    assert.equal(response.status, 400); assert.equal(response.cacheControl, 'no-store');
+  }
+  for (const method of ['POST', 'PUT', 'PATCH', 'DELETE']) {
+    const response = await request(payRecordPath(f.company, f.id), method, { annual_salary_pence: '1', employee_id: randomUUID() }, f.owner);
+    assert.equal(response.status, 404); assert.equal(response.cacheControl, 'no-store');
+  }
+  for (const path of [`/${f.company}/payroll-pay-records`, payRecordPath(f.company, f.id) + '/export']) {
+    const response = await request(path, 'GET', undefined, f.owner);
+    assert.equal(response.status, 404); assert.equal(response.cacheControl, 'no-store');
+  }
+  assert.equal((await pool.query('SELECT annual_salary_pence::text amount FROM public.employee_pay_records WHERE company_id=$1 AND id=$2', [f.company, f.id])).rows[0].amount, f.amount);
+  assert.deepEqual(await payReadAudits(f.company), []);
+});
+
+test("pay read role projection observes revocation, lost access and lost employee-reference access after the company lock", async () => {
+  for (const nextRole of ['inactive', 'accountant', 'payroll_reader']) {
+    const f = await payRecordFixture(), actor = `synthetic-pay-race-${randomUUID()}`;
+    await addMember(f.company, actor, 'payroll_preparer');
+    const blocker = await admin.connect(); let pending: ReturnType<typeof request> | undefined;
+    try {
+      await blocker.query('BEGIN'); const { rows: [{ pid }] } = await blocker.query('SELECT pg_backend_pid() pid');
+      await blocker.query('SELECT id FROM companies WHERE id=$1 FOR UPDATE', [f.company]);
+      pending = request(payRecordPath(f.company, f.id), 'GET', undefined, actor);
+      const deadline = Date.now() + 5000; let waiting = false;
+      while (Date.now() < deadline) {
+        waiting = (await admin.query("SELECT EXISTS(SELECT 1 FROM pg_stat_activity WHERE usename='ledgerly_api' AND $1::int=ANY(pg_blocking_pids(pid))) waiting", [pid])).rows[0].waiting;
+        if (waiting) break; await new Promise(resolve => setTimeout(resolve, 10));
+      }
+      assert.equal(waiting, true);
+      if (nextRole === 'inactive') await blocker.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2', [f.company, actor]);
+      else await blocker.query('UPDATE company_users SET role=$3 WHERE company_id=$1 AND user_id=$2', [f.company, actor, nextRole]);
+      await blocker.query('COMMIT'); const response = await pending;
+      assert.equal(response.cacheControl, 'no-store');
+      if (nextRole === 'payroll_reader') {
+        assert.equal(response.status, 200); assert.equal(response.body.includes(f.employee), false);
+        assert.equal(JSON.parse(response.body).annual_salary_pence, f.amount);
+        assert.deepEqual((await payReadAudits(f.company)).map(row => row.context.role), ['payroll_reader']);
+      } else { assert.equal(response.status, 403); assert.deepEqual(await payReadAudits(f.company), []); }
+    } finally { await blocker.query('ROLLBACK'); blocker.release(); if (pending) await pending; }
+  }
+});
+
+test("pay read audit exception or skipped receipt prevents disclosure and preserves persisted records", async () => {
+  for (const failure of ['exception', 'skip']) {
+    const f = await payRecordFixture(), before = await sensitiveAudit(f.company);
+    await admin.query(`CREATE FUNCTION public.synthetic_pay_read_audit_failure() RETURNS trigger LANGUAGE plpgsql AS $$
+      BEGIN IF NEW.company_id='${f.company}'::uuid AND NEW.action='sensitive_access' THEN ${failure === 'skip' ? 'RETURN NULL;' : "RAISE EXCEPTION 'synthetic-private-pay-diagnostic';"} END IF; RETURN NEW; END $$`);
+    await admin.query('CREATE TRIGGER synthetic_pay_read_audit_failure BEFORE INSERT ON public.accounting_audit_events FOR EACH ROW EXECUTE FUNCTION public.synthetic_pay_read_audit_failure()');
+    try {
+      const response = await request(payRecordPath(f.company, f.id), 'GET', undefined, f.owner);
+      assert.equal(response.status, 503); assert.equal(response.cacheControl, 'no-store');
+      for (const secret of [f.amount, f.employee, 'annual_salary_pence', 'synthetic-private-pay-diagnostic']) assert.equal(response.body.includes(secret), false);
+      assert.deepEqual(await sensitiveAudit(f.company), before);
+      assert.equal((await pool.query('SELECT annual_salary_pence::text amount FROM public.employee_pay_records WHERE company_id=$1 AND id=$2', [f.company, f.id])).rows[0].amount, f.amount);
+      assert.equal(JSON.stringify(logs).includes('synthetic-private-pay-diagnostic'), false);
+    } finally {
+      await admin.query('DROP TRIGGER synthetic_pay_read_audit_failure ON public.accounting_audit_events');
+      await admin.query('DROP FUNCTION public.synthetic_pay_read_audit_failure()');
+    }
+  }
+});
+
+test("pay read refuses missing storage, column-only mutations and unprotected audit without a receipt", async () => {
+  const f = await payRecordFixture();
+  const denied = async () => {
+    const response = await request(payRecordPath(f.company, f.id), 'GET', undefined, f.owner);
+    assert.equal(response.status, 503); assert.equal(response.cacheControl, 'no-store');
+    assert.equal(response.body.includes(f.amount), false); assert.deepEqual(await payReadAudits(f.company), []);
+  };
+  await admin.query('ALTER TABLE public.employee_pay_records RENAME TO synthetic_missing_pay_records');
+  try { await denied(); }
+  finally { await admin.query('ALTER TABLE public.synthetic_missing_pay_records RENAME TO employee_pay_records'); }
+  for (const privilege of ['INSERT', 'UPDATE']) {
+    await admin.query(`GRANT ${privilege}(employee_id) ON public.employee_pay_records TO ledgerly_api`);
+    try {
+      assert.equal((await pool.query("SELECT has_table_privilege(current_user,'public.employee_pay_records',$1) allowed", [privilege])).rows[0].allowed, false);
+      await denied();
+    } finally { await admin.query(`REVOKE ${privilege}(employee_id) ON public.employee_pay_records FROM ledgerly_api`); }
+  }
+  await admin.query('ALTER TABLE public.accounting_audit_events DISABLE TRIGGER ledgerly_accounting_audit_events_guard');
+  try { await denied(); }
+  finally { await admin.query('ALTER TABLE public.accounting_audit_events ENABLE ALWAYS TRIGGER ledgerly_accounting_audit_events_guard'); }
+  const response = await request(payRecordPath(f.company, f.id), 'GET', undefined, f.owner);
+  assert.equal(response.status, 200); assert.equal((await payReadAudits(f.company)).length, 1);
+});

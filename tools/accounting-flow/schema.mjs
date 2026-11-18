@@ -62,6 +62,7 @@ export async function installSchema(admin,sql,{includeAmendments=false}={}) {
       if(!(await admin.query('SELECT 1 FROM pg_constraint WHERE conname=$1',[match[2]])).rowCount) await admin.query(match[0]);
     }
     await admin.query(migrationInputs['accounting-documents']);
+    await admin.query(migrationInputs['employee-pay-records']);
     await admin.query(migrationInputs['accounting-chart']);
     await admin.query(migrationInputs['accounting-payments']);
     await admin.query(migrationInputs['operation-recovery']);
