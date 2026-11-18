@@ -50,6 +50,18 @@ company removal. Denied, same-role and bookkeeping-only membership operations
 produce no sensitive event; bookkeeping-only changes do not require this audit
 storage. Existing owner-only assignment and last-owner rules are unchanged.
 
+The canonical disposable runtime grants no `DELETE` privilege on `companies`
+or `company_users`. Under those unchanged grants, owner/self removal and company
+deletion return the existing generic failure response with no committed data
+or audit changes. Positive deletion and its audit/rollback behaviour are
+qualified only with explicit test-only `DELETE` grants around individual awaited
+requests in the serial disposable suite. The fixture verifies the baseline,
+grants only the required table permissions, revokes them in `finally` (including
+when the operation throws), and verifies permission restoration. No application
+grants, runner configuration or deployment permissions are changed. These
+conditional tests do not establish that deletion is available in the canonical
+runtime or authorize enabling it elsewhere.
+
 Native disposable tests exercise the boundary with synthetic payloads and
 transactional fixture mutations, current membership races, audit failure and
 existing owner-only membership assignment. No employee/personal-tax record

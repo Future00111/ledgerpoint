@@ -18,6 +18,7 @@ let providerFailure = false;
 const identities = new Set<string>();
 const emailIdentities = new Map<string, string>();
 const logs: unknown[] = [];
+let deleteGrantScopeActive = false;
 before(async () => {
   const identity = (await pool.query("SELECT current_database() db,current_user role,inet_server_addr() addr")).rows[0];
   assert.deepEqual(identity, { db: "ledgerly_accounting_flow_test", role: "ledgerly_api", addr: null });
@@ -40,9 +41,56 @@ before(async () => {
   base = `http://127.0.0.1:${(server.address() as any).port}`;
 });
 after(async () => {
-  if (server) await new Promise<void>(resolve => server.close(() => resolve()));
-  await pool.end(); await admin.end();
+  try {
+    assert.equal(deleteGrantScopeActive, false);
+    await assertDefaultDeletePrivileges();
+  } finally {
+    if (server) await new Promise<void>(resolve => server.close(() => resolve()));
+    await pool.end(); await admin.end();
+  }
 });
+
+type DeleteFixtureTable = 'companies' | 'company_users';
+async function deletePrivilegeSnapshot() {
+  return (await pool.query(`SELECT c.relname table_name,
+    has_table_privilege(current_user,c.oid,'SELECT') can_read,
+    has_table_privilege(current_user,c.oid,'INSERT') can_insert,
+    has_table_privilege(current_user,c.oid,'UPDATE') can_update,
+    has_table_privilege(current_user,c.oid,'DELETE') can_delete,
+    has_table_privilege(current_user,c.oid,'TRUNCATE') can_truncate
+    FROM pg_class c WHERE c.oid IN ('public.companies'::regclass,'public.company_users'::regclass)
+    ORDER BY c.relname`)).rows;
+}
+async function assertDefaultDeletePrivileges() {
+  const privileges = await deletePrivilegeSnapshot();
+  assert.equal(privileges.length, 2);
+  assert.ok(privileges.every(row => row.can_delete === false), 'canonical runtime must not gain DELETE privileges');
+  return privileges;
+}
+/** Tests run serially. Grant only around an awaited delete request, never suite-wide.
+ * This qualifies the pre-existing route conditionally; the canonical runtime cannot delete. */
+async function withDisposableDeletePrivileges<T>(tables: readonly DeleteFixtureTable[], operation: () => Promise<T>): Promise<T> {
+  assert.equal(deleteGrantScopeActive, false, 'delete privilege fixtures must not overlap');
+  assert.ok(tables.length > 0 && tables.every(table => ['companies', 'company_users'].includes(table)));
+  deleteGrantScopeActive = true;
+  let restoreRequired = false;
+  let baseline: Awaited<ReturnType<typeof deletePrivilegeSnapshot>> | undefined;
+  const relations = [...new Set(tables)].map(table => `public.${table}`).join(',');
+  try {
+    baseline = await assertDefaultDeletePrivileges();
+    restoreRequired = true;
+    await admin.query(`GRANT DELETE ON ${relations} TO ledgerly_api`);
+    assert.deepEqual(await deletePrivilegeSnapshot(), baseline.map(row => ({ ...row, can_delete: tables.includes(row.table_name) })));
+    return await operation();
+  } finally {
+    try {
+      if (restoreRequired) {
+        await admin.query(`REVOKE DELETE ON ${relations} FROM ledgerly_api`);
+        assert.deepEqual(await assertDefaultDeletePrivileges(), baseline);
+      }
+    } finally { deleteGrantScopeActive = false; }
+  }
+}
 async function request(path: string, method = "GET", body?: unknown, actor?: string) {
   const response = await fetch(base + path, { method, headers: {
     ...(actor ? { "x-test-actor": actor } : {}), ...(body === undefined ? {} : { "Content-Type": "application/json" }),
@@ -321,7 +369,38 @@ test("missing audit guard or column-only UPDATE privilege refuses sensitive acce
   console.log('SENSITIVE_ACCESS_ACCEPTANCE', JSON.stringify({ currentMembership: true, distinctRights: true, auditAtomicity: true, revokedBeforeCallback: true, protectedAuditRequired: true, nativeRecordRoutesPending: true }));
 });
 
-test("specialised grants and role transitions audit membership references without target identity or request PII", async () => {
+test("default canonical privileges deny owner and self deletion without membership, company or audit changes", async () => {
+  await assertDefaultDeletePrivileges();
+  for (const role of ['payroll_reader', 'member']) {
+    const f = await fixture(), target = `synthetic-default-delete-${randomUUID()}`;
+    await addMember(f.company, target, role);
+    const snapshot = async () => ({
+      company: (await pool.query('SELECT * FROM companies WHERE id=$1', [f.company])).rows,
+      members: (await pool.query('SELECT * FROM company_users WHERE company_id=$1 ORDER BY id', [f.company])).rows,
+      audit: await sensitiveAudit(f.company),
+    });
+    const baseline = await snapshot();
+    for (const [path, actor] of [[`/${f.company}/members/${target}`, f.owner],
+      [`/${f.company}/members/${target}`, target], [`/${f.company}`, f.owner]]) {
+      const response = await request(path, 'DELETE', undefined, actor);
+      assert.equal(response.status, 500, response.body);
+      assert.deepEqual(JSON.parse(response.body), { error: 'Unable to complete this request. Please try again.' });
+      assert.deepEqual(await snapshot(), baseline);
+      await assertDefaultDeletePrivileges();
+    }
+  }
+});
+
+test("disposable delete privilege fixture restores default permissions even when its operation throws", async () => {
+  const baseline = await assertDefaultDeletePrivileges();
+  await assert.rejects(() => withDisposableDeletePrivileges(['companies', 'company_users'], async () => {
+    throw new Error('synthetic-delete-fixture-interruption');
+  }), /synthetic-delete-fixture-interruption/);
+  assert.equal(deleteGrantScopeActive, false);
+  assert.deepEqual(await assertDefaultDeletePrivileges(), baseline);
+});
+
+test("specialised grants and transitions redact target PII; removal is conditional on disposable DELETE grant", async () => {
   const f = await fixture();
   for (const role of ['payroll_reader', 'payroll_preparer', 'payroll_approver', 'personal_tax_preparer', 'personal_tax_submitter']) {
     const target = `synthetic-private-target-${randomUUID()}`; identities.add(target);
@@ -329,7 +408,8 @@ test("specialised grants and role transitions audit membership references withou
     assert.equal(added.status, 201, added.body); const member = JSON.parse(added.body);
     assert.equal((await request(`/${f.company}/members/${target}`, 'PUT', { role: 'accountant' }, f.owner)).status, 200);
     assert.equal((await request(`/${f.company}/members/${target}`, 'PUT', { role }, f.owner)).status, 200);
-    assert.equal((await request(`/${f.company}/members/${target}`, 'DELETE', undefined, f.owner)).status, 200);
+    assert.equal((await withDisposableDeletePrivileges(['company_users'], () =>
+      request(`/${f.company}/members/${target}`, 'DELETE', undefined, f.owner))).status, 200);
     const audit = (await sensitiveAudit(f.company)).filter(row => row.target_id === member.id);
     assert.equal(audit.length, 4);
     assert.deepEqual(audit.map(row => row.context), [
@@ -350,12 +430,13 @@ test("specialised grants and role transitions audit membership references withou
   assert.equal((await pool.query('SELECT count(*)::int n FROM canonical_journal_entries WHERE company_id=$1', [f.company])).rows[0].n, 0);
 });
 
-test("specialised invitation, self-removal and company deletion retain redacted audit after membership deletion", async () => {
+test("specialised invitation and conditional disposable-grant self/company deletion retain redacted audit", async () => {
   const f = await fixture(), target = `synthetic-invitee-${randomUUID()}`, email = `synthetic-${randomUUID()}@example.test`;
   emailIdentities.set(email, target);
   const invited = await request(`/${f.company}/invite`, 'POST', { email, role: 'personal_tax_preparer' }, f.owner);
   assert.equal(invited.status, 201, invited.body); const member = JSON.parse(invited.body).member;
-  assert.equal((await request(`/${f.company}/members/${target}`, 'DELETE', undefined, target)).status, 200);
+  assert.equal((await withDisposableDeletePrivileges(['company_users'], () =>
+    request(`/${f.company}/members/${target}`, 'DELETE', undefined, target))).status, 200);
   let events = await sensitiveAudit(f.company);
   assert.deepEqual(events.map(row => row.context.operation), ['member_invite', 'member_remove']);
   assert.deepEqual(events.map(row => row.target_id), [member.id, member.id]);
@@ -365,7 +446,8 @@ test("specialised invitation, self-removal and company deletion retain redacted 
   await addMember(f.company, active, 'payroll_preparer'); await addMember(f.company, inactive, 'personal_tax_submitter', false);
   await addMember(f.company, `synthetic-bookkeeper-${randomUUID()}`, 'accountant');
   const removedIds = (await pool.query("SELECT id FROM company_users WHERE company_id=$1 AND role IN ('payroll_preparer','personal_tax_submitter') ORDER BY id", [f.company])).rows.map(row => row.id);
-  assert.equal((await request(`/${f.company}`, 'DELETE', undefined, f.owner)).status, 200);
+  assert.equal((await withDisposableDeletePrivileges(['company_users', 'companies'], () =>
+    request(`/${f.company}`, 'DELETE', undefined, f.owner))).status, 200);
   assert.equal((await pool.query('SELECT id FROM companies WHERE id=$1', [f.company])).rowCount, 0);
   assert.equal((await pool.query('SELECT id FROM company_users WHERE company_id=$1', [f.company])).rowCount, 0);
   events = (await sensitiveAudit(f.company)).filter(row => row.context.operation === 'company_delete');
@@ -392,13 +474,15 @@ test("same-role, denied and bookkeeping-only membership paths produce no sensiti
     assert.equal((await request(`/${f.company}/members`, 'POST', { user_id: ordinary, role: 'accountant' }, f.owner)).status, 201);
     assert.equal((await request(`/${f.company}`, 'PUT', { name: 'Ordinary company edit' }, ordinary)).status, 200);
     assert.equal((await request(`/${f.company}/members/${ordinary}`, 'PUT', { role: 'member' }, f.owner)).status, 200);
-    assert.equal((await request(`/${f.company}/members/${ordinary}`, 'DELETE', undefined, ordinary)).status, 200);
-    assert.equal((await request(`/${other.company}`, 'DELETE', undefined, other.owner)).status, 200);
+    assert.equal((await withDisposableDeletePrivileges(['company_users'], () =>
+      request(`/${f.company}/members/${ordinary}`, 'DELETE', undefined, ordinary))).status, 200);
+    assert.equal((await withDisposableDeletePrivileges(['company_users', 'companies'], () =>
+      request(`/${other.company}`, 'DELETE', undefined, other.owner))).status, 200);
     assert.deepEqual(await sensitiveAudit(f.company), []); assert.deepEqual(await sensitiveAudit(other.company), []);
   } finally { await admin.query('ALTER TABLE public.accounting_audit_events ENABLE ALWAYS TRIGGER ledgerly_accounting_audit_events_guard'); }
 });
 
-test("audit exception or silently skipped insert rolls back every specialised membership mutation and redacts diagnostics", async () => {
+test("audit faults roll back specialised mutations, with DELETE granted only for conditional removal requests", async () => {
   for (const failure of ['exception', 'skip']) {
     await admin.query(`CREATE FUNCTION public.synthetic_membership_audit_failure() RETURNS trigger LANGUAGE plpgsql AS $$
       BEGIN IF NEW.action='sensitive_membership_change' THEN ${failure === 'skip' ? 'RETURN NULL;' : "RAISE EXCEPTION 'synthetic-private-membership-diagnostic';"} END IF; RETURN NEW; END $$`);
@@ -414,11 +498,14 @@ test("audit exception or silently skipped insert rolls back every specialised me
           members: (await pool.query('SELECT * FROM company_users WHERE company_id=$1 ORDER BY id', [f.company])).rows,
         });
         const before = await snapshot();
-        const response = operation === 'add' ? await request(`/${f.company}/members`, 'POST', { user_id: target, role: 'payroll_reader' }, f.owner)
-          : operation === 'invite' ? await request(`/${f.company}/invite`, 'POST', { email, role: 'personal_tax_preparer' }, f.owner)
-          : operation === 'change' ? await request(`/${f.company}/members/${target}`, 'PUT', { role: 'payroll_preparer' }, f.owner)
-          : operation === 'company_delete' ? await request(`/${f.company}`, 'DELETE', undefined, f.owner)
-          : await request(`/${f.company}/members/${target}`, 'DELETE', undefined, operation === 'self_remove' ? target : f.owner);
+        const mutation = () => operation === 'add' ? request(`/${f.company}/members`, 'POST', { user_id: target, role: 'payroll_reader' }, f.owner)
+          : operation === 'invite' ? request(`/${f.company}/invite`, 'POST', { email, role: 'personal_tax_preparer' }, f.owner)
+          : operation === 'change' ? request(`/${f.company}/members/${target}`, 'PUT', { role: 'payroll_preparer' }, f.owner)
+          : operation === 'company_delete' ? request(`/${f.company}`, 'DELETE', undefined, f.owner)
+          : request(`/${f.company}/members/${target}`, 'DELETE', undefined, operation === 'self_remove' ? target : f.owner);
+        const response = ['remove', 'self_remove', 'company_delete'].includes(operation)
+          ? await withDisposableDeletePrivileges(operation === 'company_delete' ? ['company_users', 'companies'] : ['company_users'], mutation)
+          : await mutation();
         assert.equal(response.status, 503, `${failure}/${operation}: ${response.body}`);
         assert.equal(response.body.includes('synthetic-private'), false); assert.equal(response.body.includes(email), false);
         assert.deepEqual(await snapshot(), before, `${failure}/${operation} must roll back`);
@@ -445,7 +532,7 @@ test("unprotected audit storage blocks specialised grants atomically", async () 
   assert.deepEqual(await sensitiveAudit(f.company), []);
 });
 
-test("silently skipped company deletion restores memberships and rolls back their audit events", async () => {
+test("conditional disposable-grant company deletion restores memberships and audits when silently skipped", async () => {
   const f = await fixture(), target = `synthetic-delete-skip-${randomUUID()}`;
   await addMember(f.company, target, 'payroll_preparer');
   const before = (await pool.query('SELECT * FROM company_users WHERE company_id=$1 ORDER BY id', [f.company])).rows;
@@ -453,7 +540,8 @@ test("silently skipped company deletion restores memberships and rolls back thei
     BEGIN IF OLD.id='${f.company}'::uuid THEN RETURN NULL; END IF; RETURN OLD; END $$`);
   await admin.query('CREATE TRIGGER synthetic_company_delete_skip BEFORE DELETE ON public.companies FOR EACH ROW EXECUTE FUNCTION public.synthetic_company_delete_skip()');
   try {
-    assert.equal((await request(`/${f.company.toUpperCase()}`, 'DELETE', undefined, f.owner)).status, 503);
+    assert.equal((await withDisposableDeletePrivileges(['company_users', 'companies'], () =>
+      request(`/${f.company.toUpperCase()}`, 'DELETE', undefined, f.owner))).status, 503);
     assert.deepEqual((await pool.query('SELECT * FROM company_users WHERE company_id=$1 ORDER BY id', [f.company])).rows, before);
     assert.equal((await pool.query('SELECT id FROM companies WHERE id=$1', [f.company])).rowCount, 1);
     assert.deepEqual(await sensitiveAudit(f.company), []);
@@ -461,7 +549,8 @@ test("silently skipped company deletion restores memberships and rolls back thei
     await admin.query('DROP TRIGGER synthetic_company_delete_skip ON public.companies');
     await admin.query('DROP FUNCTION public.synthetic_company_delete_skip()');
   }
-  assert.equal((await request(`/${f.company.toUpperCase()}`, 'DELETE', undefined, f.owner)).status, 200);
+  assert.equal((await withDisposableDeletePrivileges(['company_users', 'companies'], () =>
+    request(`/${f.company.toUpperCase()}`, 'DELETE', undefined, f.owner))).status, 200);
   assert.equal((await sensitiveAudit(f.company)).length, 1);
 });
 
@@ -502,6 +591,6 @@ test("silently skipped sensitive read audit cannot disclose results or commit lo
     await admin.query('DROP TRIGGER synthetic_sensitive_audit_skip ON public.accounting_audit_events');
     await admin.query('DROP FUNCTION public.synthetic_sensitive_audit_skip()');
   }
-  console.log('SENSITIVE_MEMBERSHIP_AUDIT_ACCEPTANCE', JSON.stringify({ grantsAndTransitions: true, invitation: true, selfRemoval: true,
-    companyDeletion: true, atomicRollback: true, silentSkipDenied: true, bookkeepingUnchanged: true, piiRedacted: true }));
+  console.log('SENSITIVE_READ_AUDIT_SKIP_ACCEPTANCE', JSON.stringify({ scenario: 'silently-skipped-read-audit',
+    resultNotDisclosed: true, mutationRolledBack: true }));
 });
