@@ -1,0 +1,36 @@
+{
+  "evidence": {
+    "summary": "Authorised payroll roles can retrieve a tenant-scoped annual GBP pay record with the field projection for their current role and an atomic audit receipt.",
+    "reviewer": "root",
+    "reviewed": true,
+    "commit": "23957ed8abe6772841e43bebf3178a43bb8f63b8",
+    "integratedCommit": "48ca7414debce81d9ae40fa3323fc21167a1d3cb",
+    "tests": [
+      {
+        "command": "Integrated build, typechecks and combined regression suite",
+        "passed": true
+      },
+      {
+        "command": "GitHub Actions 44346441064 on identical source tree, including native pay record role tests and populated encrypted restore checks",
+        "passed": true
+      }
+    ]
+  },
+  "outcome": {
+    "id": "employee-pay-record-read-20261118",
+    "scenario": "Authorised payroll roles can retrieve a tenant-scoped annual GBP pay record with the field projection for their current role and an atomic audit receipt.",
+    "integratedCommit": "48ca7414debce81d9ae40fa3323fc21167a1d3cb",
+    "criteria": [
+      0,
+      1
+    ],
+    "remaining": [
+      "Add audited write ownership and input validation for employee pay records; complete remaining bank, identifier, personal-tax and export workflows.",
+      "Connect the owner-facing history UI and cover outstanding sensitive-record workflows."
+    ],
+    "nextAction": "Connect an authorised payroll preparer to the creation of a dated employee pay record with idempotency, an atomic audit receipt and verified re-read."
+  },
+  "queueRevision": 942,
+  "remainingParent": true,
+  "credits": null
+}
