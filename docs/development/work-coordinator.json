@@ -1,64 +1,69 @@
 {
   "version": 2,
-  "revision": 570,
+  "revision": 572,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "3dcc1b11a7bedf4bcee611702f8abbf9e9343300",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "tax-export-9a076f8b-4c04-4cb5-986b-933c85fcaba5",
     "tokenSha256": "6145261b39787c186ae29a354a47a5fa4be5af7d7cc008afd2a864a919663102",
     "acquiredAt": 1795026003096,
     "expiresAt": 1795029603096
   },
-  "lastOwner": {
-    "runId": "tax-ui-e50d1985-7abb-4bd7-9f7e-6a01c20bb6a6",
-    "tokenSha256": "31df75a521cae5d83a5adc1212e9c63f1c2d4b1b79dfdf89b8fd023d26e51320",
-    "acquiredAt": 1795024952633,
-    "expiresAt": 1795028552633
-  },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "3afde204d5fce4374dcf03b6fdc50f2a85b5fefd",
+    "sha": "4a4038aad72f077893d73aa45c301d92067759f3",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "3afde204d5fce4374dcf03b6fdc50f2a85b5fefd",
-        "path": "docs/development/candidates/tax-export-20261118/published/published-queue-delta.json"
+        "sha": "4a4038aad72f077893d73aa45c301d92067759f3",
+        "path": "docs/development/candidates/tax-export-20261118/accepted/accepted-queue-delta.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "3afde204d5fce4374dcf03b6fdc50f2a85b5fefd",
-        "path": "docs/development/candidates/tax-export-20261118/published/source-review.json"
+        "sha": "4a4038aad72f077893d73aa45c301d92067759f3",
+        "path": "docs/development/candidates/tax-export-20261118/accepted/source-review.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "3afde204d5fce4374dcf03b6fdc50f2a85b5fefd",
-        "path": "docs/development/candidates/tax-export-20261118/published/browser-review.json"
+        "sha": "4a4038aad72f077893d73aa45c301d92067759f3",
+        "path": "docs/development/candidates/tax-export-20261118/accepted/browser-review.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "3afde204d5fce4374dcf03b6fdc50f2a85b5fefd",
-        "path": "docs/development/candidates/tax-export-20261118/published/publication-preflight.json"
+        "sha": "4a4038aad72f077893d73aa45c301d92067759f3",
+        "path": "docs/development/candidates/tax-export-20261118/accepted/ci.log"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "3afde204d5fce4374dcf03b6fdc50f2a85b5fefd",
-        "path": "docs/development/candidates/tax-export-20261118/published/combined.log"
+        "sha": "4a4038aad72f077893d73aa45c301d92067759f3",
+        "path": "docs/development/candidates/tax-export-20261118/accepted/ci.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "3afde204d5fce4374dcf03b6fdc50f2a85b5fefd",
-        "path": "docs/development/candidates/tax-export-20261118/published/build.log"
+        "sha": "4a4038aad72f077893d73aa45c301d92067759f3",
+        "path": "docs/development/candidates/tax-export-20261118/accepted/acceptance.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "4a4038aad72f077893d73aa45c301d92067759f3",
+        "path": "docs/development/candidates/tax-export-20261118/accepted/current-view.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "4a4038aad72f077893d73aa45c301d92067759f3",
+        "path": "docs/development/candidates/tax-export-20261118/accepted/run-metrics.json"
       }
     ],
     "runId": "tax-export-9a076f8b-4c04-4cb5-986b-933c85fcaba5",
-    "at": 1795026715482,
+    "at": 1795026939644,
     "codeHead": "3dcc1b11a7bedf4bcee611702f8abbf9e9343300"
   },
-  "updatedAt": 1795026715482,
+  "updatedAt": 1795026939648,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -146,14 +151,7 @@
       "ownerApproved": true
     }
   },
-  "activeWorkers": [
-    {
-      "actor": "tax-export-author",
-      "task": "P02-04",
-      "status": "review",
-      "stopped": true
-    }
-  ],
+  "activeWorkers": [],
   "workersStopped": true,
   "discoveryRun": {
     "runId": "correction-discovery-1794927549982",
@@ -194,11 +192,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "3afde204d5fce4374dcf03b6fdc50f2a85b5fefd",
-    "path": "docs/development/candidates/tax-export-20261118/published/published-queue-delta.json",
-    "bytesSha256": "b2bb145384c1ac5d4e5c4b8f752a6febe16f33e02ab1055c4bf94ac993b752a1",
-    "queueSha256": "9766614d8749de363497df69b284de856dee2853624ab384f42673036f79b67f",
-    "revision": 962,
+    "sha": "4a4038aad72f077893d73aa45c301d92067759f3",
+    "path": "docs/development/candidates/tax-export-20261118/accepted/accepted-queue-delta.json",
+    "bytesSha256": "50a59cbc16d0e973652ccf769d6453bce567a40d107904086401a5307c74c7e5",
+    "queueSha256": "a8e5e1402487ca8c8f8d9afe71f33046ae70e8aba99abcf55525a16589b13659",
+    "revision": 963,
     "catalogDigest": "e2062b766ab4d6c1925cec45996df85511974cc96a5873b02adbfe7392a3efbc"
   },
   "historyReference": {
@@ -228,7 +226,7 @@
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
     "baseRevision": 945,
-    "currentRevision": 962,
+    "currentRevision": 963,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
@@ -368,7 +366,7 @@
   },
   "twoTrackRun": {
     "startedAt": "2026-11-18T14:36:15.627Z",
-    "activity": "Audited single-record employment-income CSV published for native CI.",
+    "activity": "Accepted audited single-record tax CSV after PostgreSQL and Chromium verification. Next is payroll pay record export.",
     "providerCost": null,
     "credits": null,
     "publishedCommit": "3dcc1b11a7bedf4bcee611702f8abbf9e9343300",
