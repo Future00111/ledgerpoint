@@ -1,0 +1,395 @@
+{
+  "format": "exact-queue-delta-v1",
+  "base": {
+    "format": "ledgerpoint-queue-reference-v1",
+    "repository": "Future00111/ledgerpoint",
+    "ref": "refs/heads/codex/ledgerly-work-queue-state",
+    "sha": "0bba917ef43fd69b8c52c57d9b270f45e4823775",
+    "path": "docs/development/candidates/role-audit-20261118/migration/queue-base.json",
+    "bytesSha256": "4781ea04dadc6d7e97522f52d23ec48a84c3f5ee309c2b7c093ab10b55614770",
+    "queueSha256": "26f1abfffe95f78111996bf032059402cfab3db410b0e3f9adf8b62353b18787",
+    "revision": 922,
+    "catalogDigest": "5e86c173103402a6c097d9030aff3479165255a5adb32db747cee1efe4c32983"
+  },
+  "fromRevision": 922,
+  "revision": 941,
+  "taskReplacements": {
+    "P02-04": {
+      "status": "review",
+      "priority": 204,
+      "discoveredDependencies": [],
+      "checkpoint": "Stopped author. Review and qualify restore mismatch on the integrated pay record.",
+      "evidence": {
+        "commit": "23957ed8abe6772841e43bebf3178a43bb8f63b8",
+        "summary": "Pay record author changes intact; coordinator repair c72b43e63c02b43c93aa15ae1aae01379eb56ad4 independently reviewed with full combined regression and build pass.",
+        "tests": [
+          {
+            "command": "Full regression and build plus independent UUID equivalence and restore checks",
+            "passed": true
+          }
+        ]
+      },
+      "acceptedOutcomes": [
+        {
+          "id": "sensitive-role-audited-boundary-20261118",
+          "scenario": "Native membership-controlled specialized payroll/personal-tax rights and internal transaction boundary; current-role revocation fencing, wrong-role/company denial and atomic redacted audit before disclosure. Synthetic native transaction scenarios, with no sensitive-record endpoint claimed.",
+          "criteria": [
+            0,
+            1
+          ],
+          "remaining": [
+            "Wire actual native salary, identifier, bank-data and personal-tax record reads, exports, preparation, approval and submission to these boundaries with record ownership and field projection. Those sensitive record schemas/routes are not implemented by this outcome.",
+            "Audit specialized role assignment/removal in the existing native membership flow and provide appropriate sensitive audit retrieval and UI choices.",
+            "External submission requires separately reviewed payload, consent, identity, idempotency and provider authority; no network operation is authorized by the local permission.",
+            "Qualify the connected customer workflows before full P02-04 acceptance."
+          ],
+          "nextAction": "Reconcile P02-02 ownership and arrange an explicit narrow nonoverlapping lease for role-assignment auditing in the existing membership flow; implement and qualify that real route before adding more access abstractions. Wire native sensitive record paths as their actual schemas/producers become available.",
+          "integratedCommit": "3de4c5de8f0f6414cef14ef5589f28b4b6c3e994",
+          "acceptedAt": 1795013916929,
+          "evidence": {
+            "commit": "8a218dedf5786fe2376ab6690164f4087578d7cb",
+            "integratedCommit": "3de4c5de8f0f6414cef14ef5589f28b4b6c3e994",
+            "reviewer": "root",
+            "reviewed": true,
+            "summary": "Native membership-controlled specialized payroll/personal-tax rights and internal transaction boundary; current-role revocation fencing, wrong-role/company denial and atomic redacted audit before disclosure. Synthetic native transaction scenarios, with no sensitive-record endpoint claimed.",
+            "tests": [
+              {
+                "command": "Root independent diff/source review and exact-source CI44329382408 job134889313211: all20steps successful without skips, tree58ab00801fc097080625a7e684277e6a2586bb3e",
+                "passed": true
+              },
+              {
+                "command": "Combined local1132tests and build/typechecks; six native sensitive-access scenarios and38fixturetests passed in integratedCI",
+                "passed": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "specialist-membership-audit-20261118",
+          "scenario": "Grants, invitations and role transitions commit protected audit evidence atomically. Default restricted delete attempts preserve memberships and history. Conditional removal audit and rollback were verified with temporary disposable-only DELETE grants.",
+          "integratedCommit": "7c70001028ea7228e8b4bbab9ba83d5edeca261f",
+          "criteria": [
+            0,
+            1
+          ],
+          "remaining": [
+            "Connect payroll and personal-tax record reads, exports and changes to scoped record ownership and field projections.",
+            "Implement authorized audit retrieval and appropriate UI for specialist access."
+          ],
+          "nextAction": "Identify the first actual sensitive record schema and implement a company-scoped read with field projection and its permitted and denied scenarios.",
+          "acceptedAt": 1795016307697,
+          "evidence": {
+            "summary": "Grants, invitations and role transitions commit protected audit evidence atomically. Default restricted delete attempts preserve memberships and history. Conditional removal audit and rollback were verified with temporary disposable-only DELETE grants.",
+            "reviewer": "root",
+            "reviewed": true,
+            "commit": "990403882dd3d7c9f2680450a121cba228399a8b",
+            "integratedCommit": "7c70001028ea7228e8b4bbab9ba83d5edeca261f",
+            "tests": [
+              {
+                "command": "Integrated build, typechecks and combined regression suite",
+                "passed": true
+              },
+              {
+                "command": "GitHub Actions 44337279646 on identical source tree, including native membership integration and restore checks",
+                "passed": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "specialist-membership-history-20261118",
+          "scenario": "A current active company owner can read a bounded projection of persisted specialist membership changes, with atomic protected access evidence and tenant isolation.",
+          "integratedCommit": "422e278ae4b28f7837a577eae05c48b599964414",
+          "criteria": [
+            0,
+            1
+          ],
+          "remaining": [
+            "Connect payroll and personal-tax record reads, exports and changes to scoped record ownership and field projections.",
+            "Connect the owner-facing history UI and cover outstanding sensitive-record workflows."
+          ],
+          "nextAction": "Define the first native employee pay record and its write/read ownership, then qualify permitted and denied role-specific fields on that record.",
+          "acceptedAt": 1795017608454,
+          "evidence": {
+            "summary": "A current active company owner can read a bounded projection of persisted specialist membership changes, with atomic protected access evidence and tenant isolation.",
+            "reviewer": "root",
+            "reviewed": true,
+            "commit": "a0552d6a628cad69ca5fb8399921daebc808b458",
+            "integratedCommit": "422e278ae4b28f7837a577eae05c48b599964414",
+            "tests": [
+              {
+                "command": "Integrated build, typechecks and combined regression suite",
+                "passed": true
+              },
+              {
+                "command": "GitHub Actions 44341326338 on identical source tree, including native membership integration and restore checks",
+                "passed": true
+              }
+            ]
+          }
+        }
+      ],
+      "owner": "pay-record-author",
+      "tokenSha256": "8f9d1e46b2cafcda5cc199a422913befe3aa8a6b16524967d5750c0286421da3",
+      "leaseUntil": 1795021481272,
+      "workStarted": true
+    }
+  },
+  "appendedEvents": [
+    {
+      "at": 1795015022338,
+      "actor": "membership-audit-author",
+      "type": "claim",
+      "taskId": "P02-04",
+      "tokenSha256": "bdf7b793ed184bcf0b1363eb334d6417373c02b823dac1a92ff7b1f56d6962b7"
+    },
+    {
+      "at": 1795015031650,
+      "actor": "membership-audit-author",
+      "type": "checkpoint",
+      "taskId": "P02-04",
+      "checkpoint": "Implement atomic protected audit for specialist grants, changes and removals in existing membership router, including email invitation and bulk company deletion; native tests."
+    },
+    {
+      "at": 1795015512955,
+      "actor": "membership-audit-author",
+      "type": "submit",
+      "taskId": "P02-04",
+      "evidence": {
+        "commit": "ce63c0e42f660c8620d6f3d822b53ecad397c1f7",
+        "summary": "Atomic audited specialist membership changes through five native routes.",
+        "tests": [
+          {
+            "command": "check-company-access focused checks, API typecheck and native test compilation",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1795015785148,
+      "actor": "root",
+      "type": "reject",
+      "taskId": "P02-04",
+      "reason": "CI run 44335616892 exposed baseline restricted runtime has no DELETE privilege for companies or company_users; removal fixtures incorrectly assumed it. Preserve restricted controls and isolate conditional positive coverage."
+    },
+    {
+      "at": 1795015785372,
+      "actor": "root",
+      "type": "recover",
+      "taskId": "P02-04",
+      "checkpoint": "Stopped author, recover for isolated fixture privilege correction and default restricted-denial proof."
+    },
+    {
+      "at": 1795015785535,
+      "actor": "membership-audit-author",
+      "type": "claim",
+      "taskId": "P02-04",
+      "tokenSha256": "aeb9100c436fa6e4989e0580f139705891a0469d6db7e1eeee892c68aa89cbe8"
+    },
+    {
+      "at": 1795015804678,
+      "actor": "membership-audit-author",
+      "type": "checkpoint",
+      "taskId": "P02-04",
+      "checkpoint": "Repair disposable permission assumptions for DELETE scenarios. Verify baseline denial, conditionally enable only exact table deletes in isolated tests, restore grants."
+    },
+    {
+      "at": 1795016039902,
+      "actor": "membership-audit-author",
+      "type": "submit",
+      "taskId": "P02-04",
+      "evidence": {
+        "commit": "990403882dd3d7c9f2680450a121cba228399a8b",
+        "summary": "Restricted-runtime denial and isolated conditional membership delete audits, exact source compiled.",
+        "tests": [
+          {
+            "command": "check-company-access, API typecheck, native integration compilation and syntax check",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1795016307697,
+      "actor": "root",
+      "type": "accept-outcome",
+      "taskId": "P02-04",
+      "outcome": {
+        "id": "specialist-membership-audit-20261118",
+        "scenario": "Grants, invitations and role transitions commit protected audit evidence atomically. Default restricted delete attempts preserve memberships and history. Conditional removal audit and rollback were verified with temporary disposable-only DELETE grants.",
+        "integratedCommit": "7c70001028ea7228e8b4bbab9ba83d5edeca261f",
+        "criteria": [
+          0,
+          1
+        ],
+        "remaining": [
+          "Connect payroll and personal-tax record reads, exports and changes to scoped record ownership and field projections.",
+          "Implement authorized audit retrieval and appropriate UI for specialist access."
+        ],
+        "nextAction": "Identify the first actual sensitive record schema and implement a company-scoped read with field projection and its permitted and denied scenarios."
+      },
+      "workersStopped": true,
+      "evidence": {
+        "summary": "Grants, invitations and role transitions commit protected audit evidence atomically. Default restricted delete attempts preserve memberships and history. Conditional removal audit and rollback were verified with temporary disposable-only DELETE grants.",
+        "reviewer": "root",
+        "reviewed": true,
+        "commit": "990403882dd3d7c9f2680450a121cba228399a8b",
+        "integratedCommit": "7c70001028ea7228e8b4bbab9ba83d5edeca261f",
+        "tests": [
+          {
+            "command": "Integrated build, typechecks and combined regression suite",
+            "passed": true
+          },
+          {
+            "command": "GitHub Actions 44337279646 on identical source tree, including native membership integration and restore checks",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1795016806008,
+      "actor": "history-read-author",
+      "type": "claim",
+      "taskId": "P02-04",
+      "tokenSha256": "31a057e3ed4143d52a3eef98a90b5d317e83ceab41b8aeb3a5e988958dbba0cd"
+    },
+    {
+      "at": 1795016806716,
+      "actor": "history-read-author",
+      "type": "checkpoint",
+      "taskId": "P02-04",
+      "checkpoint": "Implement an audited owner-only read of persisted specialist role-change history in the membership router, company scoped, bounded fixed projection with protected read receipt and cache disabled."
+    },
+    {
+      "at": 1795017324868,
+      "actor": "history-read-author",
+      "type": "submit",
+      "taskId": "P02-04",
+      "evidence": {
+        "commit": "a0552d6a628cad69ca5fb8399921daebc808b458",
+        "summary": "Normal authenticated GET /api/companies/:id/specialist-access-history: company-locked current unique active owner authority, bounded persisted membership history with allowlisted metadata and atomic audited read.",
+        "tests": [
+          {
+            "command": "node tools/development/check-company-access.mjs",
+            "passed": true
+          },
+          {
+            "command": "pnpm --filter @workspace/api-server exec tsc -p tsconfig.json --noEmit",
+            "passed": true
+          },
+          {
+            "command": "Exact security/integration.test.ts bundled CJS with harness externals; node --check; changed source inclusion and import kinds verified",
+            "passed": true
+          },
+          {
+            "command": "git diff --cached --check before commit",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1795017608454,
+      "actor": "root",
+      "type": "accept-outcome",
+      "taskId": "P02-04",
+      "outcome": {
+        "id": "specialist-membership-history-20261118",
+        "scenario": "A current active company owner can read a bounded projection of persisted specialist membership changes, with atomic protected access evidence and tenant isolation.",
+        "integratedCommit": "422e278ae4b28f7837a577eae05c48b599964414",
+        "criteria": [
+          0,
+          1
+        ],
+        "remaining": [
+          "Connect payroll and personal-tax record reads, exports and changes to scoped record ownership and field projections.",
+          "Connect the owner-facing history UI and cover outstanding sensitive-record workflows."
+        ],
+        "nextAction": "Define the first native employee pay record and its write/read ownership, then qualify permitted and denied role-specific fields on that record."
+      },
+      "workersStopped": true,
+      "evidence": {
+        "summary": "A current active company owner can read a bounded projection of persisted specialist membership changes, with atomic protected access evidence and tenant isolation.",
+        "reviewer": "root",
+        "reviewed": true,
+        "commit": "a0552d6a628cad69ca5fb8399921daebc808b458",
+        "integratedCommit": "422e278ae4b28f7837a577eae05c48b599964414",
+        "tests": [
+          {
+            "command": "Integrated build, typechecks and combined regression suite",
+            "passed": true
+          },
+          {
+            "command": "GitHub Actions 44341326338 on identical source tree, including native membership integration and restore checks",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1795017893403,
+      "actor": "pay-record-author",
+      "type": "claim",
+      "taskId": "P02-04",
+      "tokenSha256": "af36f9ac880540d7895b7d9a40ca3e5529f85d578e71d856e8375039d97edcd6",
+      "track": "tax-payroll"
+    },
+    {
+      "at": 1795018430451,
+      "actor": "pay-record-author",
+      "type": "submit",
+      "taskId": "P02-04",
+      "evidence": {
+        "commit": "23957ed8abe6772841e43bebf3178a43bb8f63b8",
+        "summary": "Tenant-qualified annual employee pay read using role-specific fields",
+        "tests": [
+          {
+            "command": "Focused company access checks and API typecheck",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "at": 1795018780861,
+      "actor": "root",
+      "type": "reject",
+      "taskId": "P02-04",
+      "reason": "Native salary tests passed; plain restore fingerprint differs after installation. Diagnose and correct before acceptance."
+    },
+    {
+      "at": 1795018781117,
+      "actor": "root",
+      "type": "recover",
+      "taskId": "P02-04",
+      "checkpoint": "Stopped author. Review and qualify restore mismatch on the integrated pay record."
+    },
+    {
+      "at": 1795018781272,
+      "actor": "pay-record-author",
+      "type": "claim",
+      "taskId": "P02-04",
+      "tokenSha256": "8f9d1e46b2cafcda5cc199a422913befe3aa8a6b16524967d5750c0286421da3",
+      "track": "tax-payroll"
+    },
+    {
+      "at": 1795018895009,
+      "actor": "pay-record-author",
+      "type": "submit",
+      "taskId": "P02-04",
+      "evidence": {
+        "commit": "23957ed8abe6772841e43bebf3178a43bb8f63b8",
+        "summary": "Pay record author changes intact; coordinator repair c72b43e63c02b43c93aa15ae1aae01379eb56ad4 independently reviewed with full combined regression and build pass.",
+        "tests": [
+          {
+            "command": "Full regression and build plus independent UUID equivalence and restore checks",
+            "passed": true
+          }
+        ]
+      }
+    }
+  ],
+  "resultSha256": "2f1838b1c085a39efd14dfac8683dc6120cdaa8cc6ac6351e11c247de3365d37"
+}
