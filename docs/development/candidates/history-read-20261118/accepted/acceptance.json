@@ -1,0 +1,36 @@
+{
+  "evidence": {
+    "summary": "A current active company owner can read a bounded projection of persisted specialist membership changes, with atomic protected access evidence and tenant isolation.",
+    "reviewer": "root",
+    "reviewed": true,
+    "commit": "a0552d6a628cad69ca5fb8399921daebc808b458",
+    "integratedCommit": "422e278ae4b28f7837a577eae05c48b599964414",
+    "tests": [
+      {
+        "command": "Integrated build, typechecks and combined regression suite",
+        "passed": true
+      },
+      {
+        "command": "GitHub Actions 44341326338 on identical source tree, including native membership integration and restore checks",
+        "passed": true
+      }
+    ]
+  },
+  "outcome": {
+    "id": "specialist-membership-history-20261118",
+    "scenario": "A current active company owner can read a bounded projection of persisted specialist membership changes, with atomic protected access evidence and tenant isolation.",
+    "integratedCommit": "422e278ae4b28f7837a577eae05c48b599964414",
+    "criteria": [
+      0,
+      1
+    ],
+    "remaining": [
+      "Connect payroll and personal-tax record reads, exports and changes to scoped record ownership and field projections.",
+      "Connect the owner-facing history UI and cover outstanding sensitive-record workflows."
+    ],
+    "nextAction": "Define the first native employee pay record and its write/read ownership, then qualify permitted and denied role-specific fields on that record."
+  },
+  "queueRevision": 935,
+  "remainingParent": true,
+  "credits": null
+}
