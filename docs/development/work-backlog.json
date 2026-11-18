@@ -299,7 +299,12 @@
         "artifacts/api-server/src/security/integration.test.ts",
         "artifacts/api-server/src/services/tax/access/",
         "artifacts/api-server/src/services/payroll/access/",
-        "artifacts/api-server/src/routes/companies.ts"
+        "artifacts/api-server/src/routes/companies.ts",
+        "artifacts/ledgerly/src/features/payroll/payRecords/",
+        "artifacts/ledgerly/src/App.jsx",
+        "artifacts/ledgerly/src/components/layout/navConfig.js",
+        "artifacts/ledgerly/src/features/routeLoading/route-inventory.json",
+        "artifacts/ledgerly/src/features/routeLoading/routes.test.mjs"
       ],
       "kind": "implementation",
       "approval": "approved"

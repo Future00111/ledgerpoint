@@ -7136,7 +7136,7 @@
       ]
     }
   ],
-  "catalogDigest": "5e86c173103402a6c097d9030aff3479165255a5adb32db747cee1efe4c32983",
+  "catalogDigest": "e2062b766ab4d6c1925cec45996df85511974cc96a5873b02adbfe7392a3efbc",
   "workerTokenMigration": {
     "fromVersion": 2,
     "source": {
