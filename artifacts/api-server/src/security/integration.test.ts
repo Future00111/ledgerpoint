@@ -1196,7 +1196,7 @@ test("pay creation fails closed on unsafe function grants and unknown or null co
   assert.equal((await request(payCreatePath(f.company), 'POST', body, f.owner)).status, 201);
 });
 
-async function runPayrollBrowser(entry: 'browserAcceptance.jsx' | 'historyBrowserAcceptance.jsx', fixtureData: Record<string,string>) {
+async function runPayrollBrowser(entry: 'browserAcceptance.jsx' | 'historyBrowserAcceptance.jsx' | 'taxBrowserAcceptance.jsx', fixtureData: Record<string,string>) {
   const dir = mkdtempSync(path.join(path.dirname(socket), 'pay-ui-'));
   let browser: ReturnType<typeof spawn> | undefined, timer: ReturnType<typeof setTimeout> | undefined;
   try {
@@ -1693,4 +1693,20 @@ test("tax creation fails closed on unsafe function grants and unknown or null co
     }
   } finally { await admin.query(definition); }
   assert.equal((await request(taxCreatePath(f.company), 'POST', body, f.owner)).status, 201);
+});
+
+test("Chromium personal tax entry retries a committed input and limits the submitter readback after a company change", async () => {
+  const f = await fixture(), other = await fixture(), taxpayer = randomUUID();
+  const preparer = 'synthetic-tax-preparer-' + randomUUID(), submitter = 'synthetic-tax-submitter-' + randomUUID();
+  await addMember(f.company, preparer, 'personal_tax_preparer');
+  await addMember(f.company, submitter, 'personal_tax_submitter');
+  await addMember(other.company, submitter, 'personal_tax_submitter');
+  await runPayrollBrowser('taxBrowserAcceptance.jsx', {company:f.company, other:other.company, preparer, submitter, taxpayer});
+  const rows = await storedTaxInputs(f.company);
+  assert.equal(rows.length, 1);
+  assert.ok(rows[0].taxpayer_id === taxpayer && rows[0].employment_income_pence === '4525075' && rows[0].tax_year_start === 2026);
+  assert.deepEqual(await storedTaxInputs(other.company), []);
+  assert.equal((await taxCreationAudits(f.company)).length, 1);
+  assert.equal((await taxPrepareAudits(f.company)).length, 2);
+  assert.ok((await taxReadAudits(f.company)).some(row => row.actor_id === submitter));
 });

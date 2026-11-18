@@ -64,3 +64,33 @@ No history is persisted in browser storage, URL state or shared query caches.
 The server remains authoritative and audits every successful history read,
 including empty results, before disclosure. This page does not broaden that
 existing endpoint or establish full P02-04 completion.
+
+## Personal tax inputs
+
+`/personal-tax/preparations` uses the native annual employment-income input API.
+Owners and personal-tax preparers can create an input and retrieve its taxpayer
+reference. Personal-tax submitters have lookup only and never receive that
+reference in the validated response or display. Payroll and ordinary bookkeeping
+roles see neither controls nor a navigation link. This is a draft input workflow,
+not taxpayer registration, tax calculation, year qualification or filing.
+
+The form requires an explicit internal taxpayer UUID, the tax-year starting year
+and a GBP amount. Decimal pounds are converted exactly with the existing BigInt
+money parser. The body sends a bounded integer year and canonical integer pence
+string, never a floating-point monetary value. Native results are checked against
+the role-specific exact field list, currency, attempted record ID and status.
+Unknown response fields, malformed amounts/years and unexpected status fail closed.
+
+Pay and tax entry now share `useSensitiveEntry`: the original frozen intent and
+request UUID survive retries, unknown outcomes cannot be edited or replaced,
+only a verified native conflict permits a deliberate fresh entry, and a confirmed
+save triggers native readback. Denial clears sensitive fields and disables
+creation while allowing a blank independently authorised lookup. Missing records
+do not prove a prior save failed. Actor/company/role switches remount both
+workspaces and invalidate pending requests. No input, result or locator enters
+browser storage, URL parameters or shared query caches.
+
+`TaxPreparations.jsx` is the context wrapper; `TaxPreparationsWorkspace.jsx`
+exports the same reusable scope boundary used by the coordinator-owned native
+browser journey. Existing pay/history tests and routes are retained. There is
+still no taxpayer directory, collection, export or submission operation.

@@ -6,7 +6,7 @@ export function payrollPermissions(role) {
   return { read: PAYROLL_READ_ROLES.includes(role), prepare: role === 'owner' || role === 'payroll_preparer' };
 }
 export function recordId(value) {
-  if (typeof value !== 'string' || !RECORD_ID.test(value)) throw Error('Enter a valid pay record ID.');
+  if (typeof value !== 'string' || !RECORD_ID.test(value)) throw Error('Enter a valid record ID.');
   return value.toLowerCase();
 }
 function employeeId(value) {

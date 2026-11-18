@@ -172,6 +172,10 @@
     "element": "<AccessHistory />"
   },
   {
+    "path": "/personal-tax/preparations",
+    "element": "<TaxPreparations />"
+  },
+  {
     "path": "/bank-accounts",
     "element": "<BankAccounts />"
   },
