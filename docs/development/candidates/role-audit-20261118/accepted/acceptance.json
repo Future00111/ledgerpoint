@@ -1,0 +1,36 @@
+{
+  "evidence": {
+    "summary": "Grants, invitations and role transitions commit protected audit evidence atomically. Default restricted delete attempts preserve memberships and history. Conditional removal audit and rollback were verified with temporary disposable-only DELETE grants.",
+    "reviewer": "root",
+    "reviewed": true,
+    "commit": "990403882dd3d7c9f2680450a121cba228399a8b",
+    "integratedCommit": "7c70001028ea7228e8b4bbab9ba83d5edeca261f",
+    "tests": [
+      {
+        "command": "Integrated build, typechecks and combined regression suite",
+        "passed": true
+      },
+      {
+        "command": "GitHub Actions 44337279646 on identical source tree, including native membership integration and restore checks",
+        "passed": true
+      }
+    ]
+  },
+  "outcome": {
+    "id": "specialist-membership-audit-20261118",
+    "scenario": "Grants, invitations and role transitions commit protected audit evidence atomically. Default restricted delete attempts preserve memberships and history. Conditional removal audit and rollback were verified with temporary disposable-only DELETE grants.",
+    "integratedCommit": "7c70001028ea7228e8b4bbab9ba83d5edeca261f",
+    "criteria": [
+      0,
+      1
+    ],
+    "remaining": [
+      "Connect payroll and personal-tax record reads, exports and changes to scoped record ownership and field projections.",
+      "Implement authorized audit retrieval and appropriate UI for specialist access."
+    ],
+    "nextAction": "Identify the first actual sensitive record schema and implement a company-scoped read with field projection and its permitted and denied scenarios."
+  },
+  "queueRevision": 931,
+  "remainingParent": true,
+  "credits": null
+}
