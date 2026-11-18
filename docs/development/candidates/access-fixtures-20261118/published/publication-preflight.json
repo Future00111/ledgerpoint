@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "destination_kind": "integration",
+  "pullRequest": 29,
+  "successorDraftRequired": false,
+  "authorityCommit": "725db3421d90a4c8390915edd271ac1a91a07ea7",
+  "authorityRevision": 513,
+  "coordinatorRunId": "access-fixtures-1795012575624",
+  "observedAt": 1795013627510,
+  "candidateTree": "58ab00801fc097080625a7e684277e6a2586bb3e",
+  "reviewedBy": "root",
+  "authorOrigin": {
+    "actor": "payroll-access-implementer+replit-fixture-implementer",
+    "commit": "595b7e01b4a784528442486d81cd2c1173ee9d91",
+    "branch": "codex/payroll-access-20261118"
+  },
+  "updateRef": {
+    "repository_full_name": "Future00111/ledgerpoint",
+    "branch_name": "codex/whole-product-first-sprint",
+    "expected_sha": "1c52f77c63599b26c4d90862c485db951f12ca66",
+    "sha": "3de4c5de8f0f6414cef14ef5589f28b4b6c3e994",
+    "force": false
+  },
+  "approvalGranted": false,
+  "sourcePublished": false
+}
