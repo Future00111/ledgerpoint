@@ -70,6 +70,11 @@ const groups = [
     ],
   },
   {
+    key: 'payroll', label: 'Payroll', icon: Users,
+    items: [{ label: 'Pay records', path: '/payroll/pay-records', icon: Users,
+      roles: ['owner', 'payroll_preparer', 'payroll_reader', 'payroll_approver'] }],
+  },
+  {
     key: 'documents', label: 'Documents', icon: FolderOpen,
     items: [
       { label: 'Inbox', icon: Inbox, soon: true },
@@ -116,7 +121,7 @@ const groups = [
   },
 ];
 
-const order = ['dashboard', 'sales', 'purchases', 'banking', 'reports', 'accounting', 'documents', 'ai-accountant', 'automation', 'settings', 'dev'];
+const order = ['dashboard', 'sales', 'purchases', 'banking', 'reports', 'accounting', 'payroll', 'documents', 'ai-accountant', 'automation', 'settings', 'dev'];
 export const SECTIONS = order.map(key => groups.find(s => s.key === key)).map(s => ({
   ...s, items: s.items.filter(i => !(s.key === 'reports' && i.path === '/insights')),
 }));

@@ -57,6 +57,7 @@ const AccountingJournal = lazyRoute(() => import('@/pages/AccountingJournal'));
 const AccountingReports = lazyRoute(() => import('@/pages/AccountingReports'));
 const AccountingSetup = lazyRoute(() => import('@/pages/AccountingSetup'));
 const AuditHistory = lazyRoute(() => import('@/pages/AuditHistory'));
+const PayRecords = lazyRoute(() => import('@/features/payroll/payRecords/PayRecords'));
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 
@@ -198,6 +199,7 @@ const AuthenticatedApp = () => {
               <Route path="/accounting/reports" element={<AccountingReports />} />
               <Route path="/accounting/setup" element={<AccountingSetup />} />
               <Route path="/audit-history" element={<AuditHistory />} />
+              <Route path="/payroll/pay-records" element={<PayRecords />} />
               <Route path="/bank-accounts" element={<BankAccounts />} />
               <Route path="/transactions" element={<BankTransactions />} />
               <Route path="/reconciliation" element={<Reconciliation />} />

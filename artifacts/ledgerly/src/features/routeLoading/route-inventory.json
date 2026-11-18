@@ -164,6 +164,10 @@
     "element": "<AuditHistory />"
   },
   {
+    "path": "/payroll/pay-records",
+    "element": "<PayRecords />"
+  },
+  {
     "path": "/bank-accounts",
     "element": "<BankAccounts />"
   },

@@ -2,6 +2,9 @@ import test, { before, after } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import express from "express";
+import {spawn, execFileSync} from "node:child_process";
+import {mkdtempSync, readFileSync, rmSync} from "node:fs";
+import path from "node:path";
 import pg from "pg";
 import { pool } from "@workspace/db";
 import { createCompaniesRouter } from "../routes/companies";
@@ -19,11 +22,20 @@ const identities = new Set<string>();
 const emailIdentities = new Map<string, string>();
 const logs: unknown[] = [];
 let deleteGrantScopeActive = false;
+let payBrowserPage = '', payBrowserScript = '';
+let reportPayBrowser: ((result: {ok: boolean; stage?: string}) => void) | undefined;
 before(async () => {
   const identity = (await pool.query("SELECT current_database() db,current_user role,inet_server_addr() addr")).rows[0];
   assert.deepEqual(identity, { db: "ledgerly_accounting_flow_test", role: "ledgerly_api", addr: null });
   const app = express(); app.use(express.json());
   app.use((req, _res, next) => { (req as any).log = { error: (...args: unknown[]) => logs.push(args) }; next(); });
+  app.get('/pay-ui-fixture', (_req,res) => res.type('html').send(payBrowserPage));
+  app.get('/pay-ui-bundle', (_req,res) => res.type('application/javascript').send(payBrowserScript));
+  app.post('/pay-ui-result', (req,res) => {
+    if (!reportPayBrowser) { res.sendStatus(404); return; }
+    const stage = ['entry','retry','reader','company-change'].includes(req.body?.stage) ? req.body.stage : 'unknown';
+    reportPayBrowser({ok: req.body?.ok === true, stage}); res.sendStatus(200);
+  });
   app.use(createCompaniesRouter((req, res, next) => {
     const actor = req.get("x-test-actor");
     if (!actor) { res.sendStatus(401); return; }
@@ -1181,4 +1193,44 @@ test("pay creation fails closed on unsafe function grants and unknown or null co
     }
   } finally { await admin.query(definition); }
   assert.equal((await request(payCreatePath(f.company), 'POST', body, f.owner)).status, 201);
+});
+
+test("Chromium payroll screen retries a committed pay record, reads it back and clears restricted fields on scope changes", async () => {
+  const f = await fixture(), other = await fixture(), employee = randomUUID(), reader = 'synthetic-pay-reader-' + randomUUID();
+  await addMember(f.company, reader, 'payroll_reader');
+  await addMember(other.company, reader, 'payroll_reader');
+  const dir = mkdtempSync(path.join(path.dirname(socket), 'pay-ui-'));
+  let browser: ReturnType<typeof spawn> | undefined, timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const frontend = path.resolve('artifacts/ledgerly/src'), bundle = path.join(dir,'pay-ui.js');
+    execFileSync('pnpm', ['--filter','@workspace/api-server','exec','esbuild',
+      path.join(frontend,'features/payroll/payRecords/browserAcceptance.jsx'),'--bundle','--platform=browser','--format=iife',
+      '--jsx=automatic','--alias:@='+frontend,'--define:import.meta.env.BASE_URL="/"','--outfile='+bundle], {stdio:'pipe'});
+    payBrowserScript = readFileSync(bundle,'utf8');
+    payBrowserPage = '<!doctype html><html><head><meta charset="utf-8"></head><body><div id="root"></div><script>window.syntheticPayFixture=' +
+      JSON.stringify({company:f.company, other:other.company, owner:f.owner, reader, employee}) + '</script><script src="/pay-ui-bundle"></script></body></html>';
+    const outcome = new Promise<{ok: boolean; stage?: string}>((resolve,reject) => {
+      reportPayBrowser = resolve;
+      timer = setTimeout(() => reject(Error('Timed out waiting for payroll browser')),45000);
+      browser = spawn('chromium',['--headless','--no-first-run','--disable-gpu','--disable-background-networking',
+        '--disable-component-update','--disable-sync','--user-data-dir='+path.join(dir,'profile'),base+'/pay-ui-fixture'],{stdio:'ignore'});
+      browser.once('error',reject);
+      browser.once('exit',() => reject(Error('Payroll browser exited before completion')));
+    });
+    const result = await outcome;
+    assert.equal(result.ok,true,result.stage);
+    assert.equal((await storedPay(f.company)).length,1);
+    assert.deepEqual((await storedPay(other.company)),[]);
+    assert.equal((await payCreationAudits(f.company)).length,1);
+    assert.equal((await payPrepareAudits(f.company)).length,2);
+    assert.ok((await payReadAudits(f.company)).some(row => row.actor_id === reader));
+  } finally {
+    reportPayBrowser = undefined; payBrowserPage = ''; payBrowserScript = '';
+    clearTimeout(timer);
+    if (browser && browser.exitCode === null && browser.signalCode === null && browser.pid) {
+      const stopped = new Promise(resolve => browser!.once('exit',resolve));
+      browser.kill('SIGKILL'); await stopped;
+    }
+    rmSync(dir,{recursive:true,force:true});
+  }
 });
