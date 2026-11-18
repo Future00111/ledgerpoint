@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 532,
+  "revision": 533,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "674b3bdf0c3be5811743efb53e19aefc0a4eeeaa",
@@ -21,49 +21,19 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "356f26620d7f2a6a193978f2139893eb15d2d1b0",
+    "sha": "92c3b6bf04531199d6b7092cf5784b2911ca9fac",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "356f26620d7f2a6a193978f2139893eb15d2d1b0",
-        "path": "docs/development/candidates/pay-record-20261118/published/published-queue-delta.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "356f26620d7f2a6a193978f2139893eb15d2d1b0",
-        "path": "docs/development/candidates/pay-record-20261118/published/schema-review.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "356f26620d7f2a6a193978f2139893eb15d2d1b0",
-        "path": "docs/development/candidates/pay-record-20261118/published/source-review.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "356f26620d7f2a6a193978f2139893eb15d2d1b0",
-        "path": "docs/development/candidates/pay-record-20261118/published/author-report.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "356f26620d7f2a6a193978f2139893eb15d2d1b0",
-        "path": "docs/development/candidates/pay-record-20261118/published/publication-preflight.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "356f26620d7f2a6a193978f2139893eb15d2d1b0",
-        "path": "docs/development/candidates/pay-record-20261118/published/combined.log"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "356f26620d7f2a6a193978f2139893eb15d2d1b0",
-        "path": "docs/development/candidates/pay-record-20261118/published/build.log"
+        "sha": "92c3b6bf04531199d6b7092cf5784b2911ca9fac",
+        "path": "docs/development/candidates/pay-record-20261118/repair/repair-queue-delta.json"
       }
     ],
     "runId": "payrecord-1795017862350",
-    "at": 1795018508233,
+    "at": 1795018805908,
     "codeHead": "674b3bdf0c3be5811743efb53e19aefc0a4eeeaa"
   },
-  "updatedAt": 1795018508233,
+  "updatedAt": 1795018805908,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -156,7 +126,7 @@
       "actor": "pay-record-author",
       "task": "P02-04",
       "stopped": true,
-      "status": "review"
+      "status": "leased"
     }
   ],
   "workersStopped": true,
@@ -199,11 +169,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "356f26620d7f2a6a193978f2139893eb15d2d1b0",
-    "path": "docs/development/candidates/pay-record-20261118/published/published-queue-delta.json",
-    "bytesSha256": "e472d721cd94c7f51aa79c769c839ab2d99a502c641e6c2b89e1964b2d287190",
-    "queueSha256": "17ebc1a7b433a403871bfb6b22b27b6c968172b9cedffe7a5ddd7fed03d1b433",
-    "revision": 937,
+    "sha": "92c3b6bf04531199d6b7092cf5784b2911ca9fac",
+    "path": "docs/development/candidates/pay-record-20261118/repair/repair-queue-delta.json",
+    "bytesSha256": "3319dee2a4a77d9adb465e53da58b352a81aa975aa844d3e3b22c240afea8fc4",
+    "queueSha256": "86572e13c02edf715df94fe415f5169157e484cac5c036e1ad2b7b9e70acdd62",
+    "revision": 940,
     "catalogDigest": "5e86c173103402a6c097d9030aff3479165255a5adb32db747cee1efe4c32983"
   },
   "historyReference": {
@@ -233,7 +203,7 @@
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
     "baseRevision": 922,
-    "currentRevision": 937,
+    "currentRevision": 940,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
@@ -373,13 +343,13 @@
   },
   "twoTrackRun": {
     "startedAt": "2026-11-18T14:36:15.627Z",
-    "activity": "Reviewed employee pay API and schema published for exact-tree CI.",
+    "activity": "Eight pay record tests passed; investigating restore fingerprint mismatch.",
     "providerCost": null,
     "credits": null,
     "publishedCommit": "674b3bdf0c3be5811743efb53e19aefc0a4eeeaa",
     "observedAt": "2026-11-18T14:59:09.452Z",
     "publishedTree": "f1c31510fd03535c46367c359b49d7b2361bc9f7",
-    "ciRun": 44341326338,
+    "ciRun": 44344956894,
     "ciJob": 134889313211,
     "acceptedOutcomes": [
       "specialist-membership-history-20261118"
