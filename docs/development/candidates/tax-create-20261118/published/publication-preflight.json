@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "destination_kind": "integration",
+  "pullRequest": 29,
+  "successorDraftRequired": false,
+  "authorityCommit": "cbb1ce1afc1e3f5d02a305c7ea500e5399fe34e5",
+  "authorityRevision": 559,
+  "coordinatorRunId": "taxcreate-1795023879361",
+  "observedAt": 1795024453538,
+  "candidateTree": "b4031be6d57057b178f6b313305bf7583fd4cdc0",
+  "reviewedBy": "root",
+  "authorOrigin": {
+    "actor": "tax-create-author",
+    "commit": "6c99410d2ed185c21d5a3917bd8cfd03f028a637",
+    "branch": "codex/personal-tax-create"
+  },
+  "updateRef": {
+    "repository_full_name": "Future00111/ledgerpoint",
+    "branch_name": "codex/whole-product-first-sprint",
+    "expected_sha": "79d34d2cc8fcf731b156752305b89d1234495e24",
+    "sha": "9d6d27e77e19690c8d77e02a59b20c81b094e840",
+    "force": false
+  },
+  "approvalGranted": false,
+  "sourcePublished": false
+}

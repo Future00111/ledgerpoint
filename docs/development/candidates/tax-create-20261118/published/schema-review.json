@@ -1,0 +1,69 @@
+{
+  "reviewVersion": 1,
+  "reviewedAt": "2026-11-18T17:51:16.110Z",
+  "reviewer": "independent durable_execution_implementation reviewer",
+  "sourceRepository": "Future00111/ledgerpoint",
+  "baselineCommit": "79d34d2cc8fcf731b156752305b89d1234495e24",
+  "reviewedCommit": "858848da3e275a6f254a9372fb6cae3c27f1c8a2",
+  "reviewedTree": "cfdb516c94a19cda055da5e2940d462292abfdcc",
+  "independentOfAuthor": true,
+  "verdict": "approved_for_integration_and_disposable_native_ci",
+  "scope": [
+    "lib/db/migration-registry.json",
+    "lib/db/migrations/personal-tax-create.review.sql",
+    "tools/accounting-flow/schema.mjs",
+    "tools/development/migrations/registry.mjs",
+    "tools/operations/backup-restore/application-recovery.mjs",
+    "tools/operations/backup-restore/runtime-acceptance.ts"
+  ],
+  "findings": [],
+  "reviewConclusions": [
+    "The command uses a NOLOGIN canonical owner, fixed pg_catalog search path, revoked PUBLIC execution and narrow ledgerly_api EXECUTE. Existing read-only runtime table grants remain unchanged; the protected origin marker defaults false for imported or administrator-seeded rows.",
+    "Company and ordered membership locks serialize admission with the existing membership boundary. Exactly one current active owner or personal_tax_preparer may create or replay; submitter, inactive, missing and ambiguous memberships are denied.",
+    "The direct SECURITY DEFINER entry checks the protected append-only audit table, runtime privileges and exact trigger/function guard before mutation or replay, independently of the HTTP wrapper.",
+    "A matching company-scoped identity, taxpayer, year, income, command-origin marker and creation receipt are required for replay. Identity or natural-key mismatches conflict; missing insertion or audit RETURNING evidence raises and rolls back the function transaction. Replay does not write another creation receipt.",
+    "The new migration checksum is verified and its dependency is personal-tax-preparations. Both installer modes execute it after that table migration. All 29 previous migration entries and SQL bytes, plus the security overlay, are unchanged.",
+    "Restore preparation creates a real command record before fingerprint and dump. Plain restore compares all rows, functions, owners, grants and controls. Encrypted application restore requires a true service replay, changed-income conflict, complete owner and submitter projections and exactly one creation receipt. The recovery acceptance flag is mandatory.",
+    "The added restore projection assertions emit only fixed messages and boolean comparison results on mismatch. New mutation audit context contains contract and role, excluding taxpayer and income values. This stores raw annual employment-income input only; it adds no tax calculation, filing, posting or production action."
+  ],
+  "tests": [
+    {
+      "command": "node --test tools/development/migrations/registry.test.mjs tools/accounting-flow/restore-drill.test.mjs tools/operations/backup-restore/*.test.mjs",
+      "sourceCommit": "858848da3e275a6f254a9372fb6cae3c27f1c8a2",
+      "exitCode": 0,
+      "total": 52,
+      "passed": 52,
+      "failed": 0,
+      "includes": [
+        "Registry input and installed-history checks",
+        "Both installer-mode refusal controls",
+        "Plain restore fingerprint and target guards",
+        "Encrypted recovery guards",
+        "Fresh external CJS bundle compilation and inherited-database-URL rejection"
+      ]
+    },
+    {
+      "command": "Independent Node assert comparison of git show baseline/tip registry and migration bytes; validateMigrationInputs; expectedMigrationHistory for includeAmendments false/true; installer source-order checks",
+      "exitCode": 0,
+      "previousMigrationsPreserved": 29,
+      "overlayUnchanged": true,
+      "newMigration": "personal-tax-create",
+      "newMigrationSha256": "e72f453a67e5d60a63579b3febee0978423e17e8ca158eb9d7c15067f92ebd85",
+      "bothModesIncludeNewMigration": true,
+      "bothModesDependency": [
+        "personal-tax-preparations"
+      ]
+    }
+  ],
+  "limitations": [
+    "The reviewed root-only commit precedes author service integration: preparationRecord.ts at this commit does not yet export createPersonalTaxPreparation. The dynamic-import bundle guard still compiles and rejects unsafe target configuration; it does not prove that the creation service is callable.",
+    "No native PostgreSQL command or populated restore was executed during this independent review. Integrated exact-source typecheck/build and disposable native/restore CI remain required before child acceptance.",
+    "Review approval applies only to the six root-authored schema/restore files and exact commit/tree above; author service, routes and native scenarios require their separate review."
+  ],
+  "mutationsPerformed": [
+    "Created this requested independent review artifact outside the source worktree"
+  ],
+  "sourceChanges": false,
+  "queueActions": false,
+  "remoteActions": false
+}
