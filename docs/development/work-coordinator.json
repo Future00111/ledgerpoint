@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "revision": 517,
+  "revision": 518,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "3de4c5de8f0f6414cef14ef5589f28b4b6c3e994",
+  "codeHead": "ec5b31e504673035604a802dd05e5f469ffbad8f",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -21,59 +21,29 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "e8f5b942ee5ae8cb777381e79794dae5d6be59cd",
+    "sha": "0bba917ef43fd69b8c52c57d9b270f45e4823775",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "e8f5b942ee5ae8cb777381e79794dae5d6be59cd",
-        "path": "docs/development/candidates/access-fixtures-20261118/accepted/accepted-queue-delta.json"
+        "sha": "0bba917ef43fd69b8c52c57d9b270f45e4823775",
+        "path": "docs/development/candidates/role-audit-20261118/migration/queue-base.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "e8f5b942ee5ae8cb777381e79794dae5d6be59cd",
-        "path": "docs/development/candidates/access-fixtures-20261118/accepted/ci.log"
+        "sha": "0bba917ef43fd69b8c52c57d9b270f45e4823775",
+        "path": "docs/development/candidates/role-audit-20261118/migration/review.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "e8f5b942ee5ae8cb777381e79794dae5d6be59cd",
-        "path": "docs/development/candidates/access-fixtures-20261118/accepted/ci-observations.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "e8f5b942ee5ae8cb777381e79794dae5d6be59cd",
-        "path": "docs/development/candidates/access-fixtures-20261118/accepted/qualification.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "e8f5b942ee5ae8cb777381e79794dae5d6be59cd",
-        "path": "docs/development/candidates/access-fixtures-20261118/accepted/outcomes.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "e8f5b942ee5ae8cb777381e79794dae5d6be59cd",
-        "path": "docs/development/candidates/access-fixtures-20261118/accepted/current-view.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "e8f5b942ee5ae8cb777381e79794dae5d6be59cd",
-        "path": "docs/development/candidates/access-fixtures-20261118/accepted/run-metrics.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "e8f5b942ee5ae8cb777381e79794dae5d6be59cd",
-        "path": "docs/development/candidates/access-fixtures-20261118/accepted/qualification-manifest.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "e8f5b942ee5ae8cb777381e79794dae5d6be59cd",
-        "path": "docs/development/candidates/access-fixtures-20261118/accepted/publication-preflight.json"
+        "sha": "0bba917ef43fd69b8c52c57d9b270f45e4823775",
+        "path": "docs/development/candidates/role-audit-20261118/migration/disclosure-review.json"
       }
     ],
-    "runId": "access-fixtures-1795012575624",
-    "at": 1795013972835,
-    "codeHead": "3de4c5de8f0f6414cef14ef5589f28b4b6c3e994"
+    "runId": "role-audit-1795014864638",
+    "at": 1795014989109,
+    "codeHead": "ec5b31e504673035604a802dd05e5f469ffbad8f"
   },
-  "updatedAt": 1795014864639,
+  "updatedAt": 1795014989109,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -202,12 +172,12 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "e8f5b942ee5ae8cb777381e79794dae5d6be59cd",
-    "path": "docs/development/candidates/access-fixtures-20261118/accepted/accepted-queue-delta.json",
-    "bytesSha256": "48377c66151cbb2353cbaff69374f178433f598f6ba357684d0809fe733e7ed0",
-    "queueSha256": "aeec993af2e11213b8c1c299d6f147b0e8a298226ffed90a449a8c53746e0aa4",
+    "sha": "0bba917ef43fd69b8c52c57d9b270f45e4823775",
+    "path": "docs/development/candidates/role-audit-20261118/migration/queue-base.json",
+    "bytesSha256": "4781ea04dadc6d7e97522f52d23ec48a84c3f5ee309c2b7c093ab10b55614770",
+    "queueSha256": "26f1abfffe95f78111996bf032059402cfab3db410b0e3f9adf8b62353b18787",
     "revision": 922,
-    "catalogDigest": "df1d49d22e3a0fff74ed2b375bbe7b86279de43f82d996c3085a3c9b50740b6f"
+    "catalogDigest": "5e86c173103402a6c097d9030aff3479165255a5adb32db747cee1efe4c32983"
   },
   "historyReference": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
@@ -235,18 +205,18 @@
       "path": "docs/development/candidates/correction-discovery-20261117/compact/queue-reference.mjs",
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
-    "baseRevision": 901,
+    "baseRevision": 922,
     "currentRevision": 922,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
       "ref": "refs/heads/codex/ledgerly-work-queue-state",
-      "sha": "d947548774524724665b3ca6cf461cc41675f133",
-      "path": "docs/development/candidates/two-track-20261117/migration/queue-base.json",
-      "bytesSha256": "e5434cb264d620c9acd61ea009f33bdcab03ee738a9d82afdf6ab32d27b5b6e4",
-      "queueSha256": "d9d084358adf7746b539bd20ef7acc6155178b01ea96319712b7fbcb2a88047d",
-      "revision": 901,
-      "catalogDigest": "df1d49d22e3a0fff74ed2b375bbe7b86279de43f82d996c3085a3c9b50740b6f"
+      "sha": "0bba917ef43fd69b8c52c57d9b270f45e4823775",
+      "path": "docs/development/candidates/role-audit-20261118/migration/queue-base.json",
+      "bytesSha256": "4781ea04dadc6d7e97522f52d23ec48a84c3f5ee309c2b7c093ab10b55614770",
+      "queueSha256": "26f1abfffe95f78111996bf032059402cfab3db410b0e3f9adf8b62353b18787",
+      "revision": 922,
+      "catalogDigest": "5e86c173103402a6c097d9030aff3479165255a5adb32db747cee1efe4c32983"
     }
   },
   "admissionRun": {
@@ -376,7 +346,7 @@
   },
   "twoTrackRun": {
     "startedAt": "2026-11-18T14:36:15.627Z",
-    "activity": "Accepted two bounded independently reviewed outcomes after exactsource CI44329382408 all20stepspassed. P02-04 andP04-03 parents pending;92bullets/112tasks unchanged. Bothauthorsstopped; noheldtasks. Next: realmembershiprole-changeaudit with settledownership, nextNI/PAYEfixtures.",
+    "activity": "Reviewed ownership migration published; q922 unchanged apart from catalog identity; ready to claim two tracks.",
     "providerCost": null,
     "credits": null,
     "publishedCommit": "3de4c5de8f0f6414cef14ef5589f28b4b6c3e994",
@@ -388,6 +358,12 @@
       "sensitive-role-audited-boundary-20261118",
       "independent-plan1-weekly-fixtures-20261118"
     ],
-    "queueRevision": 922
+    "queueRevision": 922,
+    "migration": {
+      "published": "ec5b31e504673035604a802dd05e5f469ffbad8f",
+      "archive": "0bba917ef43fd69b8c52c57d9b270f45e4823775",
+      "reviewer": "root",
+      "catalogDigest": "5e86c173103402a6c097d9030aff3479165255a5adb32db747cee1efe4c32983"
+    }
   }
 }
