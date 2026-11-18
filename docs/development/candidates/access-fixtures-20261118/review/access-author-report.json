@@ -1,0 +1,100 @@
+{
+  "task": "P02-04",
+  "actor": "payroll-access-implementer",
+  "basePublished": "1c52f77c63599b26c4d90862c485db951f12ca66",
+  "authorCommit": "8a218dedf5786fe2376ab6690164f4087578d7cb",
+  "authorTree": "96c7315ecbec98e3c8eec82a4a46133f9f48fb72",
+  "branch": "codex/payroll-access-20261118",
+  "changedFiles": [
+    "artifacts/api-server/src/security/integration.test.ts",
+    "artifacts/api-server/src/security/roles.test.ts",
+    "artifacts/api-server/src/security/roles.ts",
+    "artifacts/api-server/src/services/payroll/access/README.md",
+    "artifacts/api-server/src/services/payroll/access/boundary.ts",
+    "artifacts/api-server/src/services/payroll/access/service.ts",
+    "artifacts/api-server/src/services/tax/access/service.ts"
+  ],
+  "patchBytes": 31046,
+  "patchSha256": "070de329b84978abdcea4a9b0cc6a4ad123d051049bd0282ff428e5d88dfa8a3",
+  "files": [
+    {
+      "path": "artifacts/api-server/src/security/integration.test.ts",
+      "bytes": 22680,
+      "sha256": "688bde25d74da644fb8af091f70e1f70689b8173d02f75977b8a354df57ee691"
+    },
+    {
+      "path": "artifacts/api-server/src/security/roles.test.ts",
+      "bytes": 4045,
+      "sha256": "e74095029546a9c699c4e990afa63075bf7ada4f558ed89ec254c09104ca9ef6"
+    },
+    {
+      "path": "artifacts/api-server/src/security/roles.ts",
+      "bytes": 2345,
+      "sha256": "12e90642a0b404eed98b02cfe37bdc8a8cfc2b7a834d3fac3114a5601921635f"
+    },
+    {
+      "path": "artifacts/api-server/src/services/payroll/access/README.md",
+      "bytes": 2695,
+      "sha256": "d1e6f4b939876140ad2aad3928b145b427e562afe40996cd18f2309d19d3fbff"
+    },
+    {
+      "path": "artifacts/api-server/src/services/payroll/access/boundary.ts",
+      "bytes": 6291,
+      "sha256": "505f7a992b8eb3574e18288530a36cf420f1f82391879410d59d203709a381fc"
+    },
+    {
+      "path": "artifacts/api-server/src/services/payroll/access/service.ts",
+      "bytes": 456,
+      "sha256": "7f3d4e2646c81252d5e4187e62aedadb01d02dd8f020b9d02a7130cda5bad1a2"
+    },
+    {
+      "path": "artifacts/api-server/src/services/tax/access/service.ts",
+      "bytes": 508,
+      "sha256": "5d046a8398ff9c540577ae5b612f1bfb8d02d7aebd9d8ae77473718feffbf6df"
+    }
+  ],
+  "scope": "Explicit specialized sensitive roles, owner-controlled existing membership assignment and a native company-lock/current-membership/audited transaction boundary. No public sensitive-record routes or external operations enabled.",
+  "checks": [
+    {
+      "command": "Focused roles, company policy and existing company routes tests via existing harness externals",
+      "passed": true,
+      "tests": 21,
+      "log": "access-focused.log"
+    },
+    {
+      "command": "pnpm --filter @workspace/api-server exec tsc -p tsconfig.json --noEmit",
+      "passed": true,
+      "log": "access-typecheck.log"
+    },
+    {
+      "command": "Exact security/integration.test.ts compiled CJS with external pg/logger modules; node --check and import-kind validation",
+      "passed": true,
+      "nativeDatabasePassed": false,
+      "log": "access-native-compile.json"
+    },
+    {
+      "command": "git diff --cached --check",
+      "passed": true
+    }
+  ],
+  "nativeScenariosAdded": 6,
+  "nativeQualification": "Requires exact-source disposable PostgreSQL CI; local host has no PostgreSQL.",
+  "reviewCorrections": [
+    "Frozen exported roles/actions",
+    "Explicit public relation qualification",
+    "Column-only UPDATE privilege attestation and refusal test"
+  ],
+  "rework": "Initial ad hoc route-test bundle omitted logger externals and failed on a pino worker path; reran using repository harness externals without source workaround. Initial TypeScript narrowing diagnostics fixed before final checks.",
+  "remaining": [
+    "Wire every native payroll/personal-tax record read/export/preparation/approval/submission route to these boundaries and enforce actual record ownership and field projections. Current tests use synthetic callback payloads and real transaction fixture reads/writes, not absent HR endpoints.",
+    "Audit specialized role assignment/removal changes in native membership flows (routes outside current lease).",
+    "Implement sensitive audit retrieval/projection without exposing private values; present separate role choices/capabilities in UI.",
+    "External submission still needs separate consent, reviewed payload, idempotency and provider authority; local permission never authorizes network sends.",
+    "Full original P02-04 acceptance remains pending connected native sensitive workflows."
+  ],
+  "stopped": true,
+  "worktreeClean": true,
+  "finishedAt": "2026-11-18T14:49:01.742558+00:00",
+  "providerCost": null,
+  "credits": null
+}

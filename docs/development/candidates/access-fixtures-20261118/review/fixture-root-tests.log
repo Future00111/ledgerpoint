@@ -1,0 +1,46 @@
+✔ official evidence bytes, subset transcription and original unqualified declarations remain pinned (4.789328ms)
+✔ official arithmetic 11: 52841p -> 0p (1.934226ms)
+✔ official arithmetic 12: 52842p -> 100p (0.41904ms)
+✔ official arithmetic 13: 52852p -> 100p (0.433635ms)
+✔ official arithmetic 14: 66175p -> 1300p (0.3612ms)
+✔ official arithmetic 15: 178397p -> 11400p (0.386724ms)
+✔ official arithmetic 16: 210629p -> 14300p (0.351467ms)
+✔ authored arithmetic zero: 0p -> 0p (0.353006ms)
+✔ authored arithmetic below-threshold: 51729p -> 0p (1.609913ms)
+✔ authored arithmetic at-threshold: 51730p -> 0p (0.525512ms)
+✔ authored arithmetic penny-above-threshold: 51731p -> 0p (0.572975ms)
+✔ authored arithmetic below-second-pound: 53952p -> 100p (0.320522ms)
+✔ authored arithmetic second-pound: 53953p -> 200p (0.236838ms)
+✔ authored notice timing: no-notice (0.403019ms)
+✔ authored notice timing: on-start-date (0.237494ms)
+✔ authored notice timing: first-start-payday (0.241845ms)
+✔ authored notice timing: missed-start-cutoff (0.233222ms)
+✔ authored notice timing: late-start-applies (0.207809ms)
+✔ authored notice timing: on-stop-date (0.226918ms)
+✔ authored notice timing: first-stop-payday (0.336053ms)
+✔ authored notice timing: missed-stop-cutoff (0.233325ms)
+✔ authored notice timing: late-stop-applies (0.119824ms)
+✔ authored notice timing: employee-request-not-authority (0.076792ms)
+✔ authored notice timing: first-day-of-year (0.092477ms)
+✔ authored notice timing: last-day-of-year (0.061896ms)
+✔ unsupported correction rejects even after SL2; never zero-defaults (0.580027ms)
+✔ unsupported concurrent-loan rejects even after SL2; never zero-defaults (0.097975ms)
+✔ unsupported protected-earnings rejects even after SL2; never zero-defaults (0.065924ms)
+✔ unsupported prior-year rejects even after SL2; never zero-defaults (0.101294ms)
+✔ unsupported next-year rejects even after SL2; never zero-defaults (0.14171ms)
+✔ unsupported before-year rejects even after SL2; never zero-defaults (0.078426ms)
+✔ unsupported after-year rejects even after SL2; never zero-defaults (0.062761ms)
+✔ unsupported other-plan rejects even after SL2; never zero-defaults (0.079479ms)
+✔ unsupported other-period rejects even after SL2; never zero-defaults (0.057009ms)
+✔ unsupported exceptional-instruction rejects even after SL2; never zero-defaults (0.061239ms)
+✔ unknown notice authenticity or practical cutoff assertions reject instead of qualifying real payroll (0.511552ms)
+✔ duplicate instructions and mismatched synthetic notice binding are rejected (0.228128ms)
+✔ new fixture review does not qualify the original application case or expand scope (7.386933ms)
+ℹ tests 38
+ℹ suites 0
+ℹ pass 38
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 186.950716

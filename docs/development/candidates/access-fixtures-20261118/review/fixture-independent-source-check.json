@@ -1,0 +1,323 @@
+{
+  "reviewer": "root",
+  "checkedAt": "2026-11-18T14:43:05.980647+00:00",
+  "method": "Direct ODS displayed decimal cells and independent Python Decimal work from HMRC software-spec rules; no LedgerPoint calculation implementation imported or called. Authored notice cases manually checked as conditional supplied practical payday facts.",
+  "sources": [
+    {
+      "url": "https://www.gov.uk/government/publications/payroll-technical-specifications-student-loans/collection-of-student-loans-from-6-april-2026",
+      "updated": "2025-12-12",
+      "observed": "2026-11-18"
+    },
+    {
+      "url": "https://www.gov.uk/hmrc-internal-manuals/collection-of-student-loans-manual/cslm17010",
+      "updated": "2026-10-29",
+      "observed": "2026-11-18"
+    },
+    {
+      "url": "https://www.gov.uk/hmrc-internal-manuals/collection-of-student-loans-manual/cslm17015",
+      "updated": "2026-10-29",
+      "observed": "2026-11-18"
+    },
+    {
+      "url": "https://www.gov.uk/guidance/special-rules-for-student-loans",
+      "updated": "2026-04-06",
+      "observed": "2026-11-18"
+    }
+  ],
+  "archiveSha256": "e2f5bd68521c135faf7b5d43296127d378ecaa6a6b936b0c8253974dda1c7e83",
+  "annualPounds": "26900",
+  "weeklyThresholdPounds": "517.30",
+  "percent": "9",
+  "officialWeeklyRows": [
+    {
+      "sheet": "Plan_1",
+      "row": 11,
+      "payMinor": "52841",
+      "deductionMinor": "0",
+      "independentWorkedPounds": "0"
+    },
+    {
+      "sheet": "Plan_1",
+      "row": 12,
+      "payMinor": "52842",
+      "deductionMinor": "100",
+      "independentWorkedPounds": "1"
+    },
+    {
+      "sheet": "Plan_1",
+      "row": 13,
+      "payMinor": "52852",
+      "deductionMinor": "100",
+      "independentWorkedPounds": "1"
+    },
+    {
+      "sheet": "Plan_1",
+      "row": 14,
+      "payMinor": "66175",
+      "deductionMinor": "1300",
+      "independentWorkedPounds": "13"
+    },
+    {
+      "sheet": "Plan_1",
+      "row": 15,
+      "payMinor": "178397",
+      "deductionMinor": "11400",
+      "independentWorkedPounds": "114"
+    },
+    {
+      "sheet": "Plan_1",
+      "row": 16,
+      "payMinor": "210629",
+      "deductionMinor": "14300",
+      "independentWorkedPounds": "143"
+    }
+  ],
+  "conditionalNoticeCases": [
+    {
+      "id": "no-start-instruction",
+      "inputSha256": "5e8b5253f3b9f1687b4af7d3e770636e4b850bdee88a63c35315182b0f97ee47",
+      "reviewedExpected": {
+        "instructionActive": false,
+        "deductionMinor": "0",
+        "reason": "NO_START_INSTRUCTION"
+      },
+      "status": "conditional_synthetic_facts_only"
+    },
+    {
+      "id": "before-start-date",
+      "inputSha256": "e86a1fd03db558428f3594f558b08dd9b6981e80d230bb8ec352e6a5c0ef0210",
+      "reviewedExpected": {
+        "instructionActive": false,
+        "deductionMinor": "0",
+        "reason": "BEFORE_FIRST_AVAILABLE_START"
+      },
+      "status": "conditional_synthetic_facts_only"
+    },
+    {
+      "id": "on-start-date",
+      "inputSha256": "385bc115c8cb51de03d6cf5f4fb67a671d55b9a0382bba9a25d237a411c8da7a",
+      "reviewedExpected": {
+        "instructionActive": false,
+        "deductionMinor": "0",
+        "reason": "BEFORE_FIRST_AVAILABLE_START"
+      },
+      "status": "conditional_synthetic_facts_only"
+    },
+    {
+      "id": "first-start-payday-upper-boundary",
+      "inputSha256": "e01d800a3315d0d145f12e44cdc062fc4b64fdc23c7765b2c65405b58f920bdf",
+      "reviewedExpected": {
+        "instructionActive": true,
+        "deductionMinor": "100",
+        "reason": "START_APPLIES"
+      },
+      "status": "conditional_synthetic_facts_only"
+    },
+    {
+      "id": "first-start-payday-lower-boundary",
+      "inputSha256": "6c38519da089f544568a8a169bd297e1b95de3781db2252ff0647ff58643c408",
+      "reviewedExpected": {
+        "instructionActive": true,
+        "deductionMinor": "0",
+        "reason": "START_APPLIES"
+      },
+      "status": "conditional_synthetic_facts_only"
+    },
+    {
+      "id": "start-persists-next-week",
+      "inputSha256": "e9bd93752c8a9a206882b2bf9f0b90c29beb12d6875fe148703ba9b9e0b5a58b",
+      "reviewedExpected": {
+        "instructionActive": true,
+        "deductionMinor": "100",
+        "reason": "START_APPLIES"
+      },
+      "status": "conditional_synthetic_facts_only"
+    },
+    {
+      "id": "employee-request-does-not-stop",
+      "inputSha256": "6e41a0863a37258531357a017b4a359bd8af95a1c2968db22245df18f8801db1",
+      "reviewedExpected": {
+        "instructionActive": true,
+        "deductionMinor": "100",
+        "reason": "START_APPLIES"
+      },
+      "status": "conditional_synthetic_facts_only"
+    },
+    {
+      "id": "on-stop-date-still-active",
+      "inputSha256": "16b63ee0452f8b69ad720e3517569581ae6f5273834baeb11b50f176f1088dcb",
+      "reviewedExpected": {
+        "instructionActive": true,
+        "deductionMinor": "100",
+        "reason": "START_APPLIES"
+      },
+      "status": "conditional_synthetic_facts_only"
+    },
+    {
+      "id": "first-stop-payday",
+      "inputSha256": "93cfbc02e9a04067e7118df083ec9c7e05ec5869fd0774bc3086103b136e1105",
+      "reviewedExpected": {
+        "instructionActive": false,
+        "deductionMinor": "0",
+        "reason": "STOP_APPLIES"
+      },
+      "status": "conditional_synthetic_facts_only"
+    },
+    {
+      "id": "stop-persists-next-week",
+      "inputSha256": "88535b87925ba97538de96c6b9dcf6f4e9aa750e16ccd7f917ec0e1b16b170d3",
+      "reviewedExpected": {
+        "instructionActive": false,
+        "deductionMinor": "0",
+        "reason": "STOP_APPLIES"
+      },
+      "status": "conditional_synthetic_facts_only"
+    },
+    {
+      "id": "late-start-before-practical-payday",
+      "inputSha256": "4cef3d5838483f5326488260a2f3ea4a04e220c528a9b500cc85e67eb9edd173",
+      "reviewedExpected": {
+        "instructionActive": false,
+        "deductionMinor": "0",
+        "reason": "BEFORE_FIRST_AVAILABLE_START"
+      },
+      "status": "conditional_synthetic_facts_only"
+    },
+    {
+      "id": "late-start-first-practical-payday",
+      "inputSha256": "3dbc33417e0b5427a558eb51300c4c7173af6c694ea4a1c383e4b13e3649154d",
+      "reviewedExpected": {
+        "instructionActive": true,
+        "deductionMinor": "100",
+        "reason": "START_APPLIES"
+      },
+      "status": "conditional_synthetic_facts_only"
+    },
+    {
+      "id": "late-stop-before-practical-payday",
+      "inputSha256": "0b4a902c686bb036946eaceaf86f5795a07c4e260fab36fc057fe2566772b888",
+      "reviewedExpected": {
+        "instructionActive": true,
+        "deductionMinor": "100",
+        "reason": "START_APPLIES"
+      },
+      "status": "conditional_synthetic_facts_only"
+    },
+    {
+      "id": "late-stop-first-practical-payday",
+      "inputSha256": "90d9e0130e701344d75a2f22441d46ac518527fdbccf6cca13b8d16ec5dce142",
+      "reviewedExpected": {
+        "instructionActive": false,
+        "deductionMinor": "0",
+        "reason": "STOP_APPLIES"
+      },
+      "status": "conditional_synthetic_facts_only"
+    },
+    {
+      "id": "prior-year-notice-current-year-pay",
+      "inputSha256": "bbe7ee213e281e69994a4694c7dca853a2dcc10c55b3356c6f3d0df8dac6c588",
+      "reviewedExpected": {
+        "instructionActive": true,
+        "deductionMinor": "100",
+        "reason": "START_APPLIES"
+      },
+      "status": "conditional_synthetic_facts_only"
+    },
+    {
+      "id": "before-stop-effective-date",
+      "inputSha256": "609a5c0237d0941102a0dfa7a1b904668f1949ffa45708b259eff0bc28232b55",
+      "reviewedExpected": {
+        "instructionActive": true,
+        "deductionMinor": "100",
+        "reason": "START_APPLIES"
+      },
+      "status": "conditional_synthetic_facts_only"
+    }
+  ],
+  "limitations": [
+    "This does not authenticate a real notice or determine a real payroll cutoff.",
+    "Only2026-27ordinaryweeklyPlan1; other plans, concurrent/protected loans, corrections/refunds, irregular pay and future/prior-year computations unqualified.",
+    "P04-03parent and production calculation authority remain pending."
+  ],
+  "newReplitCandidate": {
+    "commit": "1fc2281c28fbc7b7c7059d920e966774dfabf349",
+    "arithmeticRowsIndependentlyVerified": 12,
+    "noticeRowsIndependentlyVerified": [
+      {
+        "id": "no-notice",
+        "active": false,
+        "deductionMinor": "0",
+        "interpretation": "Conditional on explicitly supplied synthetic practical-payday facts"
+      },
+      {
+        "id": "on-start-date",
+        "active": false,
+        "deductionMinor": "0",
+        "interpretation": "Conditional on explicitly supplied synthetic practical-payday facts"
+      },
+      {
+        "id": "first-start-payday",
+        "active": true,
+        "deductionMinor": "100",
+        "interpretation": "Conditional on explicitly supplied synthetic practical-payday facts"
+      },
+      {
+        "id": "missed-start-cutoff",
+        "active": false,
+        "deductionMinor": "0",
+        "interpretation": "Conditional on explicitly supplied synthetic practical-payday facts"
+      },
+      {
+        "id": "late-start-applies",
+        "active": true,
+        "deductionMinor": "100",
+        "interpretation": "Conditional on explicitly supplied synthetic practical-payday facts"
+      },
+      {
+        "id": "on-stop-date",
+        "active": true,
+        "deductionMinor": "100",
+        "interpretation": "Conditional on explicitly supplied synthetic practical-payday facts"
+      },
+      {
+        "id": "first-stop-payday",
+        "active": false,
+        "deductionMinor": "0",
+        "interpretation": "Conditional on explicitly supplied synthetic practical-payday facts"
+      },
+      {
+        "id": "missed-stop-cutoff",
+        "active": true,
+        "deductionMinor": "100",
+        "interpretation": "Conditional on explicitly supplied synthetic practical-payday facts"
+      },
+      {
+        "id": "late-stop-applies",
+        "active": false,
+        "deductionMinor": "0",
+        "interpretation": "Conditional on explicitly supplied synthetic practical-payday facts"
+      },
+      {
+        "id": "employee-request-not-authority",
+        "active": true,
+        "deductionMinor": "100",
+        "interpretation": "Conditional on explicitly supplied synthetic practical-payday facts"
+      },
+      {
+        "id": "first-day-of-year",
+        "active": true,
+        "deductionMinor": "100",
+        "interpretation": "Conditional on explicitly supplied synthetic practical-payday facts"
+      },
+      {
+        "id": "last-day-of-year",
+        "active": true,
+        "deductionMinor": "100",
+        "interpretation": "Conditional on explicitly supplied synthetic practical-payday facts"
+      }
+    ],
+    "unsupportedContextsReviewed": 10,
+    "realNoticeAuthenticityQualified": false,
+    "realPayrollCutoffsQualified": false
+  }
+}

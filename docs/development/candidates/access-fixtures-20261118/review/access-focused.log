@@ -1,0 +1,47 @@
+✔ legacy compatibility writes accept only the five known write roles (0.999824ms)
+✔ sensitive rights separate bookkeeping, records, export, preparation and approval/submission (7.913215ms)
+✔ sensitive boundary rejects forged request capabilities, cross-company resources and wrong domains before I/O (1.508438ms)
+✔ compatibility permission does not give staff or members native draft authority (0.18912ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 288.254856
+
+✔ last active owner cannot leave or be demoted; another active owner permits either (1.494986ms)
+✔ inactive, ambiguous and unknown memberships cannot supply owner authority or protection (0.541568ms)
+✔ nonowners may leave themselves but cannot remove others or grant any role (0.424515ms)
+✔ member mutations reject duplicate, missing, ambiguous and invalid-role targets (0.373315ms)
+✔ company request bodies admit current fields and reject mass assignment and malformed types (6.949807ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 262.49078
+
+✔ company endpoints reject unauthenticated requests and invalid roles before database or identity work (89.426239ms)
+✔ legacy settlement cannot mutate invoice or bill balances, regardless of role or supplied company (47.672371ms)
+✔ legacy bank mutations reject contradictory or malformed caller company before membership or writes (47.835884ms)
+✔ generic entity reads bind explicit workspace context and recheck active membership while preserving viewer reads (30.133675ms)
+✔ generic lists and deletes honor selected company without broadening malformed context (27.035168ms)
+✔ generic updates preserve tenant ownership and reject stale or malformed workspace context (54.035156ms)
+✔ generic creates reject malformed or contradictory company context before membership and insert (80.93229ms)
+✔ legacy AI rejects malformed explicit company and mismatched membership before company data or provider access (21.573778ms)
+✔ bank imports reject stale row companies atomically before access and preserve valid selected-company imports (38.788814ms)
+✔ complete legacy entity inventory denies every CRUD write to inactive, foreign and viewer actors (690.09957ms)
+✔ complete legacy entity inventory permits scoped viewer reads and denies inactive, foreign and stale-context reads (173.520948ms)
+✔ legacy function inventory authenticates every action and rejects inactive or foreign company access before effects (33.294396ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2713.64355

@@ -1,0 +1,32 @@
+{
+  "reviewer": "root",
+  "reviewedAt": "2026-11-18T14:51:23.516Z",
+  "base": "1c52f77c63599b26c4d90862c485db951f12ca66",
+  "authors": [
+    {
+      "task": "P02-04",
+      "commit": "8a218dedf5786fe2376ab6690164f4087578d7cb",
+      "reviewed": true,
+      "findingsResolved": [
+        "Audit column-only UPDATE grants now rejected",
+        "Schema-qualified transaction relations",
+        "Frozen exported roles/actions"
+      ],
+      "scope": "Separate native membership rights and internal audited transaction boundary. Callback is trusted server code, not sandbox; future callers must enforce actual record ownership and field projections.",
+      "nativeQualification": "Await exact integrated PostgreSQL CI"
+    },
+    {
+      "task": "P04-03",
+      "commit": "1fc2281c28fbc7b7c7059d920e966774dfabf349",
+      "reviewed": true,
+      "patchSha256": "a751f76271bf3d6b2fe9465b793051658b40a0b1eb364c17355932d1feb7527a",
+      "expectedSourceReview": "Root read primary HMRC sources and independently parsed pinned ODS, checked12 arithmetic and12 conditional synthetic notice expectations; source-check artifact attached.",
+      "tests": "Root replay38passed0failed0skipped",
+      "qualification": "Bounded fixture acceptance only; all production and other cases remain unqualified"
+    }
+  ],
+  "changesReviewed": "11 leased paths; no migrations, overlays, pinned reference fixtures, rule register or existing calculation implementation modified",
+  "fullParentAcceptance": false,
+  "workersStopped": true,
+  "credits": null
+}
