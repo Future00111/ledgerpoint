@@ -1,0 +1,108 @@
+{
+  "author": "payroll_access_implementation",
+  "preparedAt": "2026-11-18T15:11:07.924Z",
+  "independentReviewRequired": true,
+  "independentlyReviewed": false,
+  "baseCommit": "3de4c5de8f0f6414cef14ef5589f28b4b6c3e994",
+  "baseTree": "58ab00801fc097080625a7e684277e6a2586bb3e",
+  "baseSourceBlobs": {
+    "docs/development/work-backlog.json": "0d796e2391bb80c5e84d31329286ed3fafc0e532",
+    "docs/development/work-state.json": "4bdedb20b475be17f536a7e17155653112466d2d"
+  },
+  "change": {
+    "task": "P02-04",
+    "operation": "append-owned-path",
+    "path": "artifacts/api-server/src/routes/companies.ts"
+  },
+  "previousCatalogDigest": "df1d49d22e3a0fff74ed2b375bbe7b86279de43f82d996c3085a3c9b50740b6f",
+  "candidateCatalogDigest": "5e86c173103402a6c097d9030aff3479165255a5adb32db747cee1efe4c32983",
+  "taskCount": 112,
+  "sourceBulletCount": 92,
+  "allOtherCatalogFieldsPreserved": true,
+  "P0202OwnershipPreserved": true,
+  "fileConflictExclusionVerified": true,
+  "hypotheticalProbePersisted": false,
+  "sourceSeed": {
+    "revision": 531,
+    "events": 539,
+    "onlyDigestChanged": true,
+    "tasksAndEventsPreserved": true,
+    "noHeldTasks": true
+  },
+  "runtime": {
+    "revision": 922,
+    "events": 937,
+    "onlyDigestChanged": true,
+    "tasksAndEventsPreserved": true,
+    "noHeldTasks": true
+  },
+  "artifacts": [
+    {
+      "file": "catalog-before.json",
+      "bytes": 130500,
+      "sha256": "34b98d848b763e462e84f55bbd02f8f11463189826a63c0d444c71ad18860348",
+      "gitBlobSha": "0d796e2391bb80c5e84d31329286ed3fafc0e532"
+    },
+    {
+      "file": "catalog-after.json",
+      "bytes": 130556,
+      "sha256": "24a10b5ea1fe567de0644155b5bbb3cd76fb066d8b8b58abd4f6ab114a04b128",
+      "gitBlobSha": "304b25cb342b29e19526cae9bc28290088a143ee"
+    },
+    {
+      "file": "source-seed-before.json",
+      "bytes": 317079,
+      "sha256": "2a4e5c6a9f113afff593aef2f5e0d0b2c33d36b90f41934362ef24b7b16add5c",
+      "gitBlobSha": "4bdedb20b475be17f536a7e17155653112466d2d"
+    },
+    {
+      "file": "source-seed-after.json",
+      "bytes": 317079,
+      "sha256": "bfe60f989fd8740ad7ccbf1f8167e8ec5a2d452b6af4649b2c22bedf36845875",
+      "gitBlobSha": "610db558bd6a74efcf74d8cf5981447ebb79584b"
+    },
+    {
+      "file": "runtime-before.json",
+      "bytes": 692815,
+      "sha256": "a8e1fedf7c53ef205e56b7f3fd920659372dbe9610fef6cbb67e85360c278b61",
+      "gitBlobSha": "16860a69ca931a2ca3671e1b095294e53a099ecc"
+    },
+    {
+      "file": "runtime-after.json",
+      "bytes": 692815,
+      "sha256": "4781ea04dadc6d7e97522f52d23ec48a84c3f5ee309c2b7c093ab10b55614770",
+      "gitBlobSha": "32ed05b5fe945e34e114766f16ecf660f16e86af"
+    }
+  ],
+  "sourceUnchanged": true,
+  "liveQueueUnchanged": true,
+  "gitHeadUnchanged": true,
+  "instructions": [
+    "Independently review complete payloads and exact semantic changes before publication.",
+    "Archive the exact old q922 and install the reviewed q922 runtime after catalogue transition; never initialize from source seed q531.",
+    "Re-read live source, queue and coordinator fencing immediately before installation/publication; stop on any mismatch."
+  ],
+  "sourcePatch": {
+    "file": "source-candidate.patch",
+    "bytes": 1071,
+    "sha256": "26faaab3326e9403841e9605ca83da803db24dd0a2edadd2fe3030278de389bd"
+  },
+  "checks": {
+    "queueTests": {
+      "command": "node --test tools/development/work-queue/*.test.mjs",
+      "passed": 103,
+      "failed": 0,
+      "log": "queue-tests.log",
+      "sha256": "ea53168c0a38dd27914de132fa8d7b83d0dfea4e05dc48243bd81a0aab238a6f"
+    },
+    "completePayloadDisclosureCheck": {
+      "file": "disclosure-check.json",
+      "findings": 0,
+      "sha256": "058c2d9a76460c91ea4a6d6d9609e94ee2d8ffe9075298c010411dcdd5a89a42",
+      "independentReview": false
+    },
+    "finalSourceLiveQueueAndHeadUnchanged": true
+  },
+  "stoppedAt": "2026-11-18T15:13:36.596Z",
+  "stopped": true
+}

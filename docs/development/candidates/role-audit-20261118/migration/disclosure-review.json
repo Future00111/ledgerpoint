@@ -1,0 +1,92 @@
+{
+  "author": "payroll_access_implementation",
+  "checkedAt": "2026-11-18T15:13:36.580Z",
+  "independentReviewRequired": true,
+  "independentlyReviewed": false,
+  "scope": "Complete catalogue, source seed and q922 runtime migration candidate payloads",
+  "baseCommit": "3de4c5de8f0f6414cef14ef5589f28b4b6c3e994",
+  "matchedLocalSourceBlobs": {
+    "docs/development/work-backlog.json": "0d796e2391bb80c5e84d31329286ed3fafc0e532",
+    "docs/development/work-state.json": "4bdedb20b475be17f536a7e17155653112466d2d"
+  },
+  "independentRemoteBaseFetchPerformed": false,
+  "method": "Parse all candidate JSON; recursively inspect every key/string for common credential and plaintext-token patterns; compare complete parsed documents against exact before snapshots.",
+  "payloads": [
+    {
+      "file": "catalog-after.json",
+      "bytes": 130556,
+      "sha256": "24a10b5ea1fe567de0644155b5bbb3cd76fb066d8b8b58abd4f6ab114a04b128",
+      "fullyParsedAndRecursivelyScanned": true,
+      "exactSemanticChangeVerified": true,
+      "onlySemanticChange": "P02-04.files appended reviewed companies route path",
+      "scan": {
+        "counts": {
+          "nodes": 2034,
+          "strings": 1469,
+          "keys": 2033,
+          "hashedLeaseIdentifiers": 0
+        },
+        "findings": [],
+        "resolvedMatches": []
+      }
+    },
+    {
+      "file": "source-seed-after.json",
+      "bytes": 317079,
+      "sha256": "bfe60f989fd8740ad7ccbf1f8167e8ec5a2d452b6af4649b2c22bedf36845875",
+      "fullyParsedAndRecursivelyScanned": true,
+      "exactSemanticChangeVerified": true,
+      "onlySemanticChange": "catalogDigest",
+      "scan": {
+        "counts": {
+          "nodes": 5715,
+          "strings": 3259,
+          "keys": 5714,
+          "hashedLeaseIdentifiers": 109
+        },
+        "findings": [],
+        "resolvedMatches": [
+          {
+            "path": "$.events.26.evidence.tests.0.command",
+            "kind": "offline-database-placeholder",
+            "reason": "Exact historical unused:unused loopback port 1 /no_database test placeholder; unchanged and nonfunctional."
+          }
+        ]
+      }
+    },
+    {
+      "file": "runtime-after.json",
+      "bytes": 692815,
+      "sha256": "4781ea04dadc6d7e97522f52d23ec48a84c3f5ee309c2b7c093ab10b55614770",
+      "fullyParsedAndRecursivelyScanned": true,
+      "exactSemanticChangeVerified": true,
+      "onlySemanticChange": "catalogDigest",
+      "scan": {
+        "counts": {
+          "nodes": 10578,
+          "strings": 5885,
+          "keys": 10577,
+          "hashedLeaseIdentifiers": 184
+        },
+        "findings": [],
+        "resolvedMatches": [
+          {
+            "path": "$.events.26.evidence.tests.0.command",
+            "kind": "offline-database-placeholder",
+            "reason": "Exact historical unused:unused loopback port 1 /no_database test placeholder; unchanged and nonfunctional."
+          }
+        ]
+      }
+    }
+  ],
+  "findings": [],
+  "newDisclosure": [
+    "P02-04 companies.ts ownership path",
+    "Replacement catalogue SHA-256 identity"
+  ],
+  "unchangedData": "All source criteria, descriptions, priorities, dependencies, source bullets, task states, event history and hashed lease identifiers.",
+  "limitations": [
+    "Pattern scanning alone cannot prove arbitrary strings are not secrets. Complete semantic comparisons establish the only new content as the requested path and catalogue digest.",
+    "Local base source blobs match the recorded root HEAD; an independent reviewer must establish any remote publication provenance."
+  ]
+}
