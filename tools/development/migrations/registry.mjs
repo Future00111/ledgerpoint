@@ -24,6 +24,7 @@ export const migrationOrder = Object.freeze([
   'durable-job-execution',
   'employee-pay-records',
   'employee-pay-create',
+  'personal-tax-preparations',
 ]);
 const fail = code => { throw Object.assign(new Error(code), { code }); };
 export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -35,7 +36,7 @@ export function validateMigrationInputs(registry, readBytes) {
   for (const [index, id] of migrationOrder.entries()) {
     const item = registry.migrations[index];
     const expectedPath = `lib/db/migrations/${id}.review.sql`;
-    const dependencies = id === 'employee-pay-records' ? ['accounting-documents'] : id === 'durable-job-execution' ? ['durable-jobs'] : id === 'durable-jobs' ? ['document-intake'] : id === 'correction-operation-recovery' ? ['accounting-documents'] : id === 'operation-recovery' ? ['accounting-payments'] : id === 'bank-statement-matches' ? ['bank-imports','bank-openings'] : id === 'bank-openings' ? ['accounting-payments'] : id === 'bank-imports' ? ['accounting-documents'] : id === 'conditional-discount-corrected-observations' ? ['conditional-discount-capacity-origins','accounting-document-amendments']
+    const dependencies = ['employee-pay-records', 'personal-tax-preparations'].includes(id) ? ['accounting-documents'] : id === 'durable-job-execution' ? ['durable-jobs'] : id === 'durable-jobs' ? ['document-intake'] : id === 'correction-operation-recovery' ? ['accounting-documents'] : id === 'operation-recovery' ? ['accounting-payments'] : id === 'bank-statement-matches' ? ['bank-imports','bank-openings'] : id === 'bank-openings' ? ['accounting-payments'] : id === 'bank-imports' ? ['accounting-documents'] : id === 'conditional-discount-corrected-observations' ? ['conditional-discount-capacity-origins','accounting-document-amendments']
       : id === 'conditional-discount-capacity-origins' ? ['conditional-discount-replacement-observations']
       : id === 'conditional-discount-replacement-observations' ? ['conditional-discount-replacements','conditional-discount-cash-reversal']
       : id === 'conditional-discount-replacements' ? ['conditional-discount-agreements']
@@ -75,7 +76,7 @@ export function loadMigrationInputs(root) {
 export function expectedMigrationHistory(inputs, { includeAmendments = false } = {}) {
   return [...migrationOrder.filter(id => includeAmendments || !['accounting-document-amendments','conditional-discount-corrected-observations','conditional-discount-commercial-credits'].includes(id)),
     'canonical-security-overlay'].map(id => ({ id, sha256: sha256(Buffer.from(inputs[id])), contract_version: 1,
-      dependencies: id === 'employee-pay-records' ? ['accounting-documents'] : id === 'durable-job-execution' ? ['durable-jobs'] : id === 'durable-jobs' ? ['document-intake'] : id === 'correction-operation-recovery' ? ['accounting-documents'] : id === 'operation-recovery' ? ['accounting-payments'] : id === 'canonical-security-overlay' ? ['w03-invoice-drafts']
+      dependencies: ['employee-pay-records', 'personal-tax-preparations'].includes(id) ? ['accounting-documents'] : id === 'durable-job-execution' ? ['durable-jobs'] : id === 'durable-jobs' ? ['document-intake'] : id === 'correction-operation-recovery' ? ['accounting-documents'] : id === 'operation-recovery' ? ['accounting-payments'] : id === 'canonical-security-overlay' ? ['w03-invoice-drafts']
         : id === 'bank-statement-matches' ? ['bank-imports','bank-openings']
         : id === 'bank-openings' ? ['accounting-payments']
         : id === 'bank-imports' ? ['accounting-documents']

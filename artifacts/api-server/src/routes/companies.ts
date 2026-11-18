@@ -8,6 +8,7 @@
  * GET    /api/companies/:id/members          — list members of a company
  * GET    /api/companies/:id/specialist-access-history — bounded audited owner-only history
  * GET    /api/companies/:id/payroll-pay-records/:recordId — audited pay fields by payroll role
+ * GET    /api/companies/:id/personal-tax-preparations/:recordId — audited annual draft input by tax role
  * POST   /api/companies/:id/payroll-pay-records — create or replay dated pay intent (owner/preparer)
  * POST   /api/companies/:id/members          — add a member by Clerk user_id
  * PUT    /api/companies/:id/members/:userId  — change a member's role (owner only)
@@ -29,6 +30,7 @@ import { auditSpecializedMembershipChange, auditSpecializedMembershipChanges } f
 import { SensitiveAccessError } from "../services/payroll/access/boundary";
 import { readSpecialistAccessHistory } from "../services/payroll/access/membershipHistory";
 import { readPayRecord, createPayRecord } from "../services/payroll/access/payRecord";
+import { readPersonalTaxPreparation } from "../services/tax/access/preparationRecord";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -83,11 +85,22 @@ const clerkIdentityLookup: CompanyIdentityLookup = {
 export function createCompaniesRouter(auth: RequestHandler = requireAuth, identities: CompanyIdentityLookup = clerkIdentityLookup) {
 const router = Router();
 // Apply before authentication so denied/unauthenticated responses also cannot be cached.
-router.use(["/:id/specialist-access-history", "/:id/payroll-pay-records"], (_req, res, next) => {
+router.use(["/:id/specialist-access-history", "/:id/payroll-pay-records", "/:id/personal-tax-preparations"], (_req, res, next) => {
   res.set("Cache-Control", "no-store");
   next();
 });
 router.use(auth);
+
+router.get("/:id/personal-tax-preparations/:recordId", async (req: Request, res: Response) => {
+  try {
+    if (Object.keys(req.query).length > 0) throw new SensitiveAccessError("SENSITIVE_REQUEST_INVALID");
+    const { userId } = req as AuthenticatedRequest;
+    const record = await readPersonalTaxPreparation(req.params["id"] as string, userId, req.params["recordId"] as string);
+    res.json(record);
+  } catch (error) {
+    companyError(req, res, error, "personal tax preparation read error");
+  }
+});
 
 router.post("/:id/payroll-pay-records", async (req: Request, res: Response) => {
   try {

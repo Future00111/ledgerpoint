@@ -1,4 +1,5 @@
 import { withPayrollAccess, SensitiveAccessError, type SensitiveContext } from './service';
+import { requireReadOnlySensitiveStorage } from './recordStorage';
 
 export interface PayRecord {
   id: string;
@@ -39,18 +40,6 @@ export function parsePayRecordCreation(input: unknown): PayRecordCreation {
     effective_from: body.effective_from, annual_salary_pence: body.annual_salary_pence };
 }
 
-async function requirePayRecordStorage(context: SensitiveContext) {
-  const rows = (await context.query(`SELECT current_user actor,pg_get_userbyid(c.relowner) owner,c.relkind,
-    has_table_privilege(current_user,c.oid,'SELECT') can_read,
-    has_table_privilege(current_user,c.oid,'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') can_mutate,
-    has_any_column_privilege(current_user,c.oid,'INSERT') can_insert_column,
-    has_any_column_privilege(current_user,c.oid,'UPDATE') can_update_column
-    FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
-    WHERE n.nspname='public' AND c.relname='employee_pay_records'`)).rows;
-  if (rows.length !== 1 || rows[0].actor !== 'ledgerly_api' || rows[0].owner !== 'ledgerly_canonical_owner' ||
-      rows[0].relkind !== 'r' || !rows[0].can_read || rows[0].can_mutate || rows[0].can_insert_column || rows[0].can_update_column) unavailable();
-}
-
 async function requirePayCreationFunction(context: SensitiveContext) {
   const rows = (await context.query(`SELECT pg_get_userbyid(p.proowner) owner,p.prosecdef,p.proretset,p.prokind,p.proconfig,
     p.prorettype='text'::regtype text_result,has_function_privilege(current_user,p.oid,'EXECUTE') can_execute,
@@ -70,7 +59,7 @@ export async function createPayRecord(companyId: string, actorId: string, input:
   const body = parsePayRecordCreation(input);
   return withPayrollAccess({ company_id: companyId, actor_id: actorId, resource_company_id: companyId,
     resource_id: body.id, action: 'payroll.prepare' }, async context => {
-    await requirePayRecordStorage(context);
+    await requireReadOnlySensitiveStorage(context, 'employee_pay_records');
     await requirePayCreationFunction(context);
     const result = await context.query(`SELECT public.ledgerly_create_employee_pay_record(
       $1::uuid,$2::text,$3::uuid,$4::uuid,$5::date,$6::bigint) status`,
@@ -89,7 +78,7 @@ export async function createPayRecord(companyId: string, actorId: string, input:
 export async function readPayRecord(companyId: string, actorId: string, recordId: string): Promise<PayRecord> {
   return withPayrollAccess({ company_id: companyId, actor_id: actorId, resource_company_id: companyId,
     resource_id: recordId, action: 'payroll.read' }, async context => {
-    await requirePayRecordStorage(context);
+    await requireReadOnlySensitiveStorage(context, 'employee_pay_records');
     const includeEmployee = context.role === 'owner' || context.role === 'payroll_preparer';
     const found = await context.query(`SELECT id,to_char(effective_from,'YYYY-MM-DD') effective_from,
       annual_salary_pence::text annual_salary_pence${includeEmployee ? ',employee_id' : ''}

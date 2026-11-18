@@ -128,13 +128,49 @@ success receipts. Retries after revocation remain denied.
 
 These workflows are qualified with synthetic disposable records. They do not
 calculate payroll, manage full employee/employer setup, create a live pay run or
-add a pay-record UI. The additive schema and populated restore checks are
-coordinated separately.
+make payments. The company pay-record UI uses the native read/create endpoints.
+The additive schema and populated restore checks are coordinated separately.
+
+`GET /api/companies/:id/personal-tax-preparations/:recordId` reads one persisted
+annual employment-income draft input from `public.personal_tax_preparations`.
+Owners and `personal_tax_preparer` members receive `id`, `tax_year_start`,
+`employment_income_pence` as an exact decimal integer string, `currency: "GBP"`
+and internal `taxpayer_id`. `personal_tax_submitter` receives the same input
+without `taxpayer_id`; its SQL projection never selects that column. Payroll,
+ordinary bookkeeping, inactive, unknown and ambiguous memberships receive no
+fields. Taxpayer references accept native UUID values; route record IDs retain
+the existing sensitive-request UUID contract. NINO, UTR, bank data and other
+personal identifiers are not part of this record.
+
+The existing `personal_tax.read` boundary locks the company and rechecks current
+membership, applies exact company/record predicates, and confirms a redacted read
+receipt before disclosure. Missing and foreign records share a denial; failed or
+silently skipped audit insertion releases no data. `Cache-Control: no-store`
+also covers authentication failures and absent collection/mutation routes.
+No role, field, company or year query overrides are accepted.
+
+Both native sensitive record stores use one closed internal table allowlist to
+attest canonical ownership, an ordinary table and runtime SELECT-only access,
+including absence of column INSERT/UPDATE grants. Existing pay read/create
+behaviour is unchanged. Personal-tax inputs here are seeded only by the isolated test
+administrator; no tax create, list, export, submission or UI is enabled.
+One company/taxpayer/year may hold one annual employment-income input, not one
+row per employer. Amounts are nonnegative bigint pence and the storage year is
+an integer from 1 to 9998.
+
+That storage range is not a supported tax-year or statutory qualification claim.
+The existing tax declaration register separately lists 2025–26, 2026–27 and
+2027–28 as unqualified cases. Its complete taxpayer model requires source,
+residency, region and period evidence absent from this single input. This read
+does not resolve a declared calculation case, calculate taxable income or a
+liability, map a return box, or grant external filing authority. A populated
+owner/submitter fixture is retained for independent encrypted-restore checks.
 
 Native disposable tests exercise the boundary with synthetic payloads and
 transactional fixture mutations, current membership races, audit failure and
 existing owner-only membership assignment. Complete employee lifecycle,
-personal-tax records, actual exports and external submission remain absent.
+remaining personal-tax record workflows, actual exports and external submission
+remain absent.
 Wiring the remaining native record/read/export/change routes,
 qualified field projection and retrieval of other sensitive audit actions
 remain required before full P02-04 acceptance. These helpers are not evidence

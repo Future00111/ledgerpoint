@@ -24,6 +24,7 @@ async function main() {
   const {recoverBankImport}=await import('../../../artifacts/api-server/src/services/accountingDocuments/bankImports');
   const {recoverBankMatch}=await import('../../../artifacts/api-server/src/services/accountingDocuments/bankStatements');
   const {recoverBankCorrection}=await import('../../../artifacts/api-server/src/services/accountingDocuments/bankCorrections');
+  const { readPersonalTaxPreparation } = await import('../../../artifacts/api-server/src/services/tax/access/preparationRecord');
   const { createPayRecord, readPayRecord } = await import('../../../artifacts/api-server/src/services/payroll/access/payRecord');
   const {preparePaymentAttempts, verifyPaymentAttempts}=await import('./payment-attempt-acceptance');
   try {
@@ -163,13 +164,34 @@ async function main() {
       const pay = { id: randomUUID(), employee_id: randomUUID(), effective_from: '2026-04-06', annual_salary_pence: '4250000' };
       const creation = await createPayRecord(capture.company, capture.actor, pay);
       assert.deepEqual(creation, { id: pay.id, status: 'created' });
-      return { pay, paymentAttempts,bankingRecovery:banking,replacementAcceptance,company: fixture.company_id, actor: fixture.actor_id, historicalEvent: fixture.id, historical,
+      // Capture expected projections from the populated source independently of the API.
+      const taxRow = (await pool.query(`SELECT t.company_id, t.id, t.taxpayer_id, t.tax_year_start,
+        t.employment_income_pence::text AS employment_income_pence, o.user_id AS owner, s.user_id AS submitter
+        FROM public.personal_tax_preparations t
+        JOIN public.company_users o ON o.company_id=t.company_id AND o.role='owner' AND o.is_active
+        JOIN public.company_users s ON s.company_id=t.company_id AND s.role='personal_tax_submitter' AND s.is_active
+        WHERE NOT EXISTS (SELECT 1 FROM public.company_users x WHERE x.company_id=t.company_id
+          AND ((x.user_id=o.user_id AND x.id<>o.id) OR (x.user_id=s.user_id AND x.id<>s.id)))
+        ORDER BY t.company_id,t.id,o.id,s.id LIMIT 1`)).rows[0];
+      assert.ok(taxRow, 'A populated personal-tax record with both read roles is required');
+      const publicFields = { id: taxRow.id, tax_year_start: taxRow.tax_year_start,
+        employment_income_pence: taxRow.employment_income_pence, currency: 'GBP' };
+      const taxPreparation = { company: taxRow.company_id, owner: taxRow.owner, submitter: taxRow.submitter,
+        submitterFields: publicFields, ownerFields: { ...publicFields, taxpayer_id: taxRow.taxpayer_id } };
+      return { taxPreparation, pay, paymentAttempts,bankingRecovery:banking,replacementAcceptance,company: fixture.company_id, actor: fixture.actor_id, historicalEvent: fixture.id, historical,
         unwitnessedEvent: body.id, sourceCluster: transaction.cluster_id, template: fixture.source.intent, permissions, capture };
     }
     const fixture = JSON.parse(readFileSync(0, 'utf8'));
     assert.deepEqual(await bankingRecovery(),fixture.bankingRecovery,'Native banking receipts changed across restore');
     assert.deepEqual(permissions, fixture.permissions, 'Effective function permissions changed during restore.');
     await verifyCapture(fixture.capture);
+    const tax = fixture.taxPreparation;
+    // Compare without printing sensitive field values if a check fails.
+    const { isDeepStrictEqual } = await import('node:util');
+    for (const [actor, expected] of [[tax.owner, tax.ownerFields], [tax.submitter, tax.submitterFields]]) {
+      const result = await readPersonalTaxPreparation(tax.company, actor, tax.submitterFields.id);
+      assert.ok(isDeepStrictEqual(result, expected), 'Restored personal-tax projection differs');
+    }
     const pay = fixture.pay;
     const company = fixture.capture.company, owner = fixture.capture.actor;
     assert.deepEqual(await createPayRecord(company, owner, pay), { id: pay.id, status: 'replayed' });
@@ -213,7 +235,7 @@ async function main() {
     const origin = (await pool.query('SELECT cluster_id FROM conditional_discount_payment_transactions WHERE event_id=$1', [body.id])).rows[0];
     assert.notEqual(origin.cluster_id, fixture.sourceCluster, 'Restored cluster must have a different transaction origin.');
     assert.deepEqual(await captureCommittedPaymentWitness(fixture.company, fixture.actor, fixture.historicalEvent), fixture.historical);
-    return { payRecordReplayVerified: true, paymentAttemptRecovery,nativeBankingRecoveryVerified:true,bankingRecoveryKinds:fixture.bankingRecovery.map((r:any)=>r.kind),
+    return { personalTaxReadVerified: true, payRecordReplayVerified: true, paymentAttemptRecovery,nativeBankingRecoveryVerified:true,bankingRecoveryKinds:fixture.bankingRecovery.map((r:any)=>r.kind),
       replacementLifecyclesVerified:fixture.replacementAcceptance.length,replacementHistoricalReportsPreserved:true,
       replacementObservationAndConsumptionPreserved:true,newNativePaymentPosted: true, newCommittedWitnessRecorded: true, retrySingleEffect: true,
       historicalWitnessPreserved: true, foreignUnwitnessedRejected: true, distinctClusterOrigin: true,

@@ -7,6 +7,8 @@ import { withPayrollAccess } from "../services/payroll/access/service";
 import { withPersonalTaxAccess } from "../services/tax/access/service";
 import { readSpecialistAccessHistory } from "../services/payroll/access/membershipHistory";
 import { readPayRecord, parsePayRecordCreation } from "../services/payroll/access/payRecord";
+import { readPersonalTaxPreparation } from "../services/tax/access/preparationRecord";
+import { requireReadOnlySensitiveStorage } from "../services/payroll/access/recordStorage";
 
 test("legacy compatibility writes accept only the five known write roles", () => {
   for (const role of ["owner", "admin", "accountant", "staff", "member"]) {
@@ -84,6 +86,35 @@ test("native pay reads reject malformed path identities before database access",
     [company, 'synthetic-owner', '00000000-0000-0000-0000-000000000000'], [company, 'synthetic-owner', '../other-record']]) {
     await assert.rejects(() => readPayRecord(scope!, actor!, id!), /SENSITIVE_REQUEST_INVALID/);
   }
+});
+
+test("native personal tax reads reject malformed scope and actor identities before database access", async () => {
+  const company = '11111111-1111-4111-8111-111111111111', record = '22222222-2222-4222-8222-222222222222';
+  for (const [scope, actor, id] of [['invalid', 'synthetic-owner', record], [company, 'synthetic@example.test', record],
+    [company, 'synthetic-owner', '00000000-0000-0000-0000-000000000000'], [company, 'synthetic-owner', '../other-record']]) {
+    await assert.rejects(() => readPersonalTaxPreparation(scope!, actor!, id!), /SENSITIVE_REQUEST_INVALID/);
+  }
+});
+
+test("shared sensitive record storage accepts only closed relations and canonical runtime read-only protection", async () => {
+  const safe = { actor: 'ledgerly_api', owner: 'ledgerly_canonical_owner', relkind: 'r', can_read: true,
+    can_mutate: false, can_insert_column: false, can_update_column: false };
+  const calls: unknown[] = [];
+  const context = (rows: unknown[]) => ({ query: async (sql: string, values: unknown[]) => { calls.push({ sql, values }); return { rows, rowCount: rows.length }; } }) as any;
+  for (const store of ['employee_pay_records', 'personal_tax_preparations'] as const) {
+    await requireReadOnlySensitiveStorage(context([safe]), store);
+    assert.deepEqual((calls.at(-1) as any).values, [store]);
+    assert.match((calls.at(-1) as any).sql, /c\.relname=\$1/);
+    for (const changed of [{ actor: 'another_role' }, { owner: 'ledgerly_api' }, { relkind: 'v' }, { can_read: false },
+      { can_mutate: true }, { can_insert_column: true }, { can_update_column: true }]) {
+      await assert.rejects(() => requireReadOnlySensitiveStorage(context([{ ...safe, ...changed }]), store), /SENSITIVE_OPERATION_UNAVAILABLE/);
+    }
+    for (const rows of [[], [safe, safe]]) await assert.rejects(() => requireReadOnlySensitiveStorage(context(rows), store), /SENSITIVE_OPERATION_UNAVAILABLE/);
+  }
+  const before = calls.length;
+  for (const store of ['companies', 'public.personal_tax_preparations', "personal_tax_preparations'; DROP TABLE companies", null, {}])
+    await assert.rejects(() => requireReadOnlySensitiveStorage(context([safe]), store as any), /SENSITIVE_OPERATION_UNAVAILABLE/);
+  assert.equal(calls.length, before);
 });
 
 test("pay creation validates exact canonical UUID, Gregorian date and bigint intent without money rounding", () => {

@@ -42,8 +42,8 @@ export async function runRestoreDrill({ Client, directory, socket, port }) {
     const nativeRuntime = prepareApplicationRuntime({ directory, socket, port });
     const before = await fingerprintDatabase(source);
     for (const name of ['accounting_document_sources', 'canonical_journal_entries', 'canonical_journal_lines',
-      'accounting_audit_events', 'document_intake_sources', 'document_intake_audit', 'employee_pay_records']) {
-      if (!before.tables.some(table => table.table === name && table.rows > 0)) throw new Error('Restore drill needs populated synthetic accounting, capture and payroll evidence.');
+      'accounting_audit_events', 'document_intake_sources', 'document_intake_audit', 'employee_pay_records', 'personal_tax_preparations']) {
+      if (!before.tables.some(table => table.table === name && table.rows > 0)) throw new Error('Restore drill needs populated synthetic accounting, capture, payroll and personal-tax evidence.');
     }
     const hasAmendments = before.tables.some(table => table.table === 'accounting_document_amendments');
     if (hasAmendments) for (const name of ['accounting_document_amendments', 'accounting_document_amendment_heads']) {

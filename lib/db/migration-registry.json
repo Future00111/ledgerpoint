@@ -227,6 +227,15 @@
         "employee-pay-records"
       ],
       "sha256": "027877975e36c0df11a01e51e4ebbe24237e396f10511d3dba5c99836ab05a13"
+    },
+    {
+      "id": "personal-tax-preparations",
+      "path": "lib/db/migrations/personal-tax-preparations.review.sql",
+      "contractVersion": 1,
+      "dependencies": [
+        "accounting-documents"
+      ],
+      "sha256": "79579fd2c27891ef5886853cbc84431953f272d3f435616bf49f8929e6c7c813"
     }
   ],
   "securityOverlay": {
