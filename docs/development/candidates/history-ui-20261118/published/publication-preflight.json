@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "destination_kind": "integration",
+  "pullRequest": 29,
+  "successorDraftRequired": false,
+  "authorityCommit": "580ec7a28e2ed54111e0c64cf8fc8be87494b0a7",
+  "authorityRevision": 549,
+  "coordinatorRunId": "historyui-1795022009789",
+  "observedAt": 1795022459230,
+  "candidateTree": "ea197c50a593ea8c71365f1ca3291ca3df85d9b4",
+  "reviewedBy": "root",
+  "authorOrigin": {
+    "actor": "history-ui-author",
+    "commit": "ffccacfc37ca4ed89b8237e5031a77dac5d53a68",
+    "branch": "codex/company-specialist-history"
+  },
+  "updateRef": {
+    "repository_full_name": "Future00111/ledgerpoint",
+    "branch_name": "codex/whole-product-first-sprint",
+    "expected_sha": "941247aec7ccc7a0d91f8c6adb539db49fbee146",
+    "sha": "ac5815c732e813211d62d712110fa547148da0c9",
+    "force": false
+  },
+  "approvalGranted": false,
+  "sourcePublished": false
+}

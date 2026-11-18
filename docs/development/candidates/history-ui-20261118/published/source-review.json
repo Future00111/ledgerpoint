@@ -1,0 +1,1 @@
+{"reviewed":true,"reviewer":"root","authorCommit":"ffccacfc37ca4ed89b8237e5031a77dac5d53a68","browserReview":"browser-review.json","checks":"Independent review of owner gating, audited explicit read, fixed projection/ordering, retry and cross-scope state handling, UK-formatted time and original precise timestamp."}
