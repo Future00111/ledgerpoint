@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { payRecordsClient } from './client.mjs';
 import { buildIntent, formatSalary, payrollPermissions } from './model.mjs';
+import { PayExportButton } from './PayExportButton';
 import { useSensitiveEntry } from './useSensitiveEntry';
 
 const blankForm = () => ({ employee: '', date: '', salary: '' });
@@ -18,7 +19,7 @@ export function PayRecordsWorkspace(props) {
 
 function ScopedPayRecords({ companyId, companyName, role, client = payRecordsClient, onRefreshAccess }) {
   const canPrepare = payrollPermissions(role).prepare;
-  const { id, form, attempt, phase, lookupId, record, message, validation, busy, locked, save, lookup, fresh, update, changeLookup } =
+  const { id, form, attempt, phase, lookupId, record, message, validation, busy, locked, save, lookup, fresh, update, changeLookup, denyAccess } =
     useSensitiveEntry({ companyId, role, client, canPrepare, blankForm, buildIntent, savedMessage: 'Pay record saved.' });
   return <div className="workspace-page">
     <PageHeader eyebrow="Payroll preparation" title="Pay records" context={companyName}
@@ -55,6 +56,7 @@ function ScopedPayRecords({ companyId, companyName, role, client = payRecordsCli
           <Button type="submit" variant="outline" disabled={busy || ['uncertain', 'conflict'].includes(phase)}>Look up pay record</Button>
         </form>
         {record && <PayRecordDetails record={record} role={role} />}
+        {record && <PayExportButton key={record.id} companyId={companyId} record={record} role={role} client={client} onDenied={denyAccess} />}
       </section>
     </div>
   </div>;

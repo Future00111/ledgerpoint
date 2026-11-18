@@ -879,7 +879,7 @@ test("native pay records deny ordinary, personal-tax, inactive, ambiguous and fo
   assert.deepEqual(await payReadAudits(f.company), []); assert.deepEqual(await payReadAudits(other.company), []);
 });
 
-test("pay read paths reject overrides and expose no collections, exports or mutation endpoints", async () => {
+test("pay read paths reject overrides and expose no collections, legacy exports or mutation endpoints", async () => {
   const f = await payRecordFixture();
   for (const suffix of ['?role=owner', '?fields=employee_id', '?action=payroll.export', `?company_id=${randomUUID()}`]) {
     const response = await request(payRecordPath(f.company, f.id) + suffix, 'GET', undefined, f.owner);
@@ -1228,7 +1228,7 @@ async function runPayrollBrowser(entry: 'browserAcceptance.jsx' | 'historyBrowse
   }
 }
 
-test("Chromium payroll screen retries a committed pay record, reads it back and clears restricted fields on scope changes", async () => {
+test("Chromium payroll screen retries a committed pay record, exports its salary CSV and clears restricted fields on scope changes", async () => {
   const f = await fixture(), other = await fixture(), employee = randomUUID(), reader = 'synthetic-pay-reader-' + randomUUID();
   await addMember(f.company, reader, 'payroll_reader');
   await addMember(other.company, reader, 'payroll_reader');
@@ -1237,6 +1237,8 @@ test("Chromium payroll screen retries a committed pay record, reads it back and 
   assert.deepEqual((await storedPay(other.company)),[]);
   assert.equal((await payCreationAudits(f.company)).length,1);
   assert.equal((await payPrepareAudits(f.company)).length,2);
+  const exports = (await sensitiveAudit(f.company)).filter(row => row.capability === 'payroll.export');
+  assert.deepEqual(exports.map(row => [row.actor_id,row.target_id]), [[f.owner,(await storedPay(f.company))[0].id]]);
   assert.ok((await payReadAudits(f.company)).some(row => row.actor_id === reader));
 });
 
@@ -1863,4 +1865,164 @@ test('tax export refuses unsafe record storage and unprotected audit before disc
   try { await unavailable(); } finally { await admin.query('ALTER TABLE public.accounting_audit_events ENABLE ALWAYS TRIGGER ledgerly_accounting_audit_events_guard'); }
   const response = await taxExportRequest(taxExportPath(f.company, f.id), f.owner);
   assert.equal(response.status, 200); assert.equal(response.body, expectedTaxCsv(f.year, f.amount)); assert.equal((await taxExportAudits(f.company)).length, 1);
+});
+
+
+const payExportDeniedBody = { error: 'Unable to complete this request. Please try again.', code: 'SENSITIVE_ACCESS_DENIED' };
+async function payExportFixture(amount = '4800000', date = '2026-04-06', id = randomUUID()) {
+  const f = await fixture(), employee = '00000000-0000-0000-0000-000000000001';
+  await admin.query(`INSERT INTO public.employee_pay_records(company_id,id,employee_id,effective_from,annual_salary_pence)
+    VALUES($1,$2,$3,$4,$5)`, [f.company, id, employee, date, amount]);
+  return { ...f, id, employee, date, amount };
+}
+const payExportPath = (company: string, id: string) => `${payRecordPath(company, id)}/export.csv`;
+const payExportAudits = async (company: string) => (await sensitiveAudit(company)).filter(row => row.action === 'sensitive_access' && row.capability === 'payroll.export');
+const expectedPayCsv = (date: string, amount: string) => `effective_from,annual_salary_pence,currency\r\n${date},${amount},GBP\r\n`;
+async function payExportRequest(path: string, actor?: string, method = 'GET', headers: Record<string, string> = {}) {
+  const response = await fetch(base + path, { method, headers: { ...(actor ? { 'x-test-actor': actor } : {}), ...headers } });
+  return { status: response.status, body: await response.text(), headers: response.headers };
+}
+function assertNoPayAttachment(response: Awaited<ReturnType<typeof payExportRequest>>) {
+  assert.equal(response.headers.get('cache-control'), 'no-store');
+  for (const key of ['content-disposition', 'x-payroll-company', 'x-payroll-record']) assert.equal(response.headers.get(key), null);
+}
+
+test('native pay CSV export uses its own permission and exact fixed fields, then commits a redacted export receipt', async () => {
+  for (const [date, amount] of [['0001-01-01', '0'], ['2024-02-29', '9007199254740993'], ['9999-12-31', '9223372036854775807']] as const) {
+    const f = await payExportFixture(amount, date), preparer = 'synthetic-export-preparer-' + randomUUID();
+    identities.add(preparer);
+    assert.equal((await request(`/${f.company}/members`, 'POST', { user_id: preparer, role: 'payroll_preparer' }, f.owner)).status, 201);
+    for (const [actor, role] of [[f.owner, 'owner'], [preparer, 'payroll_preparer']] as const) {
+      const response = await payExportRequest(payExportPath(f.company.toUpperCase(), f.id.toUpperCase()), actor);
+      assert.equal(response.status, 200); assert.equal(response.body, expectedPayCsv(date, amount));
+      assert.equal(response.headers.get('content-type'), 'text/csv; charset=utf-8');
+      assert.equal(response.headers.get('content-disposition'), 'attachment; filename="payroll-pay-record.csv"');
+      assert.equal(response.headers.get('cache-control'), 'no-store');
+      assert.equal(response.headers.get('x-payroll-company'), f.company); assert.equal(response.headers.get('x-payroll-record'), f.id);
+      assert.equal(response.headers.get('content-length'), String(Buffer.byteLength(response.body)));
+      assert.equal(response.headers.get('etag'), null);
+      assert.deepEqual((await payExportAudits(f.company)).find(row => row.actor_id === actor), {
+        action: 'sensitive_access', outcome: 'allowed', target_type: 'payroll_resource', target_id: f.id,
+        actor_type: 'user', actor_id: actor, capability: 'payroll.export', context: { contract: 'sensitive-access.v1', role }, journal_id: null, posting_effect_id: null,
+      });
+    }
+    assert.equal((await payExportAudits(f.company)).length, 2); assert.deepEqual(await payReadAudits(f.company), []);
+  }
+});
+
+test('pay export excludes employee at SQL and scopes equal record IDs to the currently authorised company', async () => {
+  const f = await payExportFixture(), other = await payExportFixture('7654321', '2025-04-06', f.id);
+  await addMember(other.company, f.owner, 'payroll_preparer');
+  await admin.query('ALTER TABLE public.employee_pay_records RENAME COLUMN employee_id TO synthetic_export_employee_hidden');
+  try {
+    for (const current of [f, other]) {
+      const response = await payExportRequest(payExportPath(current.company, current.id), f.owner);
+      assert.equal(response.status, 200); assert.equal(response.body, expectedPayCsv(current.date, current.amount));
+    }
+  } finally { await admin.query('ALTER TABLE public.employee_pay_records RENAME COLUMN synthetic_export_employee_hidden TO employee_id'); }
+  for (const [company, id, actor] of [[f.company, f.id, other.owner], [other.company, randomUUID(), f.owner], [randomUUID(), f.id, f.owner]]) {
+    const response = await payExportRequest(payExportPath(company!, id!), actor!);
+    assert.equal(response.status, 403); assertNoPayAttachment(response); assert.deepEqual(JSON.parse(response.body), payExportDeniedBody);
+  }
+  assert.equal((await payExportAudits(f.company)).length, 1); assert.equal((await payExportAudits(other.company)).length, 1);
+});
+
+test('payroll readers/approvers cannot export; bookkeeping, personal-tax, inactive, unknown, ambiguous and unauthenticated export requests disclose nothing', async () => {
+  const f = await payExportFixture(), other = await fixture(), actors = [other.owner];
+  for (const role of ['payroll_reader', 'payroll_approver', 'admin', 'accountant', 'staff', 'member', 'read_only', 'personal_tax_preparer', 'personal_tax_submitter', 'unknown', null]) {
+    const actor = 'synthetic-export-denied-' + randomUUID(); await addMember(f.company, actor, role); actors.push(actor);
+    if (role === 'payroll_reader' || role === 'payroll_approver') assert.equal((await request(payRecordPath(f.company, f.id), 'GET', undefined, actor)).status, 200);
+  }
+  for (const active of [false, null]) {
+    const actor = 'synthetic-export-inactive-' + randomUUID(); await addMember(f.company, actor, 'payroll_preparer', active); actors.push(actor);
+  }
+  const ambiguous = 'synthetic-export-ambiguous-' + randomUUID();
+  await addMember(f.company, ambiguous, 'payroll_preparer'); await addMember(f.company, ambiguous, 'owner', false); actors.push(ambiguous);
+  const anonymous = await payExportRequest(payExportPath(f.company, f.id));
+  assert.equal(anonymous.status, 401); assertNoPayAttachment(anonymous);
+  for (const actor of actors) {
+    const response = await payExportRequest(payExportPath(f.company, f.id), actor);
+    assert.equal(response.status, 403); assertNoPayAttachment(response); assert.deepEqual(JSON.parse(response.body), payExportDeniedBody);
+  }
+  assert.deepEqual(await payExportAudits(f.company), []);
+});
+
+test('pay export rejects HEAD and overrides without receipts; conditional GET still returns a fresh audited CSV', async () => {
+  const f = await payExportFixture();
+  const head = await payExportRequest(payExportPath(f.company, f.id), f.owner, 'HEAD');
+  assert.equal(head.status, 405); assert.equal(head.body, ''); assert.equal(head.headers.get('allow'), 'GET'); assertNoPayAttachment(head);
+  for (const suffix of ['?role=owner', '?fields=employee_id', '?action=payroll.read', `?company_id=${randomUUID()}`]) {
+    const response = await payExportRequest(payExportPath(f.company, f.id) + suffix, f.owner);
+    assert.equal(response.status, 400); assertNoPayAttachment(response);
+    assert.deepEqual(JSON.parse(response.body), { error: 'Unable to complete this request. Please try again.', code: 'SENSITIVE_REQUEST_INVALID' });
+  }
+  for (const [company, id] of [['not-a-company', f.id], [f.company, 'not-a-record'], [f.company, '00000000-0000-0000-0000-000000000000']]) {
+    const response = await payExportRequest(payExportPath(company!, id!), f.owner);
+    assert.equal(response.status, 400); assertNoPayAttachment(response);
+  }
+  for (const method of ['POST', 'PUT', 'DELETE']) {
+    const response = await payExportRequest(payExportPath(f.company, f.id), f.owner, method);
+    assert.equal(response.status, 404); assertNoPayAttachment(response);
+  }
+  assert.deepEqual(await payExportAudits(f.company), []);
+  const response = await payExportRequest(payExportPath(f.company, f.id), f.owner, 'GET', { 'if-none-match': '*', 'if-modified-since': 'Thu, 01 Jan 2099 00:00:00 GMT' });
+  assert.equal(response.status, 200); assert.equal(response.body, expectedPayCsv(f.date, f.amount)); assert.equal(response.headers.get('etag'), null);
+  assert.equal((await payExportAudits(f.company)).length, 1);
+});
+
+test('pay export rechecks revocation and demotion to reader or approver after acquiring the company lock', async () => {
+  for (const next of ['inactive', 'payroll_reader', 'payroll_approver']) {
+    const f = await payExportFixture(), actor = 'synthetic-export-race-' + randomUUID(); await addMember(f.company, actor, 'payroll_preparer');
+    const blocker = await admin.connect(); let pending: ReturnType<typeof payExportRequest> | undefined;
+    try {
+      await blocker.query('BEGIN'); const { rows: [{ pid }] } = await blocker.query('SELECT pg_backend_pid() pid');
+      await blocker.query('SELECT id FROM public.companies WHERE id=$1 FOR UPDATE', [f.company]);
+      pending = payExportRequest(payExportPath(f.company, f.id), actor);
+      const deadline = Date.now() + 5000; let waiting = false;
+      while (Date.now() < deadline) {
+        waiting = (await admin.query("SELECT EXISTS(SELECT 1 FROM pg_stat_activity WHERE usename='ledgerly_api' AND $1::int=ANY(pg_blocking_pids(pid))) waiting", [pid])).rows[0].waiting;
+        if (waiting) break; await new Promise(resolve => setTimeout(resolve, 10));
+      }
+      assert.equal(waiting, true);
+      if (next === 'inactive') await blocker.query('UPDATE public.company_users SET is_active=false WHERE company_id=$1 AND user_id=$2', [f.company, actor]);
+      else await blocker.query("UPDATE public.company_users SET role=$3 WHERE company_id=$1 AND user_id=$2", [f.company, actor, next]);
+      await blocker.query('COMMIT'); const response = await pending;
+      assert.equal(response.status, 403); assertNoPayAttachment(response); assert.deepEqual(JSON.parse(response.body), payExportDeniedBody);
+      assert.deepEqual(await payExportAudits(f.company), []);
+    } finally { await blocker.query('ROLLBACK'); blocker.release(); if (pending) await pending; }
+  }
+});
+
+test('pay export audit exceptions and silent receipt suppression prevent CSV and success evidence', async () => {
+  for (const failure of ['exception', 'skip']) {
+    const f = await payExportFixture(), before = await sensitiveAudit(f.company);
+    await admin.query(`CREATE FUNCTION public.synthetic_payroll_export_audit_failure() RETURNS trigger LANGUAGE plpgsql AS $$
+      BEGIN IF NEW.company_id='${f.company}'::uuid AND NEW.capability='payroll.export' THEN ${failure === 'skip' ? 'RETURN NULL;' : "RAISE EXCEPTION 'synthetic-private-export-diagnostic';"} END IF; RETURN NEW; END $$`);
+    await admin.query('CREATE TRIGGER synthetic_payroll_export_audit_failure BEFORE INSERT ON public.accounting_audit_events FOR EACH ROW EXECUTE FUNCTION public.synthetic_payroll_export_audit_failure()');
+    try {
+      const response = await payExportRequest(payExportPath(f.company, f.id), f.owner);
+      assert.equal(response.status, 503); assertNoPayAttachment(response);
+      assert.deepEqual(JSON.parse(response.body), { error: 'Unable to complete this request. Please try again.', code: 'SENSITIVE_OPERATION_UNAVAILABLE' });
+      assert.deepEqual(await sensitiveAudit(f.company), before); assert.equal(JSON.stringify(logs).includes('synthetic-private-export-diagnostic'), false);
+    } finally {
+      await admin.query('DROP TRIGGER synthetic_payroll_export_audit_failure ON public.accounting_audit_events');
+      await admin.query('DROP FUNCTION public.synthetic_payroll_export_audit_failure()');
+    }
+  }
+});
+
+test('pay export refuses unsafe record storage and unprotected audit before disclosure then recovers', async () => {
+  const f = await payExportFixture();
+  const unavailable = async () => {
+    const response = await payExportRequest(payExportPath(f.company, f.id), f.owner);
+    assert.equal(response.status, 503); assertNoPayAttachment(response);
+    assert.deepEqual(JSON.parse(response.body), { error: 'Unable to complete this request. Please try again.', code: 'SENSITIVE_OPERATION_UNAVAILABLE' });
+    assert.deepEqual(await payExportAudits(f.company), []);
+  };
+  await admin.query('GRANT UPDATE(annual_salary_pence) ON public.employee_pay_records TO ledgerly_api');
+  try { await unavailable(); } finally { await admin.query('REVOKE UPDATE(annual_salary_pence) ON public.employee_pay_records FROM ledgerly_api'); }
+  await admin.query('ALTER TABLE public.accounting_audit_events DISABLE TRIGGER ledgerly_accounting_audit_events_guard');
+  try { await unavailable(); } finally { await admin.query('ALTER TABLE public.accounting_audit_events ENABLE ALWAYS TRIGGER ledgerly_accounting_audit_events_guard'); }
+  const response = await payExportRequest(payExportPath(f.company, f.id), f.owner);
+  assert.equal(response.status, 200); assert.equal(response.body, expectedPayCsv(f.date, f.amount)); assert.equal((await payExportAudits(f.company)).length, 1);
 });

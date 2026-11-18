@@ -1,4 +1,4 @@
-import { withPayrollAccess, SensitiveAccessError } from './service';
+import { withPayrollAccess, SensitiveAccessError, type SensitiveContext } from './service';
 import { requireReadOnlySensitiveStorage } from './recordStorage';
 import { requireSensitiveCreationCommand } from './commandProtection';
 
@@ -68,20 +68,33 @@ export async function createPayRecord(companyId: string, actorId: string, input:
 export async function readPayRecord(companyId: string, actorId: string, recordId: string): Promise<PayRecord> {
   return withPayrollAccess({ company_id: companyId, actor_id: actorId, resource_company_id: companyId,
     resource_id: recordId, action: 'payroll.read' }, async context => {
-    await requireReadOnlySensitiveStorage(context, 'employee_pay_records');
-    const includeEmployee = context.role === 'owner' || context.role === 'payroll_preparer';
-    const found = await context.query(`SELECT id,to_char(effective_from,'YYYY-MM-DD') effective_from,
-      annual_salary_pence::text annual_salary_pence${includeEmployee ? ',employee_id' : ''}
-      FROM public.employee_pay_records WHERE company_id=$1 AND id=$2`, [context.companyId, context.resourceId]);
-    // Missing and foreign references share one denial and never produce a successful-read audit.
-    if (found.rowCount !== 1) throw new SensitiveAccessError('SENSITIVE_ACCESS_DENIED');
-    const row = found.rows[0];
-    if (row.id !== context.resourceId || typeof row.effective_from !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(row.effective_from) ||
-        typeof row.annual_salary_pence !== 'string' || !/^(0|[1-9][0-9]{0,18})$/.test(row.annual_salary_pence) ||
-        BigInt(row.annual_salary_pence) > 9223372036854775807n || (includeEmployee && !uuid(row.employee_id))) unavailable();
-    const result: PayRecord = { id: row.id, effective_from: row.effective_from,
-      annual_salary_pence: row.annual_salary_pence, currency: 'GBP' };
-    if (includeEmployee) result.employee_id = row.employee_id;
-    return result;
+    return readPayFields(context, context.role === 'owner' || context.role === 'payroll_preparer');
+  });
+}
+
+async function readPayFields(context: SensitiveContext, includeEmployee: boolean): Promise<PayRecord> {
+  await requireReadOnlySensitiveStorage(context, 'employee_pay_records');
+  const found = await context.query(`SELECT id,to_char(effective_from,'YYYY-MM-DD') effective_from,
+    annual_salary_pence::text annual_salary_pence${includeEmployee ? ',employee_id' : ''}
+    FROM public.employee_pay_records WHERE company_id=$1 AND id=$2`, [context.companyId, context.resourceId]);
+  // Missing and foreign references share one denial and never produce a successful-read audit.
+  if (found.rowCount !== 1) throw new SensitiveAccessError('SENSITIVE_ACCESS_DENIED');
+  const row = found.rows[0];
+  if (row.id !== context.resourceId || typeof row.effective_from !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(row.effective_from) ||
+      typeof row.annual_salary_pence !== 'string' || !/^(0|[1-9][0-9]{0,18})$/.test(row.annual_salary_pence) ||
+      BigInt(row.annual_salary_pence) > 9223372036854775807n || (includeEmployee && !uuid(row.employee_id))) unavailable();
+  const result: PayRecord = { id: row.id, effective_from: row.effective_from,
+    annual_salary_pence: row.annual_salary_pence, currency: 'GBP' };
+  if (includeEmployee) result.employee_id = row.employee_id;
+  return result;
+}
+
+/** A single fixed-schema file, disclosed only after the separate export receipt commits. */
+export async function exportPayRecord(companyId: string, actorId: string, recordId: string): Promise<string> {
+  return withPayrollAccess({ company_id: companyId, actor_id: actorId, resource_company_id: companyId,
+    resource_id: recordId, action: 'payroll.export' }, async context => {
+    const record = await readPayFields(context, false);
+    return 'effective_from,annual_salary_pence,currency\r\n' +
+      `${record.effective_from},${record.annual_salary_pence},GBP\r\n`;
   });
 }

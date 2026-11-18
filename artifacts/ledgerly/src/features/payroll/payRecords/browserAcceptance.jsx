@@ -1,3 +1,4 @@
+import { verifyCsvDownload } from './verifyCsvDownload';
 // Disposable browser entry point. The component and HTTP client are the production implementations.
 import React from 'react';
 import {createRoot} from 'react-dom/client';
@@ -57,13 +58,16 @@ async function exercise() {
   (await ready('Retry same request')).click();
   await wait(() => text().includes('45,250.75') && text().includes(fixture.employee), 'saved native readback');
   if(requests.length !== 2 || requests[0] !== requests[1]) throw Error('Retry identity');
+  stage = 'csv-download';
+  await verifyCsvDownload(await ready('Download CSV'), 'payroll-pay-record.csv',
+    'effective_from,annual_salary_pence,currency\r\n2026-04-06,4525075,GBP\r\n', wait);
   stage = 'reader';
   mount(fixture.company, fixture.reader, 'payroll_reader');
   await wait(() => !button('Save pay record') && !text().includes('45,250.75'), 'reader scope reset');
   fill(await wait(() => input('Pay record ID'), 'lookup input'), requests[0]);
   (await ready('Look up pay record')).click();
   await wait(() => text().includes('45,250.75'), 'reader native readback');
-  if (text().includes(fixture.employee) || input('Employee reference')) throw Error('Reader projection');
+  if (button('Download CSV') || text().includes(fixture.employee) || input('Employee reference')) throw Error('Reader projection');
   stage = 'company-change';
   mount(fixture.other, fixture.reader, 'payroll_reader');
   await wait(() => !text().includes('45,250.75') && input('Pay record ID')?.value === '', 'company scope reset');

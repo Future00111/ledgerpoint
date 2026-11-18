@@ -39,3 +39,14 @@ test('navigation uses the existing role filter and keeps payroll hidden from boo
   for (const role of ['owner', 'payroll_preparer', 'payroll_reader', 'payroll_approver']) assert.equal(visible(role), true);
   for (const role of ['admin', 'accountant', 'staff', 'member', 'read_only', null]) assert.equal(visible(role), false);
 });
+
+test('only owners and payroll preparers see the explicit pay CSV download control', async () => {
+  const { PayExportButton } = await import('./PayExportButton');
+  const record = { id: companyId, effective_from: '2026-04-06', annual_salary_pence: '4800000', currency: 'GBP' };
+  for (const role of ['owner', 'payroll_preparer']) {
+    const html = renderToStaticMarkup(<PayExportButton companyId={companyId} record={record} role={role} />);
+    assert.ok(html.includes('Download CSV')); assert.ok(!html.includes('4800000'));
+  }
+  for (const role of ['payroll_reader', 'payroll_approver', 'personal_tax_preparer', 'personal_tax_submitter', 'admin', null])
+    assert.equal(renderToStaticMarkup(<PayExportButton companyId={companyId} record={record} role={role} />), '');
+});

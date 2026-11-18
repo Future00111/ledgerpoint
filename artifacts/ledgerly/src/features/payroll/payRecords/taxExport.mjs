@@ -1,3 +1,4 @@
+import { downloadCsv } from './csvDownload.mjs';
 import { salaryPence } from './model.mjs';
 import { taxYear } from './taxModel.mjs';
 
@@ -18,20 +19,7 @@ export function validateTaxCsv(value, record) {
 /** Invoke only after a current-scope guard. The fixed name never contains company or taxpayer data. */
 export function downloadTaxCsv(csv, record, environment = globalThis) {
   validateTaxCsv(csv, record);
-  const blob = new environment.Blob([csv], { type: 'text/csv;charset=utf-8' });
-  const url = environment.URL.createObjectURL(blob);
-  let link;
-  try {
-    link = environment.document.createElement('a');
-    link.href = url; link.download = TAX_CSV_FILENAME; link.hidden = true;
-    environment.document.body.appendChild(link); link.click();
-  } finally {
-    try { link?.remove(); }
-    finally {
-      // Allow the click to consume its URL; always release the in-memory file afterwards.
-      environment.setTimeout(() => environment.URL.revokeObjectURL(url), 0);
-    }
-  }
+  downloadCsv(csv, TAX_CSV_FILENAME, environment);
 }
 
 export async function requestTaxDownload({ client, companyId, record, role, token, download = downloadTaxCsv }) {

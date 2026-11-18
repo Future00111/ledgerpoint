@@ -1,3 +1,4 @@
+import { canExportPay, PAY_CSV_FILENAME, validatePayCsv } from './payExport.mjs';
 import { recordId, payrollPermissions, validateIntent, validateReceipt, validateRecord } from './model.mjs';
 
 export class PayRecordsError extends Error {
@@ -24,6 +25,25 @@ export function createPayRecordsClient(fetcher = (...args) => fetch(...args)) {
     }
   };
   return {
+    async exportCsv(company, record, role, signal) {
+      if (!canExportPay(role)) throw new PayRecordsError(403);
+      try {
+        const canonicalCompany = recordId(company), canonical = recordId(record.id);
+        const response = await fetcher(`${base(canonicalCompany)}/${canonical}/export.csv`, {
+          method: 'GET', credentials: 'include', cache: 'no-store', redirect: 'error', signal,
+        });
+        if (response.status !== 200) throw new PayRecordsError(response.status);
+        if (response.headers.get('content-type')?.toLowerCase() !== 'text/csv; charset=utf-8' ||
+            response.headers.get('content-disposition') !== `attachment; filename="${PAY_CSV_FILENAME}"` ||
+            response.headers.get('cache-control') !== 'no-store' ||
+            response.headers.get('x-payroll-company') !== canonicalCompany ||
+            response.headers.get('x-payroll-record') !== canonical) throw new PayRecordsError();
+        return validatePayCsv(await response.text(), record);
+      } catch (error) {
+        if (error instanceof PayRecordsError) throw error;
+        throw new PayRecordsError();
+      }
+    },
     create(company, intent, signal) {
       const body = validateIntent(intent);
       return call(base(company), { method: 'POST', signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) },

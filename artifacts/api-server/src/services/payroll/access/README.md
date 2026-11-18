@@ -97,7 +97,7 @@ be an ordinary table owned by the canonical owner with runtime SELECT only,
 including no column INSERT/UPDATE grants. Missing/foreign records share a denial;
 audit or storage protection failure releases no salary or employee reference.
 All route responses use `no-store`, including authentication failures. Query
-overrides, collections, exports and existing-record mutation endpoints are absent.
+overrides, collections and existing-record mutation endpoints are absent.
 
 `POST /api/companies/:id/payroll-pay-records` creates one dated annual pay intent
 for a current unique active owner or `payroll_preparer`. Its exact body is `id`
@@ -195,7 +195,7 @@ This creation operation adds no tax calculation, classification or filing suppor
 Native disposable tests exercise the boundary with synthetic payloads and
 transactional fixture mutations, current membership races, audit failure and
 existing owner-only membership assignment. Complete employee lifecycle,
-remaining personal-tax record workflows, payroll exports and external submission
+remaining personal-tax record workflows and external submission
 remain absent.
 Wiring the remaining native record/read/export/change routes,
 qualified field projection and retrieval of other sensitive audit actions
@@ -222,3 +222,22 @@ A cancelled client request may still finish and commit an export receipt on the
 server. The receipt proves an authorised export response was prepared, not that
 a browser finished downloading or that a file was opened. This single-record
 export does not add collections, tax calculation, return-box mapping or filing.
+
+`GET /api/companies/:id/payroll-pay-records/:recordId/export.csv` exports one
+persisted dated annual pay record for a current owner or payroll preparer through
+`payroll.export`. Payroll readers and approvers retain read access but cannot
+export. The SQL never selects the internal employee reference. The fixed CSV
+contains `effective_from,annual_salary_pence,currency`, one ISO date/exact bigint
+pence/GBP row and CRLF endings. Its static filename is `payroll-pay-record.csv`;
+no company, record, employee or actor identifier appears in the file.
+
+The company lock, reloaded unique active membership and shared storage/audit
+protection all precede the committed export receipt and response disclosure.
+`X-Payroll-Company` and `X-Payroll-Record` identify the requested scope for client
+validation. All responses are `no-store`; denial/failure returns no attachment
+or scope headers. Invalid IDs and query overrides fail closed. HEAD returns
+405 without an export; conditional GET returns a fresh 200 plus export receipt.
+A client cancellation cannot prove that the server stopped before committing
+its receipt, and the receipt does not prove a file was saved or opened. This
+exports the stored annual input only, not a pay run, payslip, calculation or RTI
+submission, and does not close the remaining P02-04 workflows.

@@ -111,3 +111,23 @@ link and object URL are released. No export is stored in local storage, shared
 query caches or URLs. An already requested browser download cannot be retracted.
 The server can commit its audit after client cancellation; neither that receipt
 nor the UI's download-request message proves that a file was saved or opened.
+
+## Pay record CSV
+
+Owners and payroll preparers can select **Download CSV** after a native pay record
+lookup/readback. Readers and approvers can view their permitted fields but have
+no export control. The distinct audited endpoint returns exactly the effective
+date, annual salary in integer pence and GBP; employee references are excluded.
+The client validates the fixed response headers, requested company/record scope,
+real Gregorian date and exact amount against the loaded immutable record before
+requesting `payroll-pay-record.csv`. Dates remain ISO values and pence are never
+converted to floating point.
+
+Pay and tax export buttons now share only the browser download and scoped-button
+mechanics. Each keeps its own closed role, route, header and CSV contract. The
+shared lifecycle aborts and invalidates requests on result/scope removal before
+any file can be created, clears previous data after denial, reports other errors
+with fixed wording and releases temporary DOM/object URLs. Both export workflows
+retain their contract and cleanup tests. No file contents enter browser storage,
+shared query caches or URL state. A server audit can complete after cancellation;
+a requested download or receipt does not establish that a file was saved.
