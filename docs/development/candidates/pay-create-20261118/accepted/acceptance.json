@@ -1,0 +1,36 @@
+{
+  "evidence": {
+    "summary": "An active owner or payroll preparer creates a dated annual pay record with an atomic mutation receipt; equivalent retries return the original record and changed intent conflicts.",
+    "reviewer": "root",
+    "reviewed": true,
+    "commit": "e67cc883a3598a00dcf2235259b7d4cd1e0203c0",
+    "integratedCommit": "2ec0fb120149fad9e8caec59047b61ab0020a93d",
+    "tests": [
+      {
+        "command": "Integrated build, typechecks and combined regression suite",
+        "passed": true
+      },
+      {
+        "command": "GitHub Actions 44350242253 on identical source tree, including native pay record role tests and populated encrypted restore checks",
+        "passed": true
+      }
+    ]
+  },
+  "outcome": {
+    "id": "employee-pay-record-create-20261118",
+    "scenario": "An active owner or payroll preparer creates a dated annual pay record with an atomic mutation receipt; equivalent retries return the original record and changed intent conflicts.",
+    "integratedCommit": "2ec0fb120149fad9e8caec59047b61ab0020a93d",
+    "criteria": [
+      0,
+      1
+    ],
+    "remaining": [
+      "Build the employee pay entry and readback screen, and qualify remaining sensitive pay, personal-tax and export workflows.",
+      "Connect the owner-facing history UI and cover outstanding sensitive-record workflows."
+    ],
+    "nextAction": "Connect pay entry and readback to the company payroll screen, preserving the supplied record ID across retries and showing role-appropriate fields."
+  },
+  "queueRevision": 945,
+  "remainingParent": true,
+  "credits": null
+}
