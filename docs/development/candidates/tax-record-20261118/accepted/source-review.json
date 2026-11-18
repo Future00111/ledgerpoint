@@ -1,0 +1,1 @@
+{"reviewed":true,"reviewer":"root","authorCommit":"f2a2dcedad99dbb34516828b2b5842586eed84bb","schemaReview":"schema-review.json","checks":"Company/id predicates and restricted SQL projection, exact bigint, no-store on protected path, live role/receipt failures, pay storage helper compatibility, fixtures for the populated recovery proof."}

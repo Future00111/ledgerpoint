@@ -1,0 +1,36 @@
+{
+  "evidence": {
+    "summary": "Current company owners and tax preparers can read an annual employment-income preparation input and its internal taxpayer reference. Submitters can read the year and exact amount with the reference excluded. Reads are audited.",
+    "reviewer": "root",
+    "reviewed": true,
+    "commit": "f2a2dcedad99dbb34516828b2b5842586eed84bb",
+    "integratedCommit": "79d34d2cc8fcf731b156752305b89d1234495e24",
+    "tests": [
+      {
+        "command": "Integrated build, typechecks and combined regression suite",
+        "passed": true
+      },
+      {
+        "command": "GitHub Actions 44360777186 on identical source tree, including native personal-tax field projection, role and audit checks plus populated encrypted restore",
+        "passed": true
+      }
+    ]
+  },
+  "outcome": {
+    "id": "personal-tax-preparation-read-20261118",
+    "scenario": "Current company owners and tax preparers can read an annual employment-income preparation input and its internal taxpayer reference. Submitters can read the year and exact amount with the reference excluded. Reads are audited.",
+    "integratedCommit": "79d34d2cc8fcf731b156752305b89d1234495e24",
+    "criteria": [
+      0,
+      1
+    ],
+    "remaining": [
+      "Qualify remaining employee identifier, bank, personal-tax and export workflows.",
+      "Connect and qualify remaining specialist access workflows."
+    ],
+    "nextAction": "Enable authorised owners and personal-tax preparers to create an annual employment-income input with a stable request identity, protected audit and conflict-safe retries."
+  },
+  "queueRevision": 954,
+  "remainingParent": true,
+  "credits": null
+}
