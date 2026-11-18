@@ -72,7 +72,8 @@ const groups = [
   {
     key: 'payroll', label: 'Payroll', icon: Users,
     items: [{ label: 'Pay records', path: '/payroll/pay-records', icon: Users,
-      roles: ['owner', 'payroll_preparer', 'payroll_reader', 'payroll_approver'] }],
+      roles: ['owner', 'payroll_preparer', 'payroll_reader', 'payroll_approver'] },
+      { label: 'Access history', path: '/payroll/access-history', icon: History, roles: ['owner'] }],
   },
   {
     key: 'documents', label: 'Documents', icon: FolderOpen,

@@ -33,7 +33,7 @@ before(async () => {
   app.get('/pay-ui-bundle', (_req,res) => res.type('application/javascript').send(payBrowserScript));
   app.post('/pay-ui-result', (req,res) => {
     if (!reportPayBrowser) { res.sendStatus(404); return; }
-    const stage = ['entry','retry','reader','company-change'].includes(req.body?.stage) ? req.body.stage : 'unknown';
+    const stage = ['entry','retry','reader','company-change','initial','history','refresh','scope','empty','denial'].includes(req.body?.stage) ? req.body.stage : 'unknown';
     reportPayBrowser({ok: req.body?.ok === true, stage}); res.sendStatus(200);
   });
   app.use(createCompaniesRouter((req, res, next) => {
@@ -1195,20 +1195,17 @@ test("pay creation fails closed on unsafe function grants and unknown or null co
   assert.equal((await request(payCreatePath(f.company), 'POST', body, f.owner)).status, 201);
 });
 
-test("Chromium payroll screen retries a committed pay record, reads it back and clears restricted fields on scope changes", async () => {
-  const f = await fixture(), other = await fixture(), employee = randomUUID(), reader = 'synthetic-pay-reader-' + randomUUID();
-  await addMember(f.company, reader, 'payroll_reader');
-  await addMember(other.company, reader, 'payroll_reader');
+async function runPayrollBrowser(entry: 'browserAcceptance.jsx' | 'historyBrowserAcceptance.jsx', fixtureData: Record<string,string>) {
   const dir = mkdtempSync(path.join(path.dirname(socket), 'pay-ui-'));
   let browser: ReturnType<typeof spawn> | undefined, timer: ReturnType<typeof setTimeout> | undefined;
   try {
     const frontend = path.resolve('artifacts/ledgerly/src'), bundle = path.join(dir,'pay-ui.js');
     execFileSync('pnpm', ['--filter','@workspace/api-server','exec','esbuild',
-      path.join(frontend,'features/payroll/payRecords/browserAcceptance.jsx'),'--bundle','--platform=browser','--format=iife',
+      path.join(frontend,'features/payroll/payRecords',entry),'--bundle','--platform=browser','--format=iife',
       '--jsx=automatic','--alias:@='+frontend,'--define:import.meta.env.BASE_URL="/"','--outfile='+bundle], {stdio:'pipe'});
     payBrowserScript = readFileSync(bundle,'utf8');
     payBrowserPage = '<!doctype html><html><head><meta charset="utf-8"></head><body><div id="root"></div><script>window.syntheticPayFixture=' +
-      JSON.stringify({company:f.company, other:other.company, owner:f.owner, reader, employee}) + '</script><script src="/pay-ui-bundle"></script></body></html>';
+      JSON.stringify(fixtureData) + '</script><script src="/pay-ui-bundle"></script></body></html>';
     const outcome = new Promise<{ok: boolean; stage?: string}>((resolve,reject) => {
       reportPayBrowser = resolve;
       timer = setTimeout(() => reject(Error('Timed out waiting for payroll browser')),45000);
@@ -1219,11 +1216,6 @@ test("Chromium payroll screen retries a committed pay record, reads it back and 
     });
     const result = await outcome;
     assert.equal(result.ok,true,result.stage);
-    assert.equal((await storedPay(f.company)).length,1);
-    assert.deepEqual((await storedPay(other.company)),[]);
-    assert.equal((await payCreationAudits(f.company)).length,1);
-    assert.equal((await payPrepareAudits(f.company)).length,2);
-    assert.ok((await payReadAudits(f.company)).some(row => row.actor_id === reader));
   } finally {
     reportPayBrowser = undefined; payBrowserPage = ''; payBrowserScript = '';
     clearTimeout(timer);
@@ -1233,4 +1225,30 @@ test("Chromium payroll screen retries a committed pay record, reads it back and 
     }
     rmSync(dir,{recursive:true,force:true});
   }
+}
+
+test("Chromium payroll screen retries a committed pay record, reads it back and clears restricted fields on scope changes", async () => {
+  const f = await fixture(), other = await fixture(), employee = randomUUID(), reader = 'synthetic-pay-reader-' + randomUUID();
+  await addMember(f.company, reader, 'payroll_reader');
+  await addMember(other.company, reader, 'payroll_reader');
+  await runPayrollBrowser('browserAcceptance.jsx', {company:f.company, other:other.company, owner:f.owner, reader, employee});
+  assert.equal((await storedPay(f.company)).length,1);
+  assert.deepEqual((await storedPay(other.company)),[]);
+  assert.equal((await payCreationAudits(f.company)).length,1);
+  assert.equal((await payPrepareAudits(f.company)).length,2);
+  assert.ok((await payReadAudits(f.company)).some(row => row.actor_id === reader));
+});
+
+test("Chromium owner history audits explicit reads and discards prior company data after refresh, switch and denial", async () => {
+  const f = await fixture(), other = await fixture(), target = 'synthetic-history-' + randomUUID();
+  identities.add(target);
+  const added = await request('/' + f.company + '/members', 'POST', {user_id: target, role:'payroll_reader'}, f.owner);
+  assert.equal(added.status,201);
+  assert.equal((await request('/' + f.company + '/members/' + target, 'PUT', {role:'personal_tax_preparer'}, f.owner)).status,200);
+  await addMember(other.company, f.owner, 'owner');
+  await runPayrollBrowser('historyBrowserAcceptance.jsx', {company:f.company, other:other.company, owner:f.owner,
+    membership:JSON.parse(added.body).id, reader:target});
+  const receipts = await historyReceipts(f.company);
+  assert.deepEqual(receipts.map(row => [row.actor_id, row.context.returned_count]), [[f.owner,2],[f.owner,2]]);
+  assert.deepEqual((await historyReceipts(other.company)).map(row => [row.actor_id,row.context.returned_count]), [[f.owner,0]]);
 });

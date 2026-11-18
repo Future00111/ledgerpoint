@@ -36,3 +36,31 @@ reloading; this slice has no durable browser recovery or record collection.
 and the coordinator-owned disposable browser journey. Pure contract/client and
 render tests are discovered by the existing development checker. The coordinator
 owns the connected native browser fixture and PostgreSQL integration acceptance.
+
+## Specialist access history
+
+`/payroll/access-history` is visible only to the current company owner and reads
+the existing audited specialist-membership history endpoint. `AccessHistory.jsx`
+uses the same auth/company context; `AccessHistoryWorkspace.jsx` exposes the
+reusable component without auth imports for the isolated browser journey.
+History is loaded only by an explicit **View history** or **Refresh history**
+action. Mounting the page, company switching and role/account changes do not
+silently issue audited reads.
+
+The table shows operation, before/after role and active status, exact UTC time,
+and membership reference. **Not present** identifies absence before addition or
+after removal; **Not recorded** preserves a historical null active flag for a
+membership that existed. Actor/target user identities, emails, salaries and raw
+audit context are never displayed. The client validates the exact response
+projection, known roles/operations, meaningful transitions, timestamps, unique
+event IDs, newest-first ordering, fixed 50-row limit and more-results flag.
+When more history exists, the page states that older changes are not shown; no
+pagination, export, target identity lookup or history-write controls are added.
+
+Refresh immediately clears the previous result. Denial, malformed responses and
+other failures leave no previous rows visible. Actor/company/role keys and
+abort/generation checks prevent late responses repopulating another scope.
+No history is persisted in browser storage, URL state or shared query caches.
+The server remains authoritative and audits every successful history read,
+including empty results, before disclosure. This page does not broaden that
+existing endpoint or establish full P02-04 completion.

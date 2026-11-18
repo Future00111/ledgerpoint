@@ -31,6 +31,6 @@ test('auth and company boundaries remain around the workspace; feature pages loa
   assert.ok(routes.some(node => attr(node, 'element').expression.getText(tree) === '<ProtectedRoute unauthenticatedElement={<Navigate to="/sign-in" replace />} />'));
   assert.ok(routes.some(node => attr(node, 'element').expression.getText(tree) === '<CompanyProvider><AppLayout /></CompanyProvider>'));
   const lazyPages = nodes(ts.isCallExpression).filter(node => node.expression.getText(tree) === 'lazyRoute');
-  assert.equal(lazyPages.length, 43);
+  assert.equal(lazyPages.length, 44);
   assert.ok(lazyPages.every(node => node.arguments[0] && ts.isArrowFunction(node.arguments[0])));
 });

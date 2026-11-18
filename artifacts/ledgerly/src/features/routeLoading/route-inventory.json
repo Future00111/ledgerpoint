@@ -168,6 +168,10 @@
     "element": "<PayRecords />"
   },
   {
+    "path": "/payroll/access-history",
+    "element": "<AccessHistory />"
+  },
+  {
     "path": "/bank-accounts",
     "element": "<BankAccounts />"
   },
