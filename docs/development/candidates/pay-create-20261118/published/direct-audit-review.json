@@ -1,0 +1,1 @@
+{"reviewed":true,"reviewer":"durable_execution_implementation","commit":"eec84e83a132f6ac29d064020157907ab6bbd518","tree":"68e687b5a29b791b2256d827bae3add353466d4c","checks":41,"resolved":"Direct command verifies protected audit before create/replay, using explicit runtime role privileges and native guard contract."}

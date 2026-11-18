@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "taskId": "P02-04",
+  "outcome": "dated-pay-record-creation-candidate",
+  "actor": "pay-create-author",
+  "workerRevisionAtClaim": 943,
+  "coordinatorRevisionAtClaim": 538,
+  "createdAt": "2026-11-18T16:41:03.198049+00:00",
+  "branch": "codex/employee-pay-create",
+  "base": "48ca7414debce81d9ae40fa3323fc21167a1d3cb",
+  "commit": "e67cc883a3598a00dcf2235259b7d4cd1e0203c0",
+  "tree": "c16114bb3060e95a5df967540447684ee78cd8ec",
+  "files": [
+    {
+      "path": "artifacts/api-server/src/routes/companies.ts",
+      "sha256": "6d1b89f52718b659dba38f5f6cfc063d92ee4bce82f84084fff0c848eb093cd7"
+    },
+    {
+      "path": "artifacts/api-server/src/security/integration.test.ts",
+      "sha256": "af64f23d7dc67832d2b1c16d05a171b13dd89b012e73ce11b405175146ed27b2"
+    },
+    {
+      "path": "artifacts/api-server/src/security/roles.test.ts",
+      "sha256": "4ba51869f9ba4a945a8f52ad72cefa42ece604525732b05f49c4871963030010"
+    },
+    {
+      "path": "artifacts/api-server/src/services/payroll/access/README.md",
+      "sha256": "a5340017e768ad06a7c50c8668f12d4ffe92a3efb08208a6727af03220404a62"
+    },
+    {
+      "path": "artifacts/api-server/src/services/payroll/access/boundary.ts",
+      "sha256": "a64de22ae19620585d46a991bda003f52b86371162b8abfb6da073a91ec7ae54"
+    },
+    {
+      "path": "artifacts/api-server/src/services/payroll/access/payRecord.ts",
+      "sha256": "138d921f375e7aee0ee738534dfcd1c05027e67dcfe940a0fe7ae0ba11ed9201"
+    }
+  ],
+  "patch": {
+    "path": "/workspace/scratch/0c1e486180e4/run-pay-create/pay-create-author.patch",
+    "sha256": "ad8dff7e269e31dcf7bde988b7ac62ffa951cdc2885ba8363c4ba552600a0c64"
+  },
+  "changes": [
+    "Normal owner/payroll-preparer POST collection with exact validated id,employee_id,effective_from,annual_salary_pence string; implicit GBP, no-store and fixed 201/200 response.",
+    "Current locked authority, scoped restricted command, exact replay or 409 conflict; direct table permissions unchanged.",
+    "Function owner, ACL, scalar result and pinned search_path attestation; unexpected/null status fails closed.",
+    "Twelve native scenarios covering normal create/readback, retries, later dates, cross-company, conflicts, protected origin, concurrent calls, role denial/revocation, protected audit and partial-write rollback."
+  ],
+  "checks": [
+    {
+      "name": "focused-company-access",
+      "command": "node tools/development/check-company-access.mjs",
+      "status": "passed",
+      "tests": 43,
+      "log": "/workspace/scratch/0c1e486180e4/run-pay-create/author-focused.log",
+      "completionMarkerPresent": true
+    },
+    {
+      "name": "api-typecheck",
+      "command": "pnpm --filter @workspace/api-server exec tsc --noEmit",
+      "status": "passed",
+      "exitCode": 0,
+      "log": "/workspace/scratch/0c1e486180e4/run-pay-create/author-typecheck.log"
+    },
+    {
+      "name": "native-suite-bundle",
+      "status": "passed",
+      "log": "/workspace/scratch/0c1e486180e4/run-pay-create/author-native-compile.log",
+      "metafile": "/workspace/scratch/0c1e486180e4/run-pay-create/security-integration.meta.json",
+      "syntaxExitCode": 0,
+      "nativeTests": 50,
+      "baselineTests": 38,
+      "addedTests": 12,
+      "actualInputIncludes": [
+        "src/services/payroll/access/payRecord.ts",
+        "src/routes/companies.ts",
+        "src/security/integration.test.ts"
+      ]
+    },
+    {
+      "name": "diff-check",
+      "status": "passed"
+    }
+  ],
+  "nativeDatabaseExecution": {
+    "status": "pending-coordinator-combined-ci",
+    "reason": "No local disposable PostgreSQL available; compile is not runtime acceptance."
+  },
+  "schemaCoordination": {
+    "owner": "root coordinator",
+    "includedInThisCommit": false,
+    "function": "public.ledgerly_create_employee_pay_record(uuid,text,uuid,uuid,date,bigint)",
+    "requiredStatuses": [
+      "created",
+      "replayed",
+      "conflict",
+      "denied"
+    ],
+    "protectedOriginColumn": "created_by_pay_command",
+    "creationReceiptContract": "employee-pay-create.v1",
+    "functionOwnAuditAttestation": "Coordinator updated after direct-call review; native denial test retained."
+  },
+  "remainingAcceptance": [
+    "Independent exact-commit source/security review.",
+    "Combined exact-source disposable PostgreSQL and encrypted populated restore with coordinator-owned additive schema/registry/restore changes.",
+    "Synthetic bounded scenario only: employee/employer setup, payroll calculations/pay runs, UI, remaining sensitive record workflows and full P02-04 remain pending."
+  ],
+  "independentReviewRequired": true,
+  "independentlyReviewed": false,
+  "selfAccepted": false,
+  "stopped": true,
+  "clean": true,
+  "pushed": false,
+  "queueEdited": false,
+  "schemaEdited": false,
+  "merged": false,
+  "deployed": false,
+  "productionChanges": false,
+  "measuredProviderCost": null
+}

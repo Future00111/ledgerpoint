@@ -1,0 +1,1 @@
+{"reviewed":true,"reviewer":"root","authorCommit":"e67cc883a3598a00dcf2235259b7d4cd1e0203c0","scope":"Pay record create/replay endpoint, validation, role checks and atomic audit","schemaReviews":["schema-review.json","direct-audit-review.json"],"findingResolved":"Direct command must also check append-only audit protections; SQL check and denial tests reviewed."}

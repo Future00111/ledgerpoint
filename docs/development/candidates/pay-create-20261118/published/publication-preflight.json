@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "destination_kind": "integration",
+  "pullRequest": 29,
+  "successorDraftRequired": false,
+  "authorityCommit": "adc95961f17c8da4f6889343f42bb0df44212537",
+  "authorityRevision": 538,
+  "coordinatorRunId": "paycreate-1795019320047",
+  "observedAt": 1795020103085,
+  "candidateTree": "e46c3b26fa0249d335f68412812275600fe634a1",
+  "reviewedBy": "root",
+  "authorOrigin": {
+    "actor": "pay-create-author",
+    "commit": "e67cc883a3598a00dcf2235259b7d4cd1e0203c0",
+    "branch": "codex/employee-pay-create"
+  },
+  "updateRef": {
+    "repository_full_name": "Future00111/ledgerpoint",
+    "branch_name": "codex/whole-product-first-sprint",
+    "expected_sha": "48ca7414debce81d9ae40fa3323fc21167a1d3cb",
+    "sha": "2ec0fb120149fad9e8caec59047b61ab0020a93d",
+    "force": false
+  },
+  "approvalGranted": false,
+  "sourcePublished": false
+}
