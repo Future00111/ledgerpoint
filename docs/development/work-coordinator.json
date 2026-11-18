@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "revision": 554,
+  "revision": 555,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "ac5815c732e813211d62d712110fa547148da0c9",
+  "codeHead": "79d34d2cc8fcf731b156752305b89d1234495e24",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -21,19 +21,49 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "a7f1e52519b728a10cd2542f9831cbbc1e15cca0",
+    "sha": "16ec592feb98b96492da64d41e52bfa67366ee7c",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "a7f1e52519b728a10cd2542f9831cbbc1e15cca0",
-        "path": "docs/development/candidates/tax-record-20261118/claimed/claimed-queue-delta.json"
+        "sha": "16ec592feb98b96492da64d41e52bfa67366ee7c",
+        "path": "docs/development/candidates/tax-record-20261118/published/published-queue-delta.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "16ec592feb98b96492da64d41e52bfa67366ee7c",
+        "path": "docs/development/candidates/tax-record-20261118/published/source-review.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "16ec592feb98b96492da64d41e52bfa67366ee7c",
+        "path": "docs/development/candidates/tax-record-20261118/published/schema-review.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "16ec592feb98b96492da64d41e52bfa67366ee7c",
+        "path": "docs/development/candidates/tax-record-20261118/published/publication-preflight.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "16ec592feb98b96492da64d41e52bfa67366ee7c",
+        "path": "docs/development/candidates/tax-record-20261118/published/combined.log"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "16ec592feb98b96492da64d41e52bfa67366ee7c",
+        "path": "docs/development/candidates/tax-record-20261118/published/build.log"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "16ec592feb98b96492da64d41e52bfa67366ee7c",
+        "path": "docs/development/candidates/tax-record-20261118/published/restore-unit.log"
       }
     ],
     "runId": "taxrecord-1795022988904",
-    "at": 1795023035922,
-    "codeHead": "ac5815c732e813211d62d712110fa547148da0c9"
+    "at": 1795023497522,
+    "codeHead": "79d34d2cc8fcf731b156752305b89d1234495e24"
   },
-  "updatedAt": 1795023035922,
+  "updatedAt": 1795023497522,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -125,11 +155,11 @@
     {
       "actor": "tax-record-author",
       "task": "P02-04",
-      "status": "leased",
-      "stopped": false
+      "status": "review",
+      "stopped": true
     }
   ],
-  "workersStopped": false,
+  "workersStopped": true,
   "discoveryRun": {
     "runId": "correction-discovery-1794927549982",
     "startedAt": "2026-11-17T14:59:10.335Z",
@@ -169,11 +199,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "a7f1e52519b728a10cd2542f9831cbbc1e15cca0",
-    "path": "docs/development/candidates/tax-record-20261118/claimed/claimed-queue-delta.json",
-    "bytesSha256": "7b887dad87743288d3808428c7d79c5b2578ba447901b41afe1cfdf29753230c",
-    "queueSha256": "defb1a95e99ec522f52ff0695b4d83bb1e905f994b590f5354bea777227ecb18",
-    "revision": 952,
+    "sha": "16ec592feb98b96492da64d41e52bfa67366ee7c",
+    "path": "docs/development/candidates/tax-record-20261118/published/published-queue-delta.json",
+    "bytesSha256": "1edace09b6fa7403e5fb47c11043eb66b37cc9b7c8001dde078c01544b037506",
+    "queueSha256": "c3f22fdd1c6dd3733b9a7bd622c55511637705cf9e7cea78350bf0a54579ee78",
+    "revision": 953,
     "catalogDigest": "e2062b766ab4d6c1925cec45996df85511974cc96a5873b02adbfe7392a3efbc"
   },
   "historyReference": {
@@ -203,7 +233,7 @@
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
     "baseRevision": 945,
-    "currentRevision": 952,
+    "currentRevision": 953,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
@@ -343,10 +373,10 @@
   },
   "twoTrackRun": {
     "startedAt": "2026-11-18T14:36:15.627Z",
-    "activity": "First persisted personal-tax preparation input and scoped reads",
+    "activity": "Reviewed personal-tax input read and protected restore assertions published; exact-tree CI pending.",
     "providerCost": null,
     "credits": null,
-    "publishedCommit": "ac5815c732e813211d62d712110fa547148da0c9",
+    "publishedCommit": "79d34d2cc8fcf731b156752305b89d1234495e24",
     "observedAt": "2026-11-18T14:59:09.452Z",
     "publishedTree": "ea197c50a593ea8c71365f1ca3291ca3df85d9b4",
     "ciRun": 44357722911,
