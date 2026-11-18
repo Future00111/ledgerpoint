@@ -1,0 +1,80 @@
+{
+  "task": "P02-04",
+  "actor": "membership-audit-author",
+  "baseLocalCommit": "ce63c0e42f660c8620d6f3d822b53ecad397c1f7",
+  "basePublishedEquivalent": "c0edfa572f13f42b37197086160c772324a502e4",
+  "authorCommit": "990403882dd3d7c9f2680450a121cba228399a8b",
+  "authorTree": "b8f1a28ef50349c204985f56ec580b514a7a0699",
+  "branch": "codex/membership-audit-20261118",
+  "changedFiles": [
+    "artifacts/api-server/src/security/integration.test.ts",
+    "artifacts/api-server/src/services/payroll/access/README.md"
+  ],
+  "files": [
+    {
+      "path": "artifacts/api-server/src/security/integration.test.ts",
+      "bytes": 43526,
+      "sha256": "9f5d40e95e6aff53fefe8db5f782180e003d0de9841c5ededa1b05c345316cfa"
+    },
+    {
+      "path": "artifacts/api-server/src/services/payroll/access/README.md",
+      "bytes": 4519,
+      "sha256": "7a73dc757bff39d44b225b96bdbac3f52124c2c6083ee42b902733dcfefa4c8e"
+    }
+  ],
+  "patch": {
+    "file": "membership-fixture-correction.patch",
+    "bytes": 18475,
+    "sha256": "ef85d02bb003a789d268a9e4ce2ad34a594cd327ccae366cacafb5e86925f777"
+  },
+  "failedCiRun": "44335616892",
+  "diagnosis": "Five native cases reached DELETE with canonical runtime privileges that intentionally grant no DELETE on companies/company_users; all five received generic 500 before the intended positive or audit-failure branch. Fifteen native cases passed before correction.",
+  "correction": [
+    "Explicit default-runtime owner/self/company DELETE HTTP negatives preserve complete company/membership/audit snapshots for specialised and ordinary memberships.",
+    "Scoped test-only grants wrap individual awaited DELETE requests only. Initial absence, permitted delta and restoration of effective table privileges are asserted. Grants are revoked in finally and a deliberately thrown operation tests cleanup.",
+    "Suite-final privilege assertion and scope-overlap guard prevent silent fixture contamination.",
+    "Removed broad success marker that did not depend on other test results; replacement reports only the silent read-audit scenario it proves.",
+    "Documented that positive removal behaviour is conditional and not available under canonical runtime grants."
+  ],
+  "applicationSourceGrantsRunnerAndProductionUnchanged": true,
+  "checks": [
+    {
+      "command": "node tools/development/check-company-access.mjs",
+      "passed": true,
+      "tests": 39,
+      "log": "correction-focused.log",
+      "sha256": "34242dbc09b6ab95d89617c9ed0da53b56ec3270dfe5a17592cc104e996c7764"
+    },
+    {
+      "command": "pnpm --filter @workspace/api-server exec tsc -p tsconfig.json --noEmit",
+      "passed": true,
+      "log": "correction-typecheck.log"
+    },
+    {
+      "command": "Exact security/integration.test.ts bundled CJS with harness externals; node --check; import kinds verified",
+      "passed": true,
+      "nativeDatabasePassed": false,
+      "log": "correction-native-compile.log"
+    },
+    {
+      "command": "git diff --cached --check before commit",
+      "passed": true
+    }
+  ],
+  "nativeScenariosTotal": 22,
+  "nativeScenariosAdded": 2,
+  "nativeQualification": "Exact-source disposable PostgreSQL CI remains required; no local database runtime pass claimed.",
+  "remaining": [
+    "Independent matching-commit review and exact-source disposable native PostgreSQL CI.",
+    "Deletion remains unavailable under unchanged canonical runtime grants. Positive deletion tests qualify only the explicit disposable-grant condition.",
+    "Full original P02-04 acceptance remains pending connected native sensitive workflows."
+  ],
+  "independentReviewRequired": true,
+  "independentlyReviewed": false,
+  "stopped": true,
+  "worktreeClean": true,
+  "finishedAt": "2026-11-18T15:33:36.107088+00:00",
+  "providerCost": null,
+  "credits": null,
+  "noPushQueueOrProductionChanges": true
+}

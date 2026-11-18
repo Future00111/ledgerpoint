@@ -1,0 +1,15 @@
+{
+  "reviewer": "root",
+  "reviewed": true,
+  "authorCommit": "990403882dd3d7c9f2680450a121cba228399a8b",
+  "sourceBase": "ec5b31e504673035604a802dd05e5f469ffbad8f",
+  "scope": "Reviewed five changed files: native membership routes, shared protected audit insertion, membership event construction, disposable integration scenarios and boundary documentation.",
+  "findingsResolved": [
+    "Verify actual company deletion before commit",
+    "Handle database UUID normalization in audit comparison",
+    "Batch protected audit attestation for company removal"
+  ],
+  "nativeTestsAdded": 10,
+  "originalAuthorCommit": "ce63c0e42f660c8620d6f3d822b53ecad397c1f7",
+  "correctionReview": "Root verified only native tests and access README changed. Original restricted permissions tested; temporary named table DELETE grants fenced to awaited isolated test calls, revoked in finally and original snapshot rechecked. First run failed because five tests assumed permission absent from baseline."
+}
