@@ -1,69 +1,69 @@
 {
   "version": 2,
-  "revision": 560,
+  "revision": 562,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "9d6d27e77e19690c8d77e02a59b20c81b094e840",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "taxcreate-1795023879361",
     "tokenSha256": "ffe1623906a7d6e65ae797e97268f7b541f888791804742147b74c077cb5f770",
     "acquiredAt": 1795023879361,
     "expiresAt": 1795027479361
   },
-  "lastOwner": {
-    "runId": "taxrecord-1795022988904",
-    "tokenSha256": "0a868f0b16c6dd61316a8697c1684b99575adb715a99b66dc2951d9e7e864fee",
-    "acquiredAt": 1795022988906,
-    "expiresAt": 1795026588906
-  },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "2bf34fd1edfee71ebc819057ec5724db1aa00b59",
+    "sha": "5217e10fc67ea6be35a713566c99463d82491205",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "2bf34fd1edfee71ebc819057ec5724db1aa00b59",
-        "path": "docs/development/candidates/tax-create-20261118/published/published-queue-delta.json"
+        "sha": "5217e10fc67ea6be35a713566c99463d82491205",
+        "path": "docs/development/candidates/tax-create-20261118/accepted/accepted-queue-delta.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "2bf34fd1edfee71ebc819057ec5724db1aa00b59",
-        "path": "docs/development/candidates/tax-create-20261118/published/source-review.json"
+        "sha": "5217e10fc67ea6be35a713566c99463d82491205",
+        "path": "docs/development/candidates/tax-create-20261118/accepted/source-review.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "2bf34fd1edfee71ebc819057ec5724db1aa00b59",
-        "path": "docs/development/candidates/tax-create-20261118/published/schema-review.json"
+        "sha": "5217e10fc67ea6be35a713566c99463d82491205",
+        "path": "docs/development/candidates/tax-create-20261118/accepted/schema-review.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "2bf34fd1edfee71ebc819057ec5724db1aa00b59",
-        "path": "docs/development/candidates/tax-create-20261118/published/publication-preflight.json"
+        "sha": "5217e10fc67ea6be35a713566c99463d82491205",
+        "path": "docs/development/candidates/tax-create-20261118/accepted/ci.log"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "2bf34fd1edfee71ebc819057ec5724db1aa00b59",
-        "path": "docs/development/candidates/tax-create-20261118/published/combined.log"
+        "sha": "5217e10fc67ea6be35a713566c99463d82491205",
+        "path": "docs/development/candidates/tax-create-20261118/accepted/ci.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "2bf34fd1edfee71ebc819057ec5724db1aa00b59",
-        "path": "docs/development/candidates/tax-create-20261118/published/build.log"
+        "sha": "5217e10fc67ea6be35a713566c99463d82491205",
+        "path": "docs/development/candidates/tax-create-20261118/accepted/acceptance.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "2bf34fd1edfee71ebc819057ec5724db1aa00b59",
-        "path": "docs/development/candidates/tax-create-20261118/published/restore-unit.log"
+        "sha": "5217e10fc67ea6be35a713566c99463d82491205",
+        "path": "docs/development/candidates/tax-create-20261118/accepted/current-view.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "5217e10fc67ea6be35a713566c99463d82491205",
+        "path": "docs/development/candidates/tax-create-20261118/accepted/run-metrics.json"
       }
     ],
     "runId": "taxcreate-1795023879361",
-    "at": 1795024492268,
+    "at": 1795024725989,
     "codeHead": "9d6d27e77e19690c8d77e02a59b20c81b094e840"
   },
-  "updatedAt": 1795024492268,
+  "updatedAt": 1795024725991,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -151,14 +151,7 @@
       "ownerApproved": true
     }
   },
-  "activeWorkers": [
-    {
-      "actor": "tax-create-author",
-      "task": "P02-04",
-      "status": "review",
-      "stopped": true
-    }
-  ],
+  "activeWorkers": [],
   "workersStopped": true,
   "discoveryRun": {
     "runId": "correction-discovery-1794927549982",
@@ -199,11 +192,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "2bf34fd1edfee71ebc819057ec5724db1aa00b59",
-    "path": "docs/development/candidates/tax-create-20261118/published/published-queue-delta.json",
-    "bytesSha256": "b79f4ad7bed81e47d6cd31485d8f19ad851697d12ebc90ac63ef1ff49aee8dba",
-    "queueSha256": "15b1a7a6e762f169fa603f276b11201c1a7197fe9eea60d6d2e788ed81d82c8d",
-    "revision": 956,
+    "sha": "5217e10fc67ea6be35a713566c99463d82491205",
+    "path": "docs/development/candidates/tax-create-20261118/accepted/accepted-queue-delta.json",
+    "bytesSha256": "09413eb2516a1c05dcb7ff9fae143d6ee29e9a1f2e1eb08e3f1eb7c8cf90f4f0",
+    "queueSha256": "0412810b57650e7d226f6049db8e6e2457693aa0737f346854e9f40a71dfac77",
+    "revision": 957,
     "catalogDigest": "e2062b766ab4d6c1925cec45996df85511974cc96a5873b02adbfe7392a3efbc"
   },
   "historyReference": {
@@ -233,7 +226,7 @@
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
     "baseRevision": 945,
-    "currentRevision": 956,
+    "currentRevision": 957,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
@@ -373,7 +366,7 @@
   },
   "twoTrackRun": {
     "startedAt": "2026-11-18T14:36:15.627Z",
-    "activity": "Personal-tax creation published for disposable PostgreSQL and encrypted restore verification.",
+    "activity": "Accepted audited personal-tax input creation including native PostgreSQL and encrypted restore. Next is company workspace entry and readback.",
     "providerCost": null,
     "credits": null,
     "publishedCommit": "9d6d27e77e19690c8d77e02a59b20c81b094e840",
