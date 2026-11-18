@@ -21,6 +21,9 @@ import { findActiveMembership } from "../middlewares/companyScope";
 import { isCompanyRole } from "../security/roles";
 import { safeErrorLog, safeRouteErrors } from "../security/publicErrors";
 import { authorizeMemberChange, CompanyPolicyError, createCompanyBody, updateCompanyBody } from "../security/companyPolicy";
+import { queryAdapter } from "../services/accountingDocuments/core";
+import { auditSpecializedMembershipChange, auditSpecializedMembershipChanges } from "../services/payroll/access/membershipAudit";
+import { SensitiveAccessError } from "../services/payroll/access/boundary";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -40,6 +43,10 @@ async function lockedMembers(tx: CompanyTx, companyId: string) {
 }
 
 function companyError(req: Request, res: Response, error: unknown, operation: string) {
+  if (error instanceof SensitiveAccessError) {
+    res.status(error.status).json({ error: "Unable to complete this request. Please try again.", code: error.code });
+    return;
+  }
   if (error instanceof CompanyPolicyError) {
     res.status(error.status).json({ error: error.message, code: error.code });
     return;
@@ -172,8 +179,14 @@ router.delete("/:id", async (req: Request, res: Response) => {
       if (actors.length !== 1 || actors[0]?.role !== "owner" || actors[0]?.is_active !== true) {
         throw new CompanyPolicyError("access_denied");
       }
-      await tx.delete(companyUsersTable).where(eq(companyUsersTable.company_id, companyId));
-      await tx.delete(companiesTable).where(eq(companiesTable.id, companyId));
+      const removed = await tx.delete(companyUsersTable).where(eq(companyUsersTable.company_id, companyId)).returning();
+      if (removed.length !== members.length) throw new SensitiveAccessError("SENSITIVE_OPERATION_UNAVAILABLE");
+      await auditSpecializedMembershipChanges(queryAdapter(tx), {
+        companyId, actorId: userId,
+        changes: removed.map(member => ({ operation: "company_delete", before: member, after: null })),
+      });
+      const deleted = await tx.delete(companiesTable).where(eq(companiesTable.id, companyId)).returning({ id: companiesTable.id });
+      if (deleted.length !== 1 || deleted[0]?.id !== companyId.toLowerCase()) throw new SensitiveAccessError("SENSITIVE_OPERATION_UNAVAILABLE");
     });
     res.json({ success: true });
   } catch (err: unknown) {
@@ -217,6 +230,10 @@ router.post("/:id/members", async (req: Request, res: Response) => {
       const members = await lockedMembers(tx, companyId);
       authorizeMemberChange({ companyId, actorId: userId, targetId: user_id, members, action: "add", nextRole: role });
       const [created] = await tx.insert(companyUsersTable).values({ company_id: companyId, user_id, role }).returning();
+      if (!created) throw new SensitiveAccessError("SENSITIVE_OPERATION_UNAVAILABLE");
+      await auditSpecializedMembershipChange(queryAdapter(tx), {
+        companyId, actorId: userId, operation: "member_add", before: null, after: created,
+      });
       return created;
     });
     res.status(201).json(m);
@@ -239,6 +256,10 @@ router.put("/:id/members/:userId", async (req: Request, res: Response) => {
       authorizeMemberChange({ companyId, actorId: userId, targetId: targetUserId, members, action: "change_role", nextRole: role });
       const [changed] = await tx.update(companyUsersTable).set({ role, updated_at: new Date() })
         .where(and(eq(companyUsersTable.company_id, companyId), eq(companyUsersTable.user_id, targetUserId))).returning();
+      if (!changed) throw new SensitiveAccessError("SENSITIVE_OPERATION_UNAVAILABLE");
+      await auditSpecializedMembershipChange(queryAdapter(tx), {
+        companyId, actorId: userId, operation: "role_change", before: members.find(member => member.user_id === targetUserId)!, after: changed,
+      });
       return changed;
     });
     res.json(updated);
@@ -257,8 +278,12 @@ router.delete("/:id/members/:userId", async (req: Request, res: Response) => {
     await db.transaction(async tx => {
       const members = await lockedMembers(tx, companyId);
       authorizeMemberChange({ companyId, actorId: userId, targetId: targetUserId, members, action: "remove" });
-      await tx.delete(companyUsersTable)
-        .where(and(eq(companyUsersTable.company_id, companyId), eq(companyUsersTable.user_id, targetUserId)));
+      const [removed] = await tx.delete(companyUsersTable)
+        .where(and(eq(companyUsersTable.company_id, companyId), eq(companyUsersTable.user_id, targetUserId))).returning();
+      if (!removed) throw new SensitiveAccessError("SENSITIVE_OPERATION_UNAVAILABLE");
+      await auditSpecializedMembershipChange(queryAdapter(tx), {
+        companyId, actorId: userId, operation: "member_remove", before: removed, after: null,
+      });
     });
     res.json({ success: true });
   } catch (err: unknown) {
@@ -295,6 +320,10 @@ router.post("/:id/invite", async (req: Request, res: Response) => {
       authorizeMemberChange({ companyId, actorId: userId, targetId: invitee.id, members, action: "add", nextRole: role });
       const [created] = await tx.insert(companyUsersTable)
         .values({ company_id: companyId, user_id: invitee.id, role }).returning();
+      if (!created) throw new SensitiveAccessError("SENSITIVE_OPERATION_UNAVAILABLE");
+      await auditSpecializedMembershipChange(queryAdapter(tx), {
+        companyId, actorId: userId, operation: "member_invite", before: null, after: created,
+      });
       return created;
     });
 

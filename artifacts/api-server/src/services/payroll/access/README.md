@@ -34,12 +34,27 @@ actor/company/resource identity, current role and version. It never stores the
 callback result, salary, bank details, tax identifiers, request body or export.
 Audit protection is checked before the callback. Audit failure rolls back local
 mutations and prevents a returned result; arbitrary diagnostics are redacted.
+The insert must return the expected audit ID; silent trigger suppression also
+fails closed.
+
+The existing membership routes audit grants, invitations, role transitions and
+removals involving any specialized role, including self-removal and deletion of
+a company. They retain the company lock and current membership authorization,
+then commit the membership mutation and audit in the same transaction. Each
+event records the actor, company, membership UUID, operation, previous/next role
+and active state. It omits target user IDs, emails, names and request bodies;
+actor IDs remain necessary audit identity (including self-removal). Company
+deletion records one event per specialized membership, including inactive rows,
+and verifies that the company was deleted before commit. Audit history survives
+company removal. Denied, same-role and bookkeeping-only membership operations
+produce no sensitive event; bookkeeping-only changes do not require this audit
+storage. Existing owner-only assignment and last-owner rules are unchanged.
 
 Native disposable tests exercise the boundary with synthetic payloads and
 transactional fixture mutations, current membership races, audit failure and
 existing owner-only membership assignment. No employee/personal-tax record
 schema, public sensitive-record route, actual export or external submission is
-introduced. Wiring every future native record/read/export/change route, auditing
-role assignment changes, qualified field projection and sensitive audit retrieval
+introduced. Wiring every future native record/read/export/change route,
+qualified field projection and sensitive audit retrieval
 remain required before full P02-04 acceptance. These helpers are not evidence
 that those absent workflows are secured or implemented.

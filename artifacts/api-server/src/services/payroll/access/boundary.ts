@@ -43,7 +43,7 @@ function request(input: unknown, domain: 'payroll' | 'personal_tax'): SensitiveR
   return { ...value, company_id: value.company_id.toLowerCase(), resource_company_id: value.resource_company_id.toLowerCase(), resource_id: value.resource_id.toLowerCase() };
 }
 
-async function requireProtectedAudit(q: Queryable) {
+export async function requireProtectedAudit(q: Queryable) {
   const r = (await q.query(`SELECT current_user actor,pg_get_userbyid(c.relowner) owner,c.relkind,
     has_table_privilege(current_user,c.oid,'SELECT') can_read,
     has_table_privilege(current_user,c.oid,'INSERT') can_insert,
@@ -81,11 +81,13 @@ export async function runSensitiveOperation<T>(domain: 'payroll' | 'personal_tax
       const result = await operation(Object.freeze({ companyId: r.company_id, actorId: r.actor_id,
         resourceId: r.resource_id, role, action: r.action, query: q.query.bind(q) }));
       // Never store salaries, identifiers, bank details, request bodies, exports or callback results.
-      await q.query(`INSERT INTO public.accounting_audit_events
+      const auditId = randomUUID();
+      const inserted = await q.query(`INSERT INTO public.accounting_audit_events
         (id,company_id,action,outcome,target_type,target_id,actor_type,actor_id,capability,context)
-        VALUES($1,$2,'sensitive_access','allowed',$3,$4,'user',$5,$6,$7::jsonb)`,
-      [randomUUID(), r.company_id, domain + '_resource', r.resource_id, r.actor_id, r.action,
+        VALUES($1,$2,'sensitive_access','allowed',$3,$4,'user',$5,$6,$7::jsonb) RETURNING id`,
+      [auditId, r.company_id, domain + '_resource', r.resource_id, r.actor_id, r.action,
         JSON.stringify({ contract: 'sensitive-access.v1', role })]);
+      if (inserted.rowCount !== 1 || inserted.rows[0]?.id !== auditId) unavailable();
       return result;
     });
   } catch (error) {

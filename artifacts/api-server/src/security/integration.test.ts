@@ -16,6 +16,7 @@ let server: ReturnType<ReturnType<typeof express>["listen"]>, base: string;
 let identityCalls = 0;
 let providerFailure = false;
 const identities = new Set<string>();
+const emailIdentities = new Map<string, string>();
 const logs: unknown[] = [];
 before(async () => {
   const identity = (await pool.query("SELECT current_database() db,current_user role,inet_server_addr() addr")).rows[0];
@@ -32,7 +33,7 @@ before(async () => {
       if (providerFailure) throw new Error("provider secret-token and private SQL diagnostics");
       return identities.has(id) ? { id } : null;
     },
-    async byEmail() { identityCalls++; throw new Error("No test is permitted to use a real email lookup"); },
+    async byEmail(email) { identityCalls++; const id = emailIdentities.get(email); return id ? { id } : null; },
   }));
   server = app.listen(0, "127.0.0.1");
   await new Promise<void>(resolve => server.once("listening", resolve));
@@ -198,6 +199,9 @@ test("specialized role assignment uses verified identities and owner-only member
   assert.equal((await request(`/${f.company}/members/${actor}`, "PUT", { role: "personal_tax_submitter" }, f.owner)).status, 200);
   assert.equal((await request(`/${f.company}/members/${f.owner}`, "PUT", { role: "payroll_approver" }, f.owner)).status, 409);
   assert.deepEqual((await pool.query('SELECT role FROM company_users WHERE company_id=$1 AND user_id=$2', [f.company, actor])).rows, [{ role: "personal_tax_submitter" }]);
+  const audit = await sensitiveAudit(f.company); assert.equal(audit.length, 2);
+  assert.deepEqual(audit[1].context, { contract: 'sensitive-membership.v1', operation: 'role_change',
+    previous_role: 'payroll_preparer', next_role: 'personal_tax_submitter', previous_active: true, next_active: true });
 });
 
 test("ordinary bookkeeping and invalid memberships cannot invoke sensitive read/export or change callbacks", async () => {
@@ -315,4 +319,189 @@ test("missing audit guard or column-only UPDATE privilege refuses sensitive acce
   } finally { await admin.query('REVOKE UPDATE(actor_id) ON public.accounting_audit_events FROM ledgerly_api'); }
   assert.equal(calls, 0); assert.deepEqual(await sensitiveAudit(f.company), []);
   console.log('SENSITIVE_ACCESS_ACCEPTANCE', JSON.stringify({ currentMembership: true, distinctRights: true, auditAtomicity: true, revokedBeforeCallback: true, protectedAuditRequired: true, nativeRecordRoutesPending: true }));
+});
+
+test("specialised grants and role transitions audit membership references without target identity or request PII", async () => {
+  const f = await fixture();
+  for (const role of ['payroll_reader', 'payroll_preparer', 'payroll_approver', 'personal_tax_preparer', 'personal_tax_submitter']) {
+    const target = `synthetic-private-target-${randomUUID()}`; identities.add(target);
+    const added = await request(`/${f.company}/members`, 'POST', { user_id: target, role, private_note: 'synthetic-private-note' }, f.owner);
+    assert.equal(added.status, 201, added.body); const member = JSON.parse(added.body);
+    assert.equal((await request(`/${f.company}/members/${target}`, 'PUT', { role: 'accountant' }, f.owner)).status, 200);
+    assert.equal((await request(`/${f.company}/members/${target}`, 'PUT', { role }, f.owner)).status, 200);
+    assert.equal((await request(`/${f.company}/members/${target}`, 'DELETE', undefined, f.owner)).status, 200);
+    const audit = (await sensitiveAudit(f.company)).filter(row => row.target_id === member.id);
+    assert.equal(audit.length, 4);
+    assert.deepEqual(audit.map(row => row.context), [
+      { contract: 'sensitive-membership.v1', operation: 'member_add', previous_role: null, next_role: role, previous_active: null, next_active: true },
+      { contract: 'sensitive-membership.v1', operation: 'role_change', previous_role: role, next_role: 'accountant', previous_active: true, next_active: true },
+      { contract: 'sensitive-membership.v1', operation: 'role_change', previous_role: 'accountant', next_role: role, previous_active: true, next_active: true },
+      { contract: 'sensitive-membership.v1', operation: 'member_remove', previous_role: role, next_role: null, previous_active: true, next_active: null },
+    ]);
+    for (const row of audit) {
+      assert.equal(row.actor_id, f.owner); assert.equal(row.action, 'sensitive_membership_change');
+      assert.equal(row.outcome, 'allowed'); assert.equal(row.target_type, 'company_membership');
+      assert.equal(row.actor_type, 'user'); assert.equal(row.capability, 'company.membership.change');
+      assert.equal(row.journal_id, null); assert.equal(row.posting_effect_id, null);
+    }
+    assert.equal(JSON.stringify(audit).includes(target), false);
+    assert.equal(JSON.stringify(audit).includes('synthetic-private-note'), false);
+  }
+  assert.equal((await pool.query('SELECT count(*)::int n FROM canonical_journal_entries WHERE company_id=$1', [f.company])).rows[0].n, 0);
+});
+
+test("specialised invitation, self-removal and company deletion retain redacted audit after membership deletion", async () => {
+  const f = await fixture(), target = `synthetic-invitee-${randomUUID()}`, email = `synthetic-${randomUUID()}@example.test`;
+  emailIdentities.set(email, target);
+  const invited = await request(`/${f.company}/invite`, 'POST', { email, role: 'personal_tax_preparer' }, f.owner);
+  assert.equal(invited.status, 201, invited.body); const member = JSON.parse(invited.body).member;
+  assert.equal((await request(`/${f.company}/members/${target}`, 'DELETE', undefined, target)).status, 200);
+  let events = await sensitiveAudit(f.company);
+  assert.deepEqual(events.map(row => row.context.operation), ['member_invite', 'member_remove']);
+  assert.deepEqual(events.map(row => row.target_id), [member.id, member.id]);
+  assert.deepEqual(events.map(row => row.actor_id), [f.owner, target]);
+  assert.equal(JSON.stringify(events).includes(email), false);
+  const active = `synthetic-delete-${randomUUID()}`, inactive = `synthetic-inactive-${randomUUID()}`;
+  await addMember(f.company, active, 'payroll_preparer'); await addMember(f.company, inactive, 'personal_tax_submitter', false);
+  await addMember(f.company, `synthetic-bookkeeper-${randomUUID()}`, 'accountant');
+  const removedIds = (await pool.query("SELECT id FROM company_users WHERE company_id=$1 AND role IN ('payroll_preparer','personal_tax_submitter') ORDER BY id", [f.company])).rows.map(row => row.id);
+  assert.equal((await request(`/${f.company}`, 'DELETE', undefined, f.owner)).status, 200);
+  assert.equal((await pool.query('SELECT id FROM companies WHERE id=$1', [f.company])).rowCount, 0);
+  assert.equal((await pool.query('SELECT id FROM company_users WHERE company_id=$1', [f.company])).rowCount, 0);
+  events = (await sensitiveAudit(f.company)).filter(row => row.context.operation === 'company_delete');
+  assert.deepEqual(events.map(row => row.target_id).sort(), removedIds);
+  assert.deepEqual(events.map(row => row.context.previous_active).sort(), [false, true]);
+  assert.ok(events.every(row => row.actor_id === f.owner && row.context.next_role === null && row.context.next_active === null));
+  assert.equal(JSON.stringify(events).includes(active), false); assert.equal(JSON.stringify(events).includes(inactive), false);
+});
+
+test("same-role, denied and bookkeeping-only membership paths produce no sensitive audit or new audit dependency", async () => {
+  const f = await fixture(), other = await fixture(), specialist = `synthetic-specialist-${randomUUID()}`, ordinary = `synthetic-ordinary-${randomUUID()}`;
+  await addMember(f.company, specialist, 'payroll_reader'); identities.add(ordinary);
+  // A broken sensitive-audit prerequisite must not change ordinary bookkeeping permissions.
+  await admin.query('ALTER TABLE public.accounting_audit_events DISABLE TRIGGER ledgerly_accounting_audit_events_guard');
+  try {
+    assert.equal((await request(`/${f.company}/members/${specialist}`, 'PUT', { role: 'payroll_reader' }, f.owner)).status, 200);
+    for (const actor of [specialist, other.owner]) {
+      assert.equal((await request(`/${f.company}/members/${specialist}`, 'PUT', { role: 'payroll_preparer' }, actor)).status, 403);
+      assert.equal((await request(`/${f.company}/members`, 'POST', { user_id: ordinary, role: 'payroll_preparer' }, actor)).status, 403);
+      assert.equal((await request(`/${f.company}`, 'DELETE', undefined, actor)).status, 403);
+    }
+    assert.equal((await request(`/${f.company}/members`, 'POST', { user_id: specialist, role: 'payroll_reader' }, f.owner)).status, 409);
+    assert.equal((await request(`/${f.company}/members/${f.owner}`, 'PUT', { role: 'payroll_reader' }, f.owner)).status, 409);
+    assert.equal((await request(`/${f.company}/members`, 'POST', { user_id: ordinary, role: 'accountant' }, f.owner)).status, 201);
+    assert.equal((await request(`/${f.company}`, 'PUT', { name: 'Ordinary company edit' }, ordinary)).status, 200);
+    assert.equal((await request(`/${f.company}/members/${ordinary}`, 'PUT', { role: 'member' }, f.owner)).status, 200);
+    assert.equal((await request(`/${f.company}/members/${ordinary}`, 'DELETE', undefined, ordinary)).status, 200);
+    assert.equal((await request(`/${other.company}`, 'DELETE', undefined, other.owner)).status, 200);
+    assert.deepEqual(await sensitiveAudit(f.company), []); assert.deepEqual(await sensitiveAudit(other.company), []);
+  } finally { await admin.query('ALTER TABLE public.accounting_audit_events ENABLE ALWAYS TRIGGER ledgerly_accounting_audit_events_guard'); }
+});
+
+test("audit exception or silently skipped insert rolls back every specialised membership mutation and redacts diagnostics", async () => {
+  for (const failure of ['exception', 'skip']) {
+    await admin.query(`CREATE FUNCTION public.synthetic_membership_audit_failure() RETURNS trigger LANGUAGE plpgsql AS $$
+      BEGIN IF NEW.action='sensitive_membership_change' THEN ${failure === 'skip' ? 'RETURN NULL;' : "RAISE EXCEPTION 'synthetic-private-membership-diagnostic';"} END IF; RETURN NEW; END $$`);
+    await admin.query('CREATE TRIGGER synthetic_membership_audit_failure BEFORE INSERT ON public.accounting_audit_events FOR EACH ROW EXECUTE FUNCTION public.synthetic_membership_audit_failure()');
+    try {
+      for (const operation of ['add', 'invite', 'change', 'remove', 'self_remove', 'company_delete']) {
+        const f = await fixture(), target = `synthetic-failure-target-${randomUUID()}`, email = `synthetic-${randomUUID()}@example.test`;
+        identities.add(target); emailIdentities.set(email, target);
+        if (operation === 'change') await addMember(f.company, target, 'member');
+        if (['remove', 'self_remove', 'company_delete'].includes(operation)) await addMember(f.company, target, 'payroll_reader');
+        const snapshot = async () => ({
+          company: (await pool.query('SELECT * FROM companies WHERE id=$1', [f.company])).rows,
+          members: (await pool.query('SELECT * FROM company_users WHERE company_id=$1 ORDER BY id', [f.company])).rows,
+        });
+        const before = await snapshot();
+        const response = operation === 'add' ? await request(`/${f.company}/members`, 'POST', { user_id: target, role: 'payroll_reader' }, f.owner)
+          : operation === 'invite' ? await request(`/${f.company}/invite`, 'POST', { email, role: 'personal_tax_preparer' }, f.owner)
+          : operation === 'change' ? await request(`/${f.company}/members/${target}`, 'PUT', { role: 'payroll_preparer' }, f.owner)
+          : operation === 'company_delete' ? await request(`/${f.company}`, 'DELETE', undefined, f.owner)
+          : await request(`/${f.company}/members/${target}`, 'DELETE', undefined, operation === 'self_remove' ? target : f.owner);
+        assert.equal(response.status, 503, `${failure}/${operation}: ${response.body}`);
+        assert.equal(response.body.includes('synthetic-private'), false); assert.equal(response.body.includes(email), false);
+        assert.deepEqual(await snapshot(), before, `${failure}/${operation} must roll back`);
+        assert.deepEqual(await sensitiveAudit(f.company), []);
+      }
+      assert.equal(JSON.stringify(logs).includes('synthetic-private-membership-diagnostic'), false);
+    } finally {
+      await admin.query('DROP TRIGGER synthetic_membership_audit_failure ON public.accounting_audit_events');
+      await admin.query('DROP FUNCTION public.synthetic_membership_audit_failure()');
+    }
+  }
+});
+
+test("unprotected audit storage blocks specialised grants atomically", async () => {
+  const f = await fixture(), target = `synthetic-unprotected-${randomUUID()}`; identities.add(target);
+  const run = () => request(`/${f.company}/members`, 'POST', { user_id: target, role: 'payroll_preparer' }, f.owner);
+  await admin.query('ALTER TABLE public.accounting_audit_events DISABLE TRIGGER ledgerly_accounting_audit_events_guard');
+  try { assert.equal((await run()).status, 503); }
+  finally { await admin.query('ALTER TABLE public.accounting_audit_events ENABLE ALWAYS TRIGGER ledgerly_accounting_audit_events_guard'); }
+  await admin.query('GRANT UPDATE(actor_id) ON public.accounting_audit_events TO ledgerly_api');
+  try { assert.equal((await run()).status, 503); }
+  finally { await admin.query('REVOKE UPDATE(actor_id) ON public.accounting_audit_events FROM ledgerly_api'); }
+  assert.equal((await pool.query('SELECT id FROM company_users WHERE company_id=$1 AND user_id=$2', [f.company, target])).rowCount, 0);
+  assert.deepEqual(await sensitiveAudit(f.company), []);
+});
+
+test("silently skipped company deletion restores memberships and rolls back their audit events", async () => {
+  const f = await fixture(), target = `synthetic-delete-skip-${randomUUID()}`;
+  await addMember(f.company, target, 'payroll_preparer');
+  const before = (await pool.query('SELECT * FROM company_users WHERE company_id=$1 ORDER BY id', [f.company])).rows;
+  await admin.query(`CREATE FUNCTION public.synthetic_company_delete_skip() RETURNS trigger LANGUAGE plpgsql AS $$
+    BEGIN IF OLD.id='${f.company}'::uuid THEN RETURN NULL; END IF; RETURN OLD; END $$`);
+  await admin.query('CREATE TRIGGER synthetic_company_delete_skip BEFORE DELETE ON public.companies FOR EACH ROW EXECUTE FUNCTION public.synthetic_company_delete_skip()');
+  try {
+    assert.equal((await request(`/${f.company.toUpperCase()}`, 'DELETE', undefined, f.owner)).status, 503);
+    assert.deepEqual((await pool.query('SELECT * FROM company_users WHERE company_id=$1 ORDER BY id', [f.company])).rows, before);
+    assert.equal((await pool.query('SELECT id FROM companies WHERE id=$1', [f.company])).rowCount, 1);
+    assert.deepEqual(await sensitiveAudit(f.company), []);
+  } finally {
+    await admin.query('DROP TRIGGER synthetic_company_delete_skip ON public.companies');
+    await admin.query('DROP FUNCTION public.synthetic_company_delete_skip()');
+  }
+  assert.equal((await request(`/${f.company.toUpperCase()}`, 'DELETE', undefined, f.owner)).status, 200);
+  assert.equal((await sensitiveAudit(f.company)).length, 1);
+});
+
+test("specialised grants recheck owner authority after a concurrent revocation wins the company lock", async () => {
+  const f = await fixture(), target = `synthetic-delayed-grant-${randomUUID()}`; identities.add(target);
+  const blocker = await admin.connect(); let pending: ReturnType<typeof request> | undefined;
+  try {
+    await blocker.query('BEGIN'); const { rows: [{ pid }] } = await blocker.query('SELECT pg_backend_pid() pid');
+    await blocker.query('SELECT id FROM companies WHERE id=$1 FOR UPDATE', [f.company]);
+    pending = request(`/${f.company}/members`, 'POST', { user_id: target, role: 'payroll_preparer' }, f.owner);
+    const deadline = Date.now() + 5000; let waiting = false;
+    while (Date.now() < deadline) {
+      waiting = (await admin.query("SELECT EXISTS(SELECT 1 FROM pg_stat_activity WHERE usename='ledgerly_api' AND $1::int=ANY(pg_blocking_pids(pid))) waiting", [pid])).rows[0].waiting;
+      if (waiting) break; await new Promise(resolve => setTimeout(resolve, 10));
+    }
+    assert.equal(waiting, true);
+    await blocker.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2', [f.company, f.owner]);
+    await blocker.query('COMMIT'); assert.equal((await pending).status, 403);
+    assert.equal((await pool.query('SELECT id FROM company_users WHERE company_id=$1 AND user_id=$2', [f.company, target])).rowCount, 0);
+    assert.deepEqual(await sensitiveAudit(f.company), []);
+  } finally { await blocker.query('ROLLBACK'); blocker.release(); if (pending) await pending; }
+});
+
+test("silently skipped sensitive read audit cannot disclose results or commit local writes", async () => {
+  const f = await fixture(); let disclosed = false;
+  await admin.query(`CREATE FUNCTION public.synthetic_sensitive_audit_skip() RETURNS trigger LANGUAGE plpgsql AS $$
+    BEGIN IF NEW.company_id='${f.company}'::uuid THEN RETURN NULL; END IF; RETURN NEW; END $$`);
+  await admin.query('CREATE TRIGGER synthetic_sensitive_audit_skip BEFORE INSERT ON public.accounting_audit_events FOR EACH ROW EXECUTE FUNCTION public.synthetic_sensitive_audit_skip()');
+  try {
+    await assert.rejects(() => withPayrollAccess(sensitiveRequest(f.company, f.owner, 'payroll.read'), async context => {
+      await context.query("UPDATE public.companies SET name='Uncommitted private change' WHERE id=$1", [f.company]);
+      return 'synthetic-private-result';
+    }).then(result => { disclosed = true; return result; }), /SENSITIVE_OPERATION_UNAVAILABLE/);
+    assert.equal(disclosed, false);
+    assert.equal((await pool.query('SELECT name FROM companies WHERE id=$1', [f.company])).rows[0].name, 'Synthetic security fixture');
+    assert.deepEqual(await sensitiveAudit(f.company), []);
+  } finally {
+    await admin.query('DROP TRIGGER synthetic_sensitive_audit_skip ON public.accounting_audit_events');
+    await admin.query('DROP FUNCTION public.synthetic_sensitive_audit_skip()');
+  }
+  console.log('SENSITIVE_MEMBERSHIP_AUDIT_ACCEPTANCE', JSON.stringify({ grantsAndTransitions: true, invitation: true, selfRemoval: true,
+    companyDeletion: true, atomicRollback: true, silentSkipDenied: true, bookkeepingUnchanged: true, piiRedacted: true }));
 });
