@@ -1,0 +1,36 @@
+{
+  "evidence": {
+    "summary": "Current owners explicitly review dated changes to specialist membership roles and active status in their company, with bounded native history, audited reads and scoped state clearing.",
+    "reviewer": "root",
+    "reviewed": true,
+    "commit": "ffccacfc37ca4ed89b8237e5031a77dac5d53a68",
+    "integratedCommit": "ac5815c732e813211d62d712110fa547148da0c9",
+    "tests": [
+      {
+        "command": "Integrated build, typechecks and combined regression suite",
+        "passed": true
+      },
+      {
+        "command": "GitHub Actions 44357722911 on identical source tree, including native Chromium access history, audited refresh, stale response isolation, denied access and populated restore checks",
+        "passed": true
+      }
+    ]
+  },
+  "outcome": {
+    "id": "owner-access-history-screen-20261118",
+    "scenario": "Current owners explicitly review dated changes to specialist membership roles and active status in their company, with bounded native history, audited reads and scoped state clearing.",
+    "integratedCommit": "ac5815c732e813211d62d712110fa547148da0c9",
+    "criteria": [
+      0,
+      1
+    ],
+    "remaining": [
+      "Qualify remaining employee identifier, bank, personal-tax and export workflows.",
+      "Connect and qualify remaining specialist access workflows."
+    ],
+    "nextAction": "Define the first company-scoped personal-tax preparation record and qualify role-specific reads and protected audit receipts."
+  },
+  "queueRevision": 951,
+  "remainingParent": true,
+  "credits": null
+}
