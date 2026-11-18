@@ -1,0 +1,36 @@
+[
+  {
+    "task": "P02-04",
+    "authorCommit": "8a218dedf5786fe2376ab6690164f4087578d7cb",
+    "id": "sensitive-role-audited-boundary-20261118",
+    "scenario": "Native membership-controlled specialized payroll/personal-tax rights and internal transaction boundary; current-role revocation fencing, wrong-role/company denial and atomic redacted audit before disclosure. Synthetic native transaction scenarios, with no sensitive-record endpoint claimed.",
+    "criteria": [
+      0,
+      1
+    ],
+    "remaining": [
+      "Wire actual native salary, identifier, bank-data and personal-tax record reads, exports, preparation, approval and submission to these boundaries with record ownership and field projection. Those sensitive record schemas/routes are not implemented by this outcome.",
+      "Audit specialized role assignment/removal in the existing native membership flow and provide appropriate sensitive audit retrieval and UI choices.",
+      "External submission requires separately reviewed payload, consent, identity, idempotency and provider authority; no network operation is authorized by the local permission.",
+      "Qualify the connected customer workflows before full P02-04 acceptance."
+    ],
+    "nextAction": "Reconcile P02-02 ownership and arrange an explicit narrow nonoverlapping lease for role-assignment auditing in the existing membership flow; implement and qualify that real route before adding more access abstractions. Wire native sensitive record paths as their actual schemas/producers become available."
+  },
+  {
+    "task": "P04-03",
+    "authorCommit": "1fc2281c28fbc7b7c7059d920e966774dfabf349",
+    "id": "independent-plan1-weekly-fixtures-20261118",
+    "scenario": "Independently checked pinned official2026-27Plan1 weekly examples, six additional arithmetic boundaries and12conditional synthetic notice scenarios; unsupported contexts fail explicitly and original case remains unqualified.",
+    "criteria": [
+      0,
+      1
+    ],
+    "remaining": [
+      "Extend independent official-example/calculation fixture coverage across the remaining declared tax/payroll families, plans, periods and supported years, including genuine refunds, losses, corrections and year transitions.",
+      "Obtain applicable professional payroll/accountant review; automated independent source review is not professional sign-off.",
+      "Qualify genuine notice provenance and actual employer practical-payday evidence separately from authored synthetic facts.",
+      "Keep P04-02 and all other existing engine prerequisites unchanged; this bounded pack does not qualify a production engine or close full P04-03."
+    ],
+    "nextAction": "Prepare the next source-pinned NI/PAYE fixture slice with independently derived boundary and refund/correction/year-transition expectations, retaining explicit unsupported cases. Use the full declared-case coverage map to choose the next slice and avoid repeatedly revalidating already accepted Plan1 weekly fixtures."
+  }
+]

@@ -1,0 +1,213 @@
+{
+  "source": "3de4c5de8f0f6414cef14ef5589f28b4b6c3e994",
+  "tree": "58ab00801fc097080625a7e684277e6a2586bb3e",
+  "checkout": "a7a361bae13e6c01a83f92f301c8aa435a28e687",
+  "checkoutTree": "58ab00801fc097080625a7e684277e6a2586bb3e",
+  "run": 44329382408,
+  "job": 134889313211,
+  "url": "https://github.com/Future00111/ledgerpoint/actions/runs/44329382408",
+  "observedAt": "2026-11-18T14:57:52.898Z",
+  "jobs": [
+    {
+      "id": 134889313211,
+      "name": "Current source and disposable accounting checks",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 44329382408,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Use pinned pnpm",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Install the locked workspace",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Build and typecheck",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Unit, permission, precision and UI regression",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Validate pinned migration inputs",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "Prepare disposable PostgreSQL binaries",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "Prepare installed Chrome for isolated browser acceptance",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Accounting API, security, atomicity and restore regression",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Encrypted recovery unit controls",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Encrypted disposable PostgreSQL recovery rehearsal",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        },
+        {
+          "name": "Verify encrypted recovery cleanup",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Verify exact-source encrypted recovery evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15
+        },
+        {
+          "name": "Verify isolated cleanup",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16
+        },
+        {
+          "name": "Verify current-run restore evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17
+        },
+        {
+          "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 33
+        },
+        {
+          "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 34
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 35
+        }
+      ]
+    }
+  ],
+  "reviewer": "root",
+  "independent": true,
+  "verifiedAt": "2026-11-18T14:58:16.925520+00:00",
+  "exactTreesMatched": true,
+  "all20StepsSuccessUnskipped": true,
+  "localCombinedTests": 1132,
+  "newNativeSensitiveScenarios": 6,
+  "nativeSensitiveAcceptance": {
+    "currentMembership": true,
+    "distinctRights": true,
+    "auditAtomicity": true,
+    "revokedBeforeCallback": true,
+    "protectedAuditRequired": true,
+    "nativeRecordRoutesPending": true
+  },
+  "fixtureFocusedTests": 38,
+  "officialArithmeticRows": 6,
+  "additionalArithmeticRows": 6,
+  "conditionalNoticeRows": 12,
+  "unsupportedContexts": 10,
+  "migrationsUnchanged": true,
+  "protectedOverlayUnchanged": true,
+  "sourceRegisterUnchanged": true,
+  "authorsStopped": true,
+  "worktreesClean": true,
+  "fullParentAcceptance": false,
+  "productionQualification": false,
+  "outcomes": [
+    {
+      "task": "P02-04",
+      "authorCommit": "8a218dedf5786fe2376ab6690164f4087578d7cb",
+      "id": "sensitive-role-audited-boundary-20261118",
+      "scenario": "Native membership-controlled specialized payroll/personal-tax rights and internal transaction boundary; current-role revocation fencing, wrong-role/company denial and atomic redacted audit before disclosure. Synthetic native transaction scenarios, with no sensitive-record endpoint claimed.",
+      "criteria": [
+        0,
+        1
+      ],
+      "remaining": [
+        "Wire actual native salary, identifier, bank-data and personal-tax record reads, exports, preparation, approval and submission to these boundaries with record ownership and field projection. Those sensitive record schemas/routes are not implemented by this outcome.",
+        "Audit specialized role assignment/removal in the existing native membership flow and provide appropriate sensitive audit retrieval and UI choices.",
+        "External submission requires separately reviewed payload, consent, identity, idempotency and provider authority; no network operation is authorized by the local permission.",
+        "Qualify the connected customer workflows before full P02-04 acceptance."
+      ],
+      "nextAction": "Reconcile P02-02 ownership and arrange an explicit narrow nonoverlapping lease for role-assignment auditing in the existing membership flow; implement and qualify that real route before adding more access abstractions. Wire native sensitive record paths as their actual schemas/producers become available."
+    },
+    {
+      "task": "P04-03",
+      "authorCommit": "1fc2281c28fbc7b7c7059d920e966774dfabf349",
+      "id": "independent-plan1-weekly-fixtures-20261118",
+      "scenario": "Independently checked pinned official2026-27Plan1 weekly examples, six additional arithmetic boundaries and12conditional synthetic notice scenarios; unsupported contexts fail explicitly and original case remains unqualified.",
+      "criteria": [
+        0,
+        1
+      ],
+      "remaining": [
+        "Extend independent official-example/calculation fixture coverage across the remaining declared tax/payroll families, plans, periods and supported years, including genuine refunds, losses, corrections and year transitions.",
+        "Obtain applicable professional payroll/accountant review; automated independent source review is not professional sign-off.",
+        "Qualify genuine notice provenance and actual employer practical-payday evidence separately from authored synthetic facts.",
+        "Keep P04-02 and all other existing engine prerequisites unchanged; this bounded pack does not qualify a production engine or close full P04-03."
+      ],
+      "nextAction": "Prepare the next source-pinned NI/PAYE fixture slice with independently derived boundary and refund/correction/year-transition expectations, retaining explicit unsupported cases. Use the full declared-case coverage map to choose the next slice and avoid repeatedly revalidating already accepted Plan1 weekly fixtures."
+    }
+  ],
+  "logSanitization": "GitHub masked credentials; raw coordinator/worker tokens and recognizable credential/private-key patterns absent. Hashed identifiers and workflow history retained under user authorization.",
+  "logSha256": "2dc1e28929272663543695e98fc7c1673f34dd115001990c2c094b5af93522b4",
+  "usageCredits": null,
+  "firstPublishedCiPassed": true,
+  "rework": {
+    "access": "Three root review corrections applied before submission; initial ad hoc logger-external bundle failure and TS narrowing corrected before final checks.",
+    "fixture": "No source corrections requested; exact patch export required one additional text handoff."
+  }
+}

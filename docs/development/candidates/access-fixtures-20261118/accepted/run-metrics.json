@@ -1,0 +1,59 @@
+{
+  "run": "access-fixtures-20261118",
+  "startedAt": "2026-11-18T14:36:15.627Z",
+  "qualifiedAt": "2026-11-18T14:58:16.925520+00:00",
+  "recordedAt": "2026-11-18T14:59:08.850533+00:00",
+  "elapsedMinutes": 22.89,
+  "boundedOutcomesAccepted": 2,
+  "newFullParentsAccepted": 0,
+  "newEndToEndCustomerJourneysAccepted": 0,
+  "originalRequirementBullets": 92,
+  "catalogueTasks": 112,
+  "queueRevision": 922,
+  "providers": {
+    "Codex": {
+      "task": "P02-04",
+      "implemented": true,
+      "stopped": true,
+      "credits": null,
+      "rootReviewCorrections": 3,
+      "firstSubmittedCandidateAccepted": true
+    },
+    "Replit": {
+      "task": "P04-03",
+      "implemented": true,
+      "isolated": true,
+      "exactExportVerified": true,
+      "stopped": true,
+      "credits": null,
+      "rootSourceCorrections": 0,
+      "firstSubmittedCandidateAccepted": true
+    }
+  },
+  "independentReview": "root; neither author self-approved",
+  "firstPublishedCiPassed": true,
+  "ciRuns": 1,
+  "combinedLocalChecks": 1,
+  "combinedLocalBuilds": 1,
+  "nativeChecks": "GitHub exacttree CI; no local PostgreSQL available",
+  "creditsPerAcceptedWorkflow": null,
+  "creditMeasure": "Unavailable; no saving or provider-efficiency claim inferred from test counts.",
+  "rework": [
+    "Access: pre-submission runtime freeze/public schema/column UPDATE review findings corrected.",
+    "Author local route bundle initially omitted existing logger externals; corrected command without weakening source.",
+    "Replit patch required one complete text export request; byte/hash/tree/commit identity verified."
+  ],
+  "remainingLaunchDependencies": [
+    "Connected native sensitive-record and export workflows, field projections, role-change auditing and UI.",
+    "Full supported-family fixtures and applicable professional review before original calculation-engine dependency can close.",
+    "Existing durable execution supervisor, scheduler, provider, filing and operational recovery work remains."
+  ],
+  "nextAssignments": {
+    "P02-04": "Reconcile P02-02 ownership and arrange an explicit narrow nonoverlapping lease for role-assignment auditing in the existing membership flow; implement and qualify that real route before adding more access abstractions. Wire native sensitive record paths as their actual schemas/producers become available.",
+    "P04-03": "Prepare the next source-pinned NI/PAYE fixture slice with independently derived boundary and refund/correction/year-transition expectations, retaining explicit unsupported cases. Use the full declared-case coverage map to choose the next slice and avoid repeatedly revalidating already accepted Plan1 weekly fixtures."
+  },
+  "fullScopePreserved": true,
+  "merges": 0,
+  "deployments": 0,
+  "productionChanges": 0
+}
