@@ -1,5 +1,6 @@
 import { recordId } from './model.mjs';
 import { taxPermissions, validateTaxIntent, validateTaxReceipt, validateTaxRecord } from './taxModel.mjs';
+import { canExportTax, TAX_CSV_FILENAME, validateTaxCsv } from './taxExport.mjs';
 
 export class TaxPreparationsError extends Error {
   constructor(status = 0, code) { super('The tax input request could not be completed.'); this.status = status; this.code = code; }
@@ -24,6 +25,25 @@ export function createTaxPreparationsClient(fetcher = (...args) => fetch(...args
     }
   };
   return {
+    async exportCsv(company, record, role, signal) {
+      if (!canExportTax(role)) throw new TaxPreparationsError(403);
+      try {
+        const canonicalCompany = recordId(company), canonical = recordId(record.id);
+        const response = await fetcher(`${base(canonicalCompany)}/${canonical}/export.csv`, {
+          method: 'GET', credentials: 'include', cache: 'no-store', redirect: 'error', signal,
+        });
+        if (response.status !== 200) throw new TaxPreparationsError(response.status);
+        if (response.headers.get('content-type')?.toLowerCase() !== 'text/csv; charset=utf-8' ||
+            response.headers.get('content-disposition') !== `attachment; filename="${TAX_CSV_FILENAME}"` ||
+            response.headers.get('cache-control') !== 'no-store' ||
+            response.headers.get('x-personal-tax-company') !== canonicalCompany ||
+            response.headers.get('x-personal-tax-record') !== canonical) throw new TaxPreparationsError();
+        return validateTaxCsv(await response.text(), record);
+      } catch (error) {
+        if (error instanceof TaxPreparationsError) throw error;
+        throw new TaxPreparationsError();
+      }
+    },
     create(company, intent, signal) {
       const body = validateTaxIntent(intent);
       return call(base(company), { method: 'POST', signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) },

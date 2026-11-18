@@ -34,7 +34,7 @@ before(async () => {
   app.get('/pay-ui-bundle', (_req,res) => res.type('application/javascript').send(payBrowserScript));
   app.post('/pay-ui-result', (req,res) => {
     if (!reportPayBrowser) { res.sendStatus(404); return; }
-    const stage = ['entry','retry','reader','company-change','initial','history','refresh','scope','empty','denial'].includes(req.body?.stage) ? req.body.stage : 'unknown';
+    const stage = ['entry','retry','csv-download','reader','company-change','initial','history','refresh','scope','empty','denial'].includes(req.body?.stage) ? req.body.stage : 'unknown';
     reportPayBrowser({ok: req.body?.ok === true, stage}); res.sendStatus(200);
   });
   app.use(createCompaniesRouter((req, res, next) => {
@@ -1334,7 +1334,7 @@ test("personal tax records deny bookkeeping, payroll, inactive, ambiguous, unkno
   assert.deepEqual(await taxReadAudits(f.company), []);
 });
 
-test("personal tax read paths reject malformed IDs and overrides and expose no list, record mutation, export or submit endpoints", async () => {
+test("personal tax read paths reject malformed IDs and overrides and expose no list, record mutation, legacy export or submit endpoints", async () => {
   const f = await taxPreparationFixture();
   for (const suffix of ['?role=owner', '?fields=taxpayer_id', '?action=personal_tax.submit', `?company_id=${randomUUID()}`, '?tax_year_start=2027']) {
     const response = await request(taxPreparationPath(f.company, f.id) + suffix, 'GET', undefined, f.owner);
@@ -1695,7 +1695,7 @@ test("tax creation fails closed on unsafe function grants and unknown or null co
   assert.equal((await request(taxCreatePath(f.company), 'POST', body, f.owner)).status, 201);
 });
 
-test("Chromium personal tax entry retries a committed input and limits the submitter readback after a company change", async () => {
+test("Chromium personal tax entry retries a committed input, downloads its audited CSV and limits submitter readback", async () => {
   const f = await fixture(), other = await fixture(), taxpayer = randomUUID();
   const preparer = 'synthetic-tax-preparer-' + randomUUID(), submitter = 'synthetic-tax-submitter-' + randomUUID();
   await addMember(f.company, preparer, 'personal_tax_preparer');
@@ -1708,5 +1708,159 @@ test("Chromium personal tax entry retries a committed input and limits the submi
   assert.deepEqual(await storedTaxInputs(other.company), []);
   assert.equal((await taxCreationAudits(f.company)).length, 1);
   assert.equal((await taxPrepareAudits(f.company)).length, 2);
+  const exports = (await sensitiveAudit(f.company)).filter(row => row.capability === 'personal_tax.export');
+  assert.deepEqual(exports.map(row => row.actor_id), [preparer]);
   assert.ok((await taxReadAudits(f.company)).some(row => row.actor_id === submitter));
+});
+
+const taxExportPath = (company: string, id: string) => `${taxPreparationPath(company, id)}/export.csv`;
+const taxExportAudits = async (company: string) => (await sensitiveAudit(company)).filter(row => row.action === 'sensitive_access' && row.capability === 'personal_tax.export');
+const expectedTaxCsv = (year: number, amount: string) => `tax_year_start,employment_income_pence,currency\r\n${year},${amount},GBP\r\n`;
+async function taxExportRequest(path: string, actor?: string, method = 'GET', headers: Record<string, string> = {}) {
+  const response = await fetch(base + path, { method, headers: { ...(actor ? { 'x-test-actor': actor } : {}), ...headers } });
+  return { status: response.status, body: await response.text(), headers: response.headers };
+}
+function assertNoTaxAttachment(response: Awaited<ReturnType<typeof taxExportRequest>>) {
+  assert.equal(response.headers.get('cache-control'), 'no-store');
+  for (const key of ['content-disposition', 'x-personal-tax-company', 'x-personal-tax-record']) assert.equal(response.headers.get(key), null);
+}
+
+test('native tax CSV export uses its own permission and exact fixed fields, then commits a redacted export receipt', async () => {
+  for (const [year, amount] of [[1, '0'], [2026, '9007199254740993'], [9998, '9223372036854775807']] as const) {
+    const f = await taxPreparationFixture(amount, year), preparer = 'synthetic-export-preparer-' + randomUUID();
+    identities.add(preparer);
+    assert.equal((await request(`/${f.company}/members`, 'POST', { user_id: preparer, role: 'personal_tax_preparer' }, f.owner)).status, 201);
+    for (const [actor, role] of [[f.owner, 'owner'], [preparer, 'personal_tax_preparer']] as const) {
+      const response = await taxExportRequest(taxExportPath(f.company.toUpperCase(), f.id.toUpperCase()), actor);
+      assert.equal(response.status, 200); assert.equal(response.body, expectedTaxCsv(year, amount));
+      assert.equal(response.headers.get('content-type'), 'text/csv; charset=utf-8');
+      assert.equal(response.headers.get('content-disposition'), 'attachment; filename="personal-tax-input.csv"');
+      assert.equal(response.headers.get('cache-control'), 'no-store');
+      assert.equal(response.headers.get('x-personal-tax-company'), f.company); assert.equal(response.headers.get('x-personal-tax-record'), f.id);
+      assert.equal(response.headers.get('content-length'), String(Buffer.byteLength(response.body)));
+      assert.equal(response.headers.get('etag'), null);
+      assert.deepEqual((await taxExportAudits(f.company)).find(row => row.actor_id === actor), {
+        action: 'sensitive_access', outcome: 'allowed', target_type: 'personal_tax_resource', target_id: f.id,
+        actor_type: 'user', actor_id: actor, capability: 'personal_tax.export', context: { contract: 'sensitive-access.v1', role }, journal_id: null, posting_effect_id: null,
+      });
+    }
+    assert.equal((await taxExportAudits(f.company)).length, 2); assert.deepEqual(await taxReadAudits(f.company), []);
+  }
+});
+
+test('tax export excludes taxpayer at SQL and scopes equal record IDs to the currently authorised company', async () => {
+  const f = await taxPreparationFixture(), other = await taxPreparationFixture('7654321', 2025, f.id);
+  await addMember(other.company, f.owner, 'personal_tax_preparer');
+  await admin.query('ALTER TABLE public.personal_tax_preparations RENAME COLUMN taxpayer_id TO synthetic_export_taxpayer_hidden');
+  try {
+    for (const current of [f, other]) {
+      const response = await taxExportRequest(taxExportPath(current.company, current.id), f.owner);
+      assert.equal(response.status, 200); assert.equal(response.body, expectedTaxCsv(current.year, current.amount));
+    }
+  } finally { await admin.query('ALTER TABLE public.personal_tax_preparations RENAME COLUMN synthetic_export_taxpayer_hidden TO taxpayer_id'); }
+  for (const [company, id, actor] of [[f.company, f.id, other.owner], [other.company, randomUUID(), f.owner], [randomUUID(), f.id, f.owner]]) {
+    const response = await taxExportRequest(taxExportPath(company!, id!), actor!);
+    assert.equal(response.status, 403); assertNoTaxAttachment(response); assert.deepEqual(JSON.parse(response.body), taxDeniedBody);
+  }
+  assert.equal((await taxExportAudits(f.company)).length, 1); assert.equal((await taxExportAudits(other.company)).length, 1);
+});
+
+test('tax submitters cannot export; bookkeeping, payroll, inactive, unknown, ambiguous and unauthenticated export requests disclose nothing', async () => {
+  const f = await taxPreparationFixture(), other = await fixture(), actors = [other.owner];
+  for (const role of ['personal_tax_submitter', 'admin', 'accountant', 'staff', 'member', 'read_only', 'payroll_reader', 'payroll_preparer', 'payroll_approver', 'unknown', null]) {
+    const actor = 'synthetic-export-denied-' + randomUUID(); await addMember(f.company, actor, role); actors.push(actor);
+    if (role === 'personal_tax_submitter') assert.equal((await request(taxPreparationPath(f.company, f.id), 'GET', undefined, actor)).status, 200);
+  }
+  for (const active of [false, null]) {
+    const actor = 'synthetic-export-inactive-' + randomUUID(); await addMember(f.company, actor, 'personal_tax_preparer', active); actors.push(actor);
+  }
+  const ambiguous = 'synthetic-export-ambiguous-' + randomUUID();
+  await addMember(f.company, ambiguous, 'personal_tax_preparer'); await addMember(f.company, ambiguous, 'owner', false); actors.push(ambiguous);
+  const anonymous = await taxExportRequest(taxExportPath(f.company, f.id));
+  assert.equal(anonymous.status, 401); assertNoTaxAttachment(anonymous);
+  for (const actor of actors) {
+    const response = await taxExportRequest(taxExportPath(f.company, f.id), actor);
+    assert.equal(response.status, 403); assertNoTaxAttachment(response); assert.deepEqual(JSON.parse(response.body), taxDeniedBody);
+  }
+  assert.deepEqual(await taxExportAudits(f.company), []);
+});
+
+test('tax export rejects HEAD and overrides without receipts; conditional GET still returns a fresh audited CSV', async () => {
+  const f = await taxPreparationFixture();
+  const head = await taxExportRequest(taxExportPath(f.company, f.id), f.owner, 'HEAD');
+  assert.equal(head.status, 405); assert.equal(head.body, ''); assert.equal(head.headers.get('allow'), 'GET'); assertNoTaxAttachment(head);
+  for (const suffix of ['?role=owner', '?fields=taxpayer_id', '?action=personal_tax.read', `?company_id=${randomUUID()}`]) {
+    const response = await taxExportRequest(taxExportPath(f.company, f.id) + suffix, f.owner);
+    assert.equal(response.status, 400); assertNoTaxAttachment(response);
+    assert.deepEqual(JSON.parse(response.body), { error: 'Unable to complete this request. Please try again.', code: 'SENSITIVE_REQUEST_INVALID' });
+  }
+  for (const [company, id] of [['not-a-company', f.id], [f.company, 'not-a-record'], [f.company, '00000000-0000-0000-0000-000000000000']]) {
+    const response = await taxExportRequest(taxExportPath(company!, id!), f.owner);
+    assert.equal(response.status, 400); assertNoTaxAttachment(response);
+  }
+  for (const method of ['POST', 'PUT', 'DELETE']) {
+    const response = await taxExportRequest(taxExportPath(f.company, f.id), f.owner, method);
+    assert.equal(response.status, 404); assertNoTaxAttachment(response);
+  }
+  assert.deepEqual(await taxExportAudits(f.company), []);
+  const response = await taxExportRequest(taxExportPath(f.company, f.id), f.owner, 'GET', { 'if-none-match': '*', 'if-modified-since': 'Thu, 01 Jan 2099 00:00:00 GMT' });
+  assert.equal(response.status, 200); assert.equal(response.body, expectedTaxCsv(f.year, f.amount)); assert.equal(response.headers.get('etag'), null);
+  assert.equal((await taxExportAudits(f.company)).length, 1);
+});
+
+test('tax export rechecks revocation and demotion to read-only submitter after acquiring the company lock', async () => {
+  for (const next of ['inactive', 'personal_tax_submitter']) {
+    const f = await taxPreparationFixture(), actor = 'synthetic-export-race-' + randomUUID(); await addMember(f.company, actor, 'personal_tax_preparer');
+    const blocker = await admin.connect(); let pending: ReturnType<typeof taxExportRequest> | undefined;
+    try {
+      await blocker.query('BEGIN'); const { rows: [{ pid }] } = await blocker.query('SELECT pg_backend_pid() pid');
+      await blocker.query('SELECT id FROM public.companies WHERE id=$1 FOR UPDATE', [f.company]);
+      pending = taxExportRequest(taxExportPath(f.company, f.id), actor);
+      const deadline = Date.now() + 5000; let waiting = false;
+      while (Date.now() < deadline) {
+        waiting = (await admin.query("SELECT EXISTS(SELECT 1 FROM pg_stat_activity WHERE usename='ledgerly_api' AND $1::int=ANY(pg_blocking_pids(pid))) waiting", [pid])).rows[0].waiting;
+        if (waiting) break; await new Promise(resolve => setTimeout(resolve, 10));
+      }
+      assert.equal(waiting, true);
+      if (next === 'inactive') await blocker.query('UPDATE public.company_users SET is_active=false WHERE company_id=$1 AND user_id=$2', [f.company, actor]);
+      else await blocker.query("UPDATE public.company_users SET role='personal_tax_submitter' WHERE company_id=$1 AND user_id=$2", [f.company, actor]);
+      await blocker.query('COMMIT'); const response = await pending;
+      assert.equal(response.status, 403); assertNoTaxAttachment(response); assert.deepEqual(JSON.parse(response.body), taxDeniedBody);
+      assert.deepEqual(await taxExportAudits(f.company), []);
+    } finally { await blocker.query('ROLLBACK'); blocker.release(); if (pending) await pending; }
+  }
+});
+
+test('tax export audit exceptions and silent receipt suppression prevent CSV and success evidence', async () => {
+  for (const failure of ['exception', 'skip']) {
+    const f = await taxPreparationFixture(), before = await sensitiveAudit(f.company);
+    await admin.query(`CREATE FUNCTION public.synthetic_tax_export_audit_failure() RETURNS trigger LANGUAGE plpgsql AS $$
+      BEGIN IF NEW.company_id='${f.company}'::uuid AND NEW.capability='personal_tax.export' THEN ${failure === 'skip' ? 'RETURN NULL;' : "RAISE EXCEPTION 'synthetic-private-export-diagnostic';"} END IF; RETURN NEW; END $$`);
+    await admin.query('CREATE TRIGGER synthetic_tax_export_audit_failure BEFORE INSERT ON public.accounting_audit_events FOR EACH ROW EXECUTE FUNCTION public.synthetic_tax_export_audit_failure()');
+    try {
+      const response = await taxExportRequest(taxExportPath(f.company, f.id), f.owner);
+      assert.equal(response.status, 503); assertNoTaxAttachment(response);
+      assert.deepEqual(JSON.parse(response.body), { error: 'Unable to complete this request. Please try again.', code: 'SENSITIVE_OPERATION_UNAVAILABLE' });
+      assert.deepEqual(await sensitiveAudit(f.company), before); assert.equal(JSON.stringify(logs).includes('synthetic-private-export-diagnostic'), false);
+    } finally {
+      await admin.query('DROP TRIGGER synthetic_tax_export_audit_failure ON public.accounting_audit_events');
+      await admin.query('DROP FUNCTION public.synthetic_tax_export_audit_failure()');
+    }
+  }
+});
+
+test('tax export refuses unsafe record storage and unprotected audit before disclosure then recovers', async () => {
+  const f = await taxPreparationFixture();
+  const unavailable = async () => {
+    const response = await taxExportRequest(taxExportPath(f.company, f.id), f.owner);
+    assert.equal(response.status, 503); assertNoTaxAttachment(response);
+    assert.deepEqual(JSON.parse(response.body), { error: 'Unable to complete this request. Please try again.', code: 'SENSITIVE_OPERATION_UNAVAILABLE' });
+    assert.deepEqual(await taxExportAudits(f.company), []);
+  };
+  await admin.query('GRANT UPDATE(employment_income_pence) ON public.personal_tax_preparations TO ledgerly_api');
+  try { await unavailable(); } finally { await admin.query('REVOKE UPDATE(employment_income_pence) ON public.personal_tax_preparations FROM ledgerly_api'); }
+  await admin.query('ALTER TABLE public.accounting_audit_events DISABLE TRIGGER ledgerly_accounting_audit_events_guard');
+  try { await unavailable(); } finally { await admin.query('ALTER TABLE public.accounting_audit_events ENABLE ALWAYS TRIGGER ledgerly_accounting_audit_events_guard'); }
+  const response = await taxExportRequest(taxExportPath(f.company, f.id), f.owner);
+  assert.equal(response.status, 200); assert.equal(response.body, expectedTaxCsv(f.year, f.amount)); assert.equal((await taxExportAudits(f.company)).length, 1);
 });

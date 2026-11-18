@@ -93,4 +93,21 @@ browser storage, URL parameters or shared query caches.
 `TaxPreparations.jsx` is the context wrapper; `TaxPreparationsWorkspace.jsx`
 exports the same reusable scope boundary used by the coordinator-owned native
 browser journey. Existing pay/history tests and routes are retained. There is
-still no taxpayer directory, collection, export or submission operation.
+still no taxpayer directory, collection or submission operation.
+
+After a successful tax input lookup/readback, owners and personal-tax preparers
+can explicitly select **Download CSV**. Submitters have no export control. The
+client fetches the separate authenticated same-origin export endpoint with no
+cache or redirects and validates the media type, fixed attachment name, requested
+company/record headers and exact numeric year/pence/GBP CSV against the loaded
+immutable input. Only then does it create a Blob and request the fixed
+`personal-tax-input.csv` download. Taxpayer references are excluded.
+
+Leaving the result or changing actor/company/role aborts the request and
+invalidates its generation before any file can be created; this also handles
+transports that ignore cancellation. A denied export clears the previous input
+and form. Other failures show fixed wording and create no download. The temporary
+link and object URL are released. No export is stored in local storage, shared
+query caches or URLs. An already requested browser download cannot be retracted.
+The server can commit its audit after client cancellation; neither that receipt
+nor the UI's download-request message proves that a file was saved or opened.

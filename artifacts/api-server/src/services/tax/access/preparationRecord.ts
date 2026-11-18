@@ -1,4 +1,4 @@
-import { withPersonalTaxAccess, SensitiveAccessError } from './service';
+import { withPersonalTaxAccess, SensitiveAccessError, type SensitiveContext } from './service';
 import { requireReadOnlySensitiveStorage } from '../../payroll/access/recordStorage';
 import { requireSensitiveCreationCommand } from '../../payroll/access/commandProtection';
 
@@ -62,20 +62,33 @@ export async function createPersonalTaxPreparation(companyId: string, actorId: s
 export async function readPersonalTaxPreparation(companyId: string, actorId: string, recordId: string): Promise<PersonalTaxPreparation> {
   return withPersonalTaxAccess({ company_id: companyId, actor_id: actorId, resource_company_id: companyId,
     resource_id: recordId, action: 'personal_tax.read' }, async context => {
-    await requireReadOnlySensitiveStorage(context, 'personal_tax_preparations');
-    const includeTaxpayer = context.role === 'owner' || context.role === 'personal_tax_preparer';
-    const found = await context.query(`SELECT id,tax_year_start,employment_income_pence::text employment_income_pence${includeTaxpayer ? ',taxpayer_id' : ''}
-      FROM public.personal_tax_preparations WHERE company_id=$1 AND id=$2`, [context.companyId, context.resourceId]);
-    if (found.rowCount !== 1) throw new SensitiveAccessError('SENSITIVE_ACCESS_DENIED');
-    const row = found.rows[0];
-    if (row.id !== context.resourceId || !Number.isInteger(row.tax_year_start) || row.tax_year_start < 1 || row.tax_year_start > 9998 ||
-        typeof row.employment_income_pence !== 'string' || !/^(0|[1-9][0-9]{0,18})$/.test(row.employment_income_pence) ||
-        BigInt(row.employment_income_pence) > 9223372036854775807n || (includeTaxpayer && !uuid(row.taxpayer_id))) {
-      throw new SensitiveAccessError('SENSITIVE_OPERATION_UNAVAILABLE');
-    }
-    const result: PersonalTaxPreparation = { id: row.id, tax_year_start: row.tax_year_start,
-      employment_income_pence: row.employment_income_pence, currency: 'GBP' };
-    if (includeTaxpayer) result.taxpayer_id = row.taxpayer_id;
-    return result;
+    return readPreparationFields(context, context.role === 'owner' || context.role === 'personal_tax_preparer');
+  });
+}
+
+async function readPreparationFields(context: SensitiveContext, includeTaxpayer: boolean): Promise<PersonalTaxPreparation> {
+  await requireReadOnlySensitiveStorage(context, 'personal_tax_preparations');
+  const found = await context.query(`SELECT id,tax_year_start,employment_income_pence::text employment_income_pence${includeTaxpayer ? ',taxpayer_id' : ''}
+    FROM public.personal_tax_preparations WHERE company_id=$1 AND id=$2`, [context.companyId, context.resourceId]);
+  if (found.rowCount !== 1) throw new SensitiveAccessError('SENSITIVE_ACCESS_DENIED');
+  const row = found.rows[0];
+  if (row.id !== context.resourceId || !Number.isInteger(row.tax_year_start) || row.tax_year_start < 1 || row.tax_year_start > 9998 ||
+      typeof row.employment_income_pence !== 'string' || !/^(0|[1-9][0-9]{0,18})$/.test(row.employment_income_pence) ||
+      BigInt(row.employment_income_pence) > 9223372036854775807n || (includeTaxpayer && !uuid(row.taxpayer_id))) {
+    throw new SensitiveAccessError('SENSITIVE_OPERATION_UNAVAILABLE');
+  }
+  const result: PersonalTaxPreparation = { id: row.id, tax_year_start: row.tax_year_start,
+    employment_income_pence: row.employment_income_pence, currency: 'GBP' };
+  if (includeTaxpayer) result.taxpayer_id = row.taxpayer_id;
+  return result;
+}
+
+/** One fixed-schema CSV, released only after the export-specific audit commits. */
+export async function exportPersonalTaxPreparation(companyId: string, actorId: string, recordId: string): Promise<string> {
+  return withPersonalTaxAccess({ company_id: companyId, actor_id: actorId, resource_company_id: companyId,
+    resource_id: recordId, action: 'personal_tax.export' }, async context => {
+    const record = await readPreparationFields(context, false);
+    return 'tax_year_start,employment_income_pence,currency\r\n' +
+      `${record.tax_year_start},${record.employment_income_pence},GBP\r\n`;
   });
 }

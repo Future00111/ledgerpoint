@@ -80,5 +80,5 @@ export function useSensitiveEntry({ companyId, role, client, canPrepare, blankFo
   const update = (field, value) => { if (phase === 'draft' && !inFlight.current) { setForm(current => ({ ...current, [field]: value })); setValidation(''); } };
   const locked = phase !== 'draft' || busy;
   const changeLookup = value => { if (!inFlight.current && !['uncertain', 'conflict'].includes(phase)) { setLookupId(value); setRecord(null); setValidation(''); } };
-  return { id, form, attempt, phase, lookupId, record, message, validation, busy, locked, save, lookup, fresh, update, changeLookup };
+  return { id, form, attempt, phase, lookupId, record, message, validation, busy, locked, save, lookup, fresh, update, changeLookup, denyAccess: block };
 }

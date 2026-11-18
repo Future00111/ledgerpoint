@@ -57,13 +57,26 @@ async function exercise() {
   (await ready('Retry same request')).click();
   await wait(() => text().includes('45,250.75') && text().includes(fixture.taxpayer), 'saved native readback');
   if(requests.length !== 2 || requests[0] !== requests[1]) throw Error('Retry identity');
+  stage = 'csv-download';
+  // Read the blob at the browser's download boundary, before the object URL is revoked.
+  let download;
+  const click = HTMLAnchorElement.prototype.click;
+  HTMLAnchorElement.prototype.click = function () {
+    if (!this.href.startsWith('blob:') || this.download !== 'personal-tax-input.csv') throw Error('Unexpected attachment');
+    download = nativeFetch(this.href).then(response => response.text());
+  };
+  try {
+    (await ready('Download CSV')).click();
+    await wait(() => Boolean(download), 'CSV attachment');
+    if (await download !== 'tax_year_start,employment_income_pence,currency\r\n2026,4525075,GBP\r\n') throw Error('CSV contents');
+  } finally { HTMLAnchorElement.prototype.click = click; }
   stage = 'reader';
   mount(fixture.company, fixture.submitter, 'personal_tax_submitter');
   await wait(() => !button('Save tax input') && !text().includes('45,250.75'), 'reader scope reset');
   fill(await wait(() => button('Look up tax input')?.form?.querySelector('input'), 'lookup input'), requests[0]);
   (await ready('Look up tax input')).click();
   await wait(() => text().includes('45,250.75'), 'reader native readback');
-  if (text().includes(fixture.taxpayer) || input('Taxpayer reference')) throw Error('Reader projection');
+  if (button('Download CSV') || text().includes(fixture.taxpayer) || input('Taxpayer reference')) throw Error('Reader projection');
   stage = 'company-change';
   mount(fixture.other, fixture.submitter, 'personal_tax_submitter');
   await wait(() => !text().includes('45,250.75') && button('Look up tax input')?.form?.querySelector('input')?.value === '', 'company scope reset');

@@ -152,7 +152,7 @@ No role, field, company or year query overrides are accepted.
 Both native sensitive record stores use one closed internal table allowlist to
 attest canonical ownership, an ordinary table and runtime SELECT-only access,
 including absence of column INSERT/UPDATE grants. Existing pay read/create
-behaviour is unchanged. There are no tax list, export, submission or UI endpoints.
+behaviour is unchanged. There are no tax list or submission endpoints.
 One company/taxpayer/year may hold one annual employment-income input, not one
 row per employer. Amounts are nonnegative bigint pence and the storage year is
 an integer from 1 to 9998.
@@ -195,9 +195,30 @@ This creation operation adds no tax calculation, classification or filing suppor
 Native disposable tests exercise the boundary with synthetic payloads and
 transactional fixture mutations, current membership races, audit failure and
 existing owner-only membership assignment. Complete employee lifecycle,
-remaining personal-tax record workflows, actual exports and external submission
+remaining personal-tax record workflows, payroll exports and external submission
 remain absent.
 Wiring the remaining native record/read/export/change routes,
 qualified field projection and retrieval of other sensitive audit actions
 remain required before full P02-04 acceptance. These helpers are not evidence
 that those absent workflows are secured or implemented.
+
+`GET /api/companies/:id/personal-tax-preparations/:recordId/export.csv` exports
+one existing annual input for a current owner or personal-tax preparer, using
+the separate `personal_tax.export` capability. Submitter read access does not
+grant export. The SQL selects no taxpayer reference. The exact CSV has header
+`tax_year_start,employment_income_pence,currency`, one numeric year/pence/GBP row,
+and CRLF line endings. Pence remain exact bigint strings. No identifiers or
+free text enter the file; its fixed name is `personal-tax-input.csv`.
+
+The company lock, current unique membership, storage/audit protection and verified
+receipt commit all precede response headers and CSV disclosure. Errors have no
+attachment or scope headers. Every response is `no-store`; query overrides and
+implicit HEAD export are rejected. HEAD returns 405 without a receipt. A
+conditional GET is still a fresh 200 export with its own committed receipt,
+never a cached 304. The scope response headers identify only the requested
+company and record so the client can reject crossed responses.
+
+A cancelled client request may still finish and commit an export receipt on the
+server. The receipt proves an authorised export response was prepared, not that
+a browser finished downloading or that a file was opened. This single-record
+export does not add collections, tax calculation, return-box mapping or filing.

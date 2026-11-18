@@ -5,6 +5,7 @@ import { formatSalary } from './model.mjs';
 import { buildTaxIntent, taxPermissions } from './taxModel.mjs';
 import { taxPreparationsClient } from './taxClient.mjs';
 import { useSensitiveEntry } from './useSensitiveEntry';
+import { TaxExportButton } from './TaxExportButton';
 
 const blankForm = () => ({ taxpayer: '', year: '', income: '' });
 export function TaxPreparationsWorkspace(props) {
@@ -17,7 +18,7 @@ export function TaxPreparationsWorkspace(props) {
 
 function ScopedTaxPreparations({ companyId, companyName, role, client = taxPreparationsClient, onRefreshAccess }) {
   const canPrepare = taxPermissions(role).prepare;
-  const { id, form, attempt, phase, lookupId, record, message, validation, busy, locked, save, lookup, fresh, update, changeLookup } =
+  const { id, form, attempt, phase, lookupId, record, message, validation, busy, locked, save, lookup, fresh, update, changeLookup, denyAccess } =
     useSensitiveEntry({ companyId, role, client, canPrepare, blankForm, buildIntent: buildTaxIntent, savedMessage: 'Tax input saved.' });
   return <div className="workspace-page">
     <PageHeader eyebrow="Personal tax preparation" title="Personal tax inputs" context={companyName}
@@ -54,6 +55,7 @@ function ScopedTaxPreparations({ companyId, companyName, role, client = taxPrepa
           <Button type="submit" variant="outline" disabled={busy || ['uncertain', 'conflict'].includes(phase)}>Look up tax input</Button>
         </form>
         {record && <TaxPreparationDetails record={record} role={role} />}
+        {record && <TaxExportButton key={record.id} companyId={companyId} record={record} role={role} client={client} onDenied={denyAccess} />}
       </section>
     </div>
   </div>;

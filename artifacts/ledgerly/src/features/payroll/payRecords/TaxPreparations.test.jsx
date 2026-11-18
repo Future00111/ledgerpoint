@@ -35,3 +35,14 @@ test('company navigation includes personal tax only for its three read roles', (
   for (const role of ['owner', 'personal_tax_preparer', 'personal_tax_submitter']) assert.equal(visible(role), true);
   for (const role of ['admin', 'accountant', 'staff', 'member', 'read_only', 'payroll_reader', 'payroll_preparer', 'payroll_approver', null]) assert.equal(visible(role), false);
 });
+
+test('only an owner or preparer sees the explicit CSV download control', async () => {
+  const { TaxExportButton } = await import('./TaxExportButton');
+  const record = { id: company, tax_year_start: 2026, employment_income_pence: '4800000', currency: 'GBP' };
+  for (const role of ['owner', 'personal_tax_preparer']) {
+    const html = renderToStaticMarkup(<TaxExportButton companyId={company} record={record} role={role} />);
+    assert.ok(html.includes('Download CSV')); assert.ok(!html.includes('4800000'));
+  }
+  for (const role of ['personal_tax_submitter', 'payroll_preparer', 'admin', null])
+    assert.equal(renderToStaticMarkup(<TaxExportButton companyId={company} record={record} role={role} />), '');
+});

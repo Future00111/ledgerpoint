@@ -9,6 +9,7 @@
  * GET    /api/companies/:id/specialist-access-history — bounded audited owner-only history
  * GET    /api/companies/:id/payroll-pay-records/:recordId — audited pay fields by payroll role
  * GET    /api/companies/:id/personal-tax-preparations/:recordId — audited annual draft input by tax role
+ * GET    /api/companies/:id/personal-tax-preparations/:recordId/export.csv — audited single-input export
  * POST   /api/companies/:id/personal-tax-preparations — create/replay an annual draft input (owner/preparer)
  * POST   /api/companies/:id/payroll-pay-records — create or replay dated pay intent (owner/preparer)
  * POST   /api/companies/:id/members          — add a member by Clerk user_id
@@ -31,7 +32,7 @@ import { auditSpecializedMembershipChange, auditSpecializedMembershipChanges } f
 import { SensitiveAccessError } from "../services/payroll/access/boundary";
 import { readSpecialistAccessHistory } from "../services/payroll/access/membershipHistory";
 import { readPayRecord, createPayRecord } from "../services/payroll/access/payRecord";
-import { readPersonalTaxPreparation, createPersonalTaxPreparation } from "../services/tax/access/preparationRecord";
+import { readPersonalTaxPreparation, createPersonalTaxPreparation, exportPersonalTaxPreparation } from "../services/tax/access/preparationRecord";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -91,6 +92,23 @@ router.use(["/:id/specialist-access-history", "/:id/payroll-pay-records", "/:id/
   next();
 });
 router.use(auth);
+
+router.get("/:id/personal-tax-preparations/:recordId/export.csv", async (req: Request, res: Response) => {
+  // Express otherwise treats HEAD as GET. An explicit download is the only audited export action.
+  if (req.method !== 'GET') { res.set('Allow', 'GET').status(405).end(); return; }
+  try {
+    if (Object.keys(req.query).length > 0) throw new SensitiveAccessError("SENSITIVE_REQUEST_INVALID");
+    const { userId } = req as AuthenticatedRequest;
+    const csv = await exportPersonalTaxPreparation(req.params["id"] as string, userId, req.params["recordId"] as string);
+    res.status(200).set({ 'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': 'attachment; filename="personal-tax-input.csv"',
+      'X-Personal-Tax-Company': (req.params['id'] as string).toLowerCase(),
+      'X-Personal-Tax-Record': (req.params['recordId'] as string).toLowerCase(),
+      'Content-Length': String(Buffer.byteLength(csv)) }).end(csv);
+  } catch (error) {
+    companyError(req, res, error, "personal tax preparation export error");
+  }
+});
 
 router.post("/:id/personal-tax-preparations", async (req: Request, res: Response) => {
   try {
