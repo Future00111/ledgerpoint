@@ -24,7 +24,7 @@ async function main() {
   const {recoverBankImport}=await import('../../../artifacts/api-server/src/services/accountingDocuments/bankImports');
   const {recoverBankMatch}=await import('../../../artifacts/api-server/src/services/accountingDocuments/bankStatements');
   const {recoverBankCorrection}=await import('../../../artifacts/api-server/src/services/accountingDocuments/bankCorrections');
-  const { readPersonalTaxPreparation } = await import('../../../artifacts/api-server/src/services/tax/access/preparationRecord');
+  const { createPersonalTaxPreparation, readPersonalTaxPreparation } = await import('../../../artifacts/api-server/src/services/tax/access/preparationRecord');
   const { createPayRecord, readPayRecord } = await import('../../../artifacts/api-server/src/services/payroll/access/payRecord');
   const {preparePaymentAttempts, verifyPaymentAttempts}=await import('./payment-attempt-acceptance');
   try {
@@ -178,7 +178,9 @@ async function main() {
         employment_income_pence: taxRow.employment_income_pence, currency: 'GBP' };
       const taxPreparation = { company: taxRow.company_id, owner: taxRow.owner, submitter: taxRow.submitter,
         submitterFields: publicFields, ownerFields: { ...publicFields, taxpayer_id: taxRow.taxpayer_id } };
-      return { taxPreparation, pay, paymentAttempts,bankingRecovery:banking,replacementAcceptance,company: fixture.company_id, actor: fixture.actor_id, historicalEvent: fixture.id, historical,
+      const taxCreated = { id: randomUUID(), taxpayer_id: randomUUID(), tax_year_start: 2026, employment_income_pence: '4200000' };
+      assert.equal((await createPersonalTaxPreparation(taxRow.company_id, taxRow.owner, taxCreated)).status, 'created');
+      return { taxCreated, taxPreparation, pay, paymentAttempts,bankingRecovery:banking,replacementAcceptance,company: fixture.company_id, actor: fixture.actor_id, historicalEvent: fixture.id, historical,
         unwitnessedEvent: body.id, sourceCluster: transaction.cluster_id, template: fixture.source.intent, permissions, capture };
     }
     const fixture = JSON.parse(readFileSync(0, 'utf8'));
@@ -192,6 +194,18 @@ async function main() {
       const result = await readPersonalTaxPreparation(tax.company, actor, tax.submitterFields.id);
       assert.ok(isDeepStrictEqual(result, expected), 'Restored personal-tax projection differs');
     }
+    const created = fixture.taxCreated;
+    assert.equal((await createPersonalTaxPreparation(tax.company, tax.owner, created)).status, 'replayed');
+    await assert.rejects(() => createPersonalTaxPreparation(tax.company, tax.owner, { ...created, employment_income_pence: '4200001' }),
+      (error: any) => error.code === 'SENSITIVE_REQUEST_CONFLICT');
+    const { taxpayer_id, ...publicInput } = created;
+    for (const [actor, expected] of [[tax.owner, { ...created, currency: 'GBP' }], [tax.submitter, { ...publicInput, currency: 'GBP' }]]) {
+      const projection = await readPersonalTaxPreparation(tax.company, actor, created.id);
+      assert.ok(isDeepStrictEqual(projection, expected), 'Restored created personal-tax projection differs');
+    }
+    const taxReceipts = await pool.query(`SELECT id FROM public.accounting_audit_events WHERE company_id=$1
+      AND target_type='personal_tax_preparation' AND target_id=$2 AND action='personal_tax_preparation_create'`, [tax.company, created.id]);
+    assert.equal(taxReceipts.rowCount, 1, 'Restored retry must preserve the single personal-tax creation receipt');
     const pay = fixture.pay;
     const company = fixture.capture.company, owner = fixture.capture.actor;
     assert.deepEqual(await createPayRecord(company, owner, pay), { id: pay.id, status: 'replayed' });
@@ -235,7 +249,7 @@ async function main() {
     const origin = (await pool.query('SELECT cluster_id FROM conditional_discount_payment_transactions WHERE event_id=$1', [body.id])).rows[0];
     assert.notEqual(origin.cluster_id, fixture.sourceCluster, 'Restored cluster must have a different transaction origin.');
     assert.deepEqual(await captureCommittedPaymentWitness(fixture.company, fixture.actor, fixture.historicalEvent), fixture.historical);
-    return { personalTaxReadVerified: true, payRecordReplayVerified: true, paymentAttemptRecovery,nativeBankingRecoveryVerified:true,bankingRecoveryKinds:fixture.bankingRecovery.map((r:any)=>r.kind),
+    return { personalTaxCreateReplayVerified: true, personalTaxReadVerified: true, payRecordReplayVerified: true, paymentAttemptRecovery,nativeBankingRecoveryVerified:true,bankingRecoveryKinds:fixture.bankingRecovery.map((r:any)=>r.kind),
       replacementLifecyclesVerified:fixture.replacementAcceptance.length,replacementHistoricalReportsPreserved:true,
       replacementObservationAndConsumptionPreserved:true,newNativePaymentPosted: true, newCommittedWitnessRecorded: true, retrySingleEffect: true,
       historicalWitnessPreserved: true, foreignUnwitnessedRejected: true, distinctClusterOrigin: true,

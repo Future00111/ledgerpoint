@@ -7,8 +7,9 @@ import { withPayrollAccess } from "../services/payroll/access/service";
 import { withPersonalTaxAccess } from "../services/tax/access/service";
 import { readSpecialistAccessHistory } from "../services/payroll/access/membershipHistory";
 import { readPayRecord, parsePayRecordCreation } from "../services/payroll/access/payRecord";
-import { readPersonalTaxPreparation } from "../services/tax/access/preparationRecord";
+import { readPersonalTaxPreparation, parsePersonalTaxPreparationCreation } from "../services/tax/access/preparationRecord";
 import { requireReadOnlySensitiveStorage } from "../services/payroll/access/recordStorage";
+import { requireSensitiveCreationCommand } from "../services/payroll/access/commandProtection";
 
 test("legacy compatibility writes accept only the five known write roles", () => {
   for (const role of ["owner", "admin", "accountant", "staff", "member"]) {
@@ -141,4 +142,44 @@ test("pay creation rejects extra authority, malformed and inherited fields, inva
   }
   for (const key of Object.keys(body)) { const missing = { ...body } as Record<string, unknown>; delete missing[key]; invalid.push(missing); }
   for (const value of invalid) assert.throws(() => parsePayRecordCreation(value), /SENSITIVE_REQUEST_INVALID/);
+});
+
+test("tax creation validates exact native UUID, integer storage year and bigint string without coercion", () => {
+  const body = { id: 'AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA', taxpayer_id: '00000000-0000-0000-0000-000000000001',
+    tax_year_start: 2026, employment_income_pence: '9223372036854775807' };
+  assert.deepEqual(parsePersonalTaxPreparationCreation(body), { ...body, id: body.id.toLowerCase() });
+  for (const year of [1, 2026, 9998]) for (const amount of ['0', '9007199254740993', '9223372036854775807'])
+    assert.deepEqual(parsePersonalTaxPreparationCreation({ ...body, tax_year_start: year, employment_income_pence: amount }),
+      { ...body, id: body.id.toLowerCase(), tax_year_start: year, employment_income_pence: amount });
+});
+
+test("tax creation rejects extra authority/origin, inherited or accessor fields, invalid years and noncanonical amounts", () => {
+  const body = { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', taxpayer_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', tax_year_start: 2026, employment_income_pence: '1' };
+  const bad: unknown[] = [null, [], {}, Object.create(body), { ...body, currency: 'GBP' }, { ...body, role: 'owner' },
+    { ...body, company_id: body.id }, { ...body, actor_id: 'synthetic' }, { ...body, capabilities: ['personal_tax.prepare'] },
+    { ...body, created_by_tax_command: true }, { ...body, id: '00000000-0000-0000-0000-000000000000' }, { ...body, taxpayer_id: 'private@example.test' },
+    Object.defineProperty({ ...body }, 'tax_year_start', { get() { throw Error('Getter must never execute'); } })];
+  for (const year of [0, -1, 9999, 10000, 2026.5, '2026', null, undefined, true, NaN, Infinity, {}]) bad.push({ ...body, tax_year_start: year });
+  for (const amount of [0, 1, '01', '-1', '-0', '+1', '1.0', '1e2', ' 1', '1 ', '9223372036854775808', null, {}]) bad.push({ ...body, employment_income_pence: amount });
+  for (const key of Object.keys(body)) { const missing = { ...body } as Record<string, unknown>; delete missing[key]; bad.push(missing); }
+  for (const value of bad) assert.throws(() => parsePersonalTaxPreparationCreation(value), /SENSITIVE_REQUEST_INVALID/);
+});
+
+test("creation command protection uses a closed signature map and refuses unsafe owner, ACL, path and result metadata", async () => {
+  const safe = { owner: 'ledgerly_canonical_owner', prosecdef: true, proretset: false, prokind: 'f', proconfig: ['search_path=pg_catalog'],
+    text_result: true, can_execute: true, unsafe_acl: false };
+  const calls: any[] = [];
+  const context = (rows: unknown[]) => ({ query: async (sql: string, values: unknown[]) => { calls.push({ sql, values }); return { rows, rowCount: rows.length }; } }) as any;
+  for (const [command, signature] of [['pay', 'public.ledgerly_create_employee_pay_record(uuid,text,uuid,uuid,date,bigint)'],
+    ['personal_tax', 'public.ledgerly_create_personal_tax_preparation(uuid,text,uuid,uuid,integer,bigint)']] as const) {
+    await requireSensitiveCreationCommand(context([safe]), command); assert.deepEqual(calls.at(-1).values, [signature]); assert.match(calls.at(-1).sql, /to_regprocedure\(\$1\)/);
+    for (const changed of [{ owner: 'ledgerly_api' }, { prosecdef: false }, { proretset: true }, { prokind: 'p' }, { text_result: false },
+      { can_execute: false }, { unsafe_acl: true }, { proconfig: null }, { proconfig: ['search_path=public'] }, { proconfig: ['search_path=pg_catalog', 'role=ledgerly_api'] }])
+      await assert.rejects(() => requireSensitiveCreationCommand(context([{ ...safe, ...changed }]), command), /SENSITIVE_OPERATION_UNAVAILABLE/);
+    for (const rows of [[], [safe, safe]]) await assert.rejects(() => requireSensitiveCreationCommand(context(rows), command), /SENSITIVE_OPERATION_UNAVAILABLE/);
+  }
+  const before = calls.length;
+  for (const command of ['constructor', 'public.other()', 'personal_tax;DROP TABLE companies', '', null, {}])
+    await assert.rejects(() => requireSensitiveCreationCommand(context([safe]), command as any), /SENSITIVE_OPERATION_UNAVAILABLE/);
+  assert.equal(calls.length, before);
 });

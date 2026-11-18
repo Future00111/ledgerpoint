@@ -113,6 +113,8 @@ export async function recoverApplicationArchive({ Client, directory, archive, so
     nativeRuntimeAcceptance = runApplicationRuntime({ phase: 'verify', socket,
       bundle: nativeRuntime.bundle, fixture: nativeRuntime.fixture });
     assertPaymentAttemptRecovery(nativeRuntimeAcceptance);
+    if (nativeRuntimeAcceptance.personalTaxCreateReplayVerified !== true)
+      throw new Error('Restored personal-tax creation replay verification is required');
     if (nativeRuntimeAcceptance.personalTaxReadVerified !== true)
       throw new Error('Restored personal-tax role projection acceptance is missing.');
     if (nativeRuntimeAcceptance.payRecordReplayVerified !== true)

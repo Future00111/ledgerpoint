@@ -9,6 +9,7 @@
  * GET    /api/companies/:id/specialist-access-history — bounded audited owner-only history
  * GET    /api/companies/:id/payroll-pay-records/:recordId — audited pay fields by payroll role
  * GET    /api/companies/:id/personal-tax-preparations/:recordId — audited annual draft input by tax role
+ * POST   /api/companies/:id/personal-tax-preparations — create/replay an annual draft input (owner/preparer)
  * POST   /api/companies/:id/payroll-pay-records — create or replay dated pay intent (owner/preparer)
  * POST   /api/companies/:id/members          — add a member by Clerk user_id
  * PUT    /api/companies/:id/members/:userId  — change a member's role (owner only)
@@ -30,7 +31,7 @@ import { auditSpecializedMembershipChange, auditSpecializedMembershipChanges } f
 import { SensitiveAccessError } from "../services/payroll/access/boundary";
 import { readSpecialistAccessHistory } from "../services/payroll/access/membershipHistory";
 import { readPayRecord, createPayRecord } from "../services/payroll/access/payRecord";
-import { readPersonalTaxPreparation } from "../services/tax/access/preparationRecord";
+import { readPersonalTaxPreparation, createPersonalTaxPreparation } from "../services/tax/access/preparationRecord";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -90,6 +91,17 @@ router.use(["/:id/specialist-access-history", "/:id/payroll-pay-records", "/:id/
   next();
 });
 router.use(auth);
+
+router.post("/:id/personal-tax-preparations", async (req: Request, res: Response) => {
+  try {
+    if (Object.keys(req.query).length > 0) throw new SensitiveAccessError("SENSITIVE_REQUEST_INVALID");
+    const { userId } = req as AuthenticatedRequest;
+    const result = await createPersonalTaxPreparation(req.params["id"] as string, userId, req.body);
+    res.status(result.status === "created" ? 201 : 200).json(result);
+  } catch (error) {
+    companyError(req, res, error, "personal tax preparation create error");
+  }
+});
 
 router.get("/:id/personal-tax-preparations/:recordId", async (req: Request, res: Response) => {
   try {

@@ -11,6 +11,7 @@ import { createCompaniesRouter } from "../routes/companies";
 import { SENSITIVE_ACTIONS, type SensitiveAction } from "./roles";
 import { withPayrollAccess, SensitiveAccessError } from "../services/payroll/access/service";
 import { withPersonalTaxAccess } from "../services/tax/access/service";
+import type { PersonalTaxPreparationCreation } from "../services/tax/access/preparationRecord";
 
 const socket = process.env.ACCOUNTING_FLOW_TEST_SOCKET ?? "";
 if (!/^\/tmp\/ledgerly-accounting-flow-tests-[A-Za-z0-9]+\/socket$/.test(socket)) throw Error("Disposable socket required");
@@ -1333,7 +1334,7 @@ test("personal tax records deny bookkeeping, payroll, inactive, ambiguous, unkno
   assert.deepEqual(await taxReadAudits(f.company), []);
 });
 
-test("personal tax paths reject malformed IDs and overrides and expose no list, create, export or submit endpoints", async () => {
+test("personal tax read paths reject malformed IDs and overrides and expose no list, record mutation, export or submit endpoints", async () => {
   const f = await taxPreparationFixture();
   for (const suffix of ['?role=owner', '?fields=taxpayer_id', '?action=personal_tax.submit', `?company_id=${randomUUID()}`, '?tax_year_start=2027']) {
     const response = await request(taxPreparationPath(f.company, f.id) + suffix, 'GET', undefined, f.owner);
@@ -1347,7 +1348,7 @@ test("personal tax paths reject malformed IDs and overrides and expose no list, 
     const response = await request(taxPreparationPath(f.company, f.id), method, { employment_income_pence: '1', taxpayer_id: randomUUID() }, f.owner);
     assert.equal(response.status, 404); assert.equal(response.cacheControl, 'no-store');
   }
-  for (const [path, method] of [[`/${f.company}/personal-tax-preparations`, 'GET'], [`/${f.company}/personal-tax-preparations`, 'POST'],
+  for (const [path, method] of [[`/${f.company}/personal-tax-preparations`, 'GET'],
     [taxPreparationPath(f.company, f.id) + '/export', 'GET'], [taxPreparationPath(f.company, f.id) + '/submit', 'POST']]) {
     const response = await request(path!, method, undefined, f.owner); assert.equal(response.status, 404); assert.equal(response.cacheControl, 'no-store');
   }
@@ -1444,4 +1445,252 @@ test("tax reads refuse absent storage, column-only mutation grants and unprotect
   finally { await admin.query('ALTER TABLE public.accounting_audit_events ENABLE ALWAYS TRIGGER ledgerly_accounting_audit_events_guard'); }
   const response = await request(taxPreparationPath(f.company, f.id), 'GET', undefined, f.owner);
   assert.equal(response.status, 200); assert.equal((await taxReadAudits(f.company)).length, 1);
+});
+
+const taxCreatePath = (company: string) => `/${company}/personal-tax-preparations`;
+const taxIntent = () => ({ id: randomUUID(), taxpayer_id: randomUUID(), tax_year_start: 2026, employment_income_pence: '4800000' });
+const taxCreationAudits = async (company: string) => (await sensitiveAudit(company)).filter(row => row.action === 'personal_tax_preparation_create');
+const taxPrepareAudits = async (company: string) => (await sensitiveAudit(company)).filter(row => row.action === 'sensitive_access' && row.capability === 'personal_tax.prepare');
+const storedTaxInputs = async (company: string) => (await pool.query(`SELECT id,taxpayer_id,tax_year_start,
+  employment_income_pence::text employment_income_pence FROM public.personal_tax_preparations WHERE company_id=$1 ORDER BY id`, [company])).rows;
+const directTaxCreate = async (company: string, actor: string, body: PersonalTaxPreparationCreation) => (await pool.query(
+  'SELECT public.ledgerly_create_personal_tax_preparation($1::uuid,$2::text,$3::uuid,$4::uuid,$5::integer,$6::bigint) status',
+  [company, actor, body.id, body.taxpayer_id, body.tax_year_start, body.employment_income_pence])).rows[0].status;
+
+test("owner and verified personal tax preparer create annual tax input through normal HTTP then read exact persisted fields", async () => {
+  for (const role of ['owner', 'personal_tax_preparer']) {
+    const f = await fixture(), body = taxIntent(), actor = role === 'owner' ? f.owner : `synthetic-tax-create-${randomUUID()}`;
+    if (role !== 'owner') {
+      identities.add(actor);
+      assert.equal((await request(`/${f.company}/members`, 'POST', { user_id: actor, role }, f.owner)).status, 201);
+    }
+    const created = await request(taxCreatePath(f.company), 'POST', body, actor);
+    assert.equal(created.status, 201, created.body); assert.equal(created.cacheControl, 'no-store');
+    assert.deepEqual(JSON.parse(created.body), { id: body.id, status: 'created' });
+    assert.deepEqual(await storedTaxInputs(f.company), [body]);
+    assert.deepEqual(await taxCreationAudits(f.company), [{ action: 'personal_tax_preparation_create', outcome: 'allowed',
+      target_type: 'personal_tax_preparation', target_id: body.id, actor_type: 'user', actor_id: actor, capability: 'personal_tax.prepare',
+      context: { contract: 'personal-tax-create.v1', role }, journal_id: null, posting_effect_id: null }]);
+    assert.deepEqual(await taxPrepareAudits(f.company), [{ action: 'sensitive_access', outcome: 'allowed',
+      target_type: 'personal_tax_resource', target_id: body.id, actor_type: 'user', actor_id: actor, capability: 'personal_tax.prepare',
+      context: { contract: 'sensitive-access.v1', role }, journal_id: null, posting_effect_id: null }]);
+    const read = await request(taxPreparationPath(f.company, body.id), 'GET', undefined, actor);
+    assert.equal(read.status, 200); assert.deepEqual(JSON.parse(read.body), { ...body, currency: 'GBP' });
+    await assert.rejects(() => pool.query('INSERT INTO public.personal_tax_preparations SELECT * FROM public.personal_tax_preparations WHERE false'),
+      (error: any) => error.code === '42501');
+  }
+});
+
+test("tax creation replays identical current-authority intent and appends later years without overwriting earlier input", async () => {
+  const f = await fixture(), body = { ...taxIntent(), employment_income_pence: '9007199254740993' }, preparer = `synthetic-replay-${randomUUID()}`;
+  await addMember(f.company, preparer, 'personal_tax_preparer');
+  assert.equal((await request(taxCreatePath(f.company), 'POST', body, f.owner)).status, 201);
+  for (const actor of [f.owner, preparer]) {
+    const response = await request(taxCreatePath(f.company.toUpperCase()), 'POST', { ...body, id: body.id.toUpperCase(), taxpayer_id: body.taxpayer_id.toUpperCase() }, actor);
+    assert.equal(response.status, 200); assert.deepEqual(JSON.parse(response.body), { id: body.id, status: 'replayed' });
+  }
+  assert.deepEqual(await storedTaxInputs(f.company), [body]); assert.equal((await taxCreationAudits(f.company)).length, 1);
+  assert.equal((await taxPrepareAudits(f.company)).length, 3);
+  const later = { ...body, id: randomUUID(), tax_year_start: 2027, employment_income_pence: '5000000' };
+  assert.equal((await request(taxCreatePath(f.company), 'POST', later, preparer)).status, 201);
+  assert.deepEqual(await storedTaxInputs(f.company), [body, later].sort((a, b) => a.id.localeCompare(b.id)));
+  assert.equal((await taxCreationAudits(f.company)).length, 2);
+});
+
+test("tax creation preserves zero, bigint maximum and valid native taxpayer UUID at storage-year boundaries", async () => {
+  for (const [year, amount] of [[1, '0'], [9998, '9223372036854775807']] as const) {
+    const f = await fixture(), body = { ...taxIntent(), taxpayer_id: '00000000-0000-0000-0000-000000000001', tax_year_start: year, employment_income_pence: amount };
+    const response = await request(taxCreatePath(f.company), 'POST', body, f.owner);
+    assert.equal(response.status, 201); assert.deepEqual(await storedTaxInputs(f.company), [body]);
+    const read = await request(taxPreparationPath(f.company, body.id), 'GET', undefined, f.owner);
+    assert.equal(read.status, 200); assert.deepEqual(JSON.parse(read.body), { ...body, currency: 'GBP' });
+    assert.deepEqual((await taxCreationAudits(f.company)).map(row => row.context), [{ contract: 'personal-tax-create.v1', role: 'owner' }]);
+  }
+});
+
+test("changed tax intent and company taxpayer/year collisions return fixed conflict without writes or extra receipts", async () => {
+  const f = await fixture(), body = taxIntent();
+  assert.equal((await request(taxCreatePath(f.company), 'POST', body, f.owner)).status, 201);
+  const before = await sensitiveAudit(f.company);
+  for (const changed of [{ ...body, taxpayer_id: randomUUID() }, { ...body, tax_year_start: 2027 },
+    { ...body, employment_income_pence: '4800001' }, { ...body, id: randomUUID() }]) {
+    const response = await request(taxCreatePath(f.company), 'POST', changed, f.owner);
+    assert.equal(response.status, 409); assert.equal(response.cacheControl, 'no-store');
+    assert.deepEqual(JSON.parse(response.body), { error: 'This request conflicts with an existing record.', code: 'SENSITIVE_REQUEST_CONFLICT' });
+    assert.deepEqual(await storedTaxInputs(f.company), [body]); assert.deepEqual(await sensitiveAudit(f.company), before);
+  }
+});
+
+test("administrator-seeded tax input cannot be claimed as a replay even with a forged matching creation audit", async () => {
+  const f = await taxPreparationFixture(), body = { id: f.id, taxpayer_id: f.taxpayer, tax_year_start: 2026, employment_income_pence: f.amount };
+  assert.equal((await request(taxCreatePath(f.company), 'POST', body, f.owner)).status, 409);
+  await pool.query(`INSERT INTO public.accounting_audit_events
+    (id,company_id,action,outcome,target_type,target_id,actor_type,actor_id,capability,context)
+    VALUES($1,$2,'personal_tax_preparation_create','allowed','personal_tax_preparation',$3,'user',$4,'personal_tax.prepare',$5::jsonb)`,
+  [randomUUID(), f.company, f.id, f.owner, JSON.stringify({ contract: 'personal-tax-create.v1', role: 'owner' })]);
+  const before = await sensitiveAudit(f.company);
+  assert.equal(await directTaxCreate(f.company, f.owner, body), 'conflict');
+  assert.equal((await request(taxCreatePath(f.company), 'POST', body, f.owner)).status, 409);
+  assert.deepEqual(await storedTaxInputs(f.company), [body]); assert.deepEqual(await sensitiveAudit(f.company), before);
+  assert.deepEqual(await taxPrepareAudits(f.company), []);
+});
+
+test("tax command identities and taxpayer years are independent across companies", async () => {
+  const f = await fixture(), other = await fixture(), body = taxIntent(), otherBody = { ...body, employment_income_pence: '7654321' };
+  assert.equal((await request(taxCreatePath(f.company), 'POST', body, f.owner)).status, 201);
+  assert.equal((await request(taxCreatePath(other.company), 'POST', otherBody, other.owner)).status, 201);
+  assert.equal((await request(taxCreatePath(other.company), 'POST', otherBody, f.owner)).status, 403);
+  assert.deepEqual(await storedTaxInputs(f.company), [body]); assert.deepEqual(await storedTaxInputs(other.company), [otherBody]);
+  assert.equal((await taxCreationAudits(f.company)).length, 1); assert.equal((await taxCreationAudits(other.company)).length, 1);
+});
+
+test("concurrent duplicate tax creation has one effect and competing year keys have one winner", async () => {
+  const f = await fixture(), body = taxIntent();
+  const same = await Promise.all([1, 2].map(() => request(taxCreatePath(f.company), 'POST', body, f.owner)));
+  assert.deepEqual(same.map(response => response.status).sort(), [200, 201]);
+  assert.deepEqual(await storedTaxInputs(f.company), [body]); assert.equal((await taxCreationAudits(f.company)).length, 1);
+  assert.equal((await taxPrepareAudits(f.company)).length, 2);
+  const other = await fixture(), first = taxIntent(), second = { ...first, id: randomUUID(), employment_income_pence: '4800001' };
+  const competing = await Promise.all([first, second].map(intent => request(taxCreatePath(other.company), 'POST', intent, other.owner)));
+  assert.deepEqual(competing.map(response => response.status).sort(), [201, 409]);
+  const winner = competing[0]!.status === 201 ? first : second;
+  assert.deepEqual(await storedTaxInputs(other.company), [winner]); assert.equal((await taxCreationAudits(other.company)).length, 1);
+  assert.equal((await taxPrepareAudits(other.company)).length, 1);
+});
+
+test("tax creation denies bookkeeping, payroll, submitter and invalid memberships in HTTP and the direct function", async () => {
+  const f = await fixture(), other = await fixture(), body = taxIntent(), actors = [other.owner];
+  for (const role of ['admin', 'accountant', 'staff', 'member', 'read_only', 'payroll_reader', 'payroll_preparer', 'payroll_approver',
+    'personal_tax_submitter', 'unknown', null]) {
+    const actor = `synthetic-denied-create-${randomUUID()}`; await addMember(f.company, actor, role); actors.push(actor);
+  }
+  for (const active of [false, null]) {
+    const actor = `synthetic-inactive-create-${randomUUID()}`; await addMember(f.company, actor, 'owner', active); actors.push(actor);
+  }
+  const ambiguous = `synthetic-ambiguous-create-${randomUUID()}`;
+  await addMember(f.company, ambiguous, 'personal_tax_preparer'); await addMember(f.company, ambiguous, 'owner', false); actors.push(ambiguous);
+  const anonymous = await request(taxCreatePath(f.company), 'POST', body);
+  assert.equal(anonymous.status, 401); assert.equal(anonymous.cacheControl, 'no-store');
+  for (const actor of actors) {
+    const response = await request(taxCreatePath(f.company), 'POST', body, actor);
+    assert.equal(response.status, 403); assert.equal(response.cacheControl, 'no-store');
+    assert.equal(await directTaxCreate(f.company, actor, body), 'denied');
+  }
+  for (const invalid of [{ ...body, tax_year_start: 0 }, { ...body, tax_year_start: 9999 }, { ...body, employment_income_pence: '-1' },
+    { ...body, id: '00000000-0000-0000-0000-000000000000' as ReturnType<typeof randomUUID> }])
+    assert.equal(await directTaxCreate(f.company, f.owner, invalid), 'denied');
+  for (const malformed of [{ ...body, currency: 'GBP' }, { ...body, role: 'owner' }, { ...body, company_id: other.company }, { ...body, created_by_tax_command: true },
+    { ...body, employment_income_pence: 4800000 }, { ...body, tax_year_start: '2026' }]) {
+    assert.equal((await request(taxCreatePath(f.company), 'POST', malformed, f.owner)).status, 400);
+  }
+  assert.equal((await request(taxCreatePath(f.company) + '?role=owner', 'POST', body, f.owner)).status, 400);
+  assert.deepEqual(await storedTaxInputs(f.company), []); assert.deepEqual(await sensitiveAudit(f.company), []);
+});
+
+test("tax creation and replay recheck revocation or demotion after the company lock", async () => {
+  for (const replay of [false, true]) for (const next of ['inactive', 'personal_tax_submitter']) {
+    const f = await fixture(), actor = `synthetic-create-race-${randomUUID()}`, body = taxIntent();
+    await addMember(f.company, actor, 'personal_tax_preparer');
+    if (replay) assert.equal((await request(taxCreatePath(f.company), 'POST', body, actor)).status, 201);
+    const before = await sensitiveAudit(f.company), blocker = await admin.connect(); let pending: ReturnType<typeof request> | undefined;
+    try {
+      await blocker.query('BEGIN'); const { rows: [{ pid }] } = await blocker.query('SELECT pg_backend_pid() pid');
+      await blocker.query('SELECT id FROM public.companies WHERE id=$1 FOR UPDATE', [f.company]);
+      pending = request(taxCreatePath(f.company), 'POST', body, actor);
+      const deadline = Date.now() + 5000; let waiting = false;
+      while (Date.now() < deadline) {
+        waiting = (await admin.query("SELECT EXISTS(SELECT 1 FROM pg_stat_activity WHERE usename='ledgerly_api' AND $1::int=ANY(pg_blocking_pids(pid))) waiting", [pid])).rows[0].waiting;
+        if (waiting) break; await new Promise(resolve => setTimeout(resolve, 10));
+      }
+      assert.equal(waiting, true);
+      if (next === 'inactive') await blocker.query('UPDATE public.company_users SET is_active=false WHERE company_id=$1 AND user_id=$2', [f.company, actor]);
+      else await blocker.query("UPDATE public.company_users SET role='personal_tax_submitter' WHERE company_id=$1 AND user_id=$2", [f.company, actor]);
+      await blocker.query('COMMIT'); assert.equal((await pending).status, 403);
+      assert.deepEqual(await storedTaxInputs(f.company), replay ? [body] : []); assert.deepEqual(await sensitiveAudit(f.company), before);
+    } finally { await blocker.query('ROLLBACK'); blocker.release(); if (pending) await pending; }
+  }
+});
+
+test("direct tax command retains its own creation audit and refuses unprotected audit storage", async () => {
+  const f = await fixture(), body = taxIntent();
+  await admin.query('ALTER TABLE public.accounting_audit_events DISABLE TRIGGER ledgerly_accounting_audit_events_guard');
+  try {
+    await assert.rejects(() => directTaxCreate(f.company, f.owner, body));
+    assert.equal((await request(taxCreatePath(f.company), 'POST', body, f.owner)).status, 503);
+    assert.deepEqual(await storedTaxInputs(f.company), []); assert.deepEqual(await sensitiveAudit(f.company), []);
+  } finally { await admin.query('ALTER TABLE public.accounting_audit_events ENABLE ALWAYS TRIGGER ledgerly_accounting_audit_events_guard'); }
+  assert.equal(await directTaxCreate(f.company, f.owner, body), 'created');
+  assert.deepEqual(await storedTaxInputs(f.company), [body]); assert.equal((await taxCreationAudits(f.company)).length, 1);
+  assert.deepEqual(await taxPrepareAudits(f.company), []);
+  assert.equal((await request(taxCreatePath(f.company), 'POST', body, f.owner)).status, 200);
+  assert.equal((await taxCreationAudits(f.company)).length, 1); assert.equal((await taxPrepareAudits(f.company)).length, 1);
+  const before = await sensitiveAudit(f.company);
+  await admin.query('ALTER TABLE public.accounting_audit_events DISABLE TRIGGER ledgerly_accounting_audit_events_guard');
+  try {
+    await assert.rejects(() => directTaxCreate(f.company, f.owner, body));
+    assert.equal((await request(taxCreatePath(f.company), 'POST', body, f.owner)).status, 503);
+    assert.deepEqual(await storedTaxInputs(f.company), [body]); assert.deepEqual(await sensitiveAudit(f.company), before);
+  } finally { await admin.query('ALTER TABLE public.accounting_audit_events ENABLE ALWAYS TRIGGER ledgerly_accounting_audit_events_guard'); }
+});
+
+test("creation or prepare audit faults roll back direct and wrapped tax creation, including skipped inserts", async () => {
+  for (const action of ['personal_tax_preparation_create', 'sensitive_access']) for (const failure of ['exception', 'skip']) {
+    const f = await fixture(), body = taxIntent();
+    await admin.query(`CREATE FUNCTION public.synthetic_tax_create_audit_failure() RETURNS trigger LANGUAGE plpgsql AS $$
+      BEGIN IF NEW.company_id='${f.company}'::uuid AND NEW.action='${action}' THEN ${failure === 'skip' ? 'RETURN NULL;' : "RAISE EXCEPTION 'synthetic-private-tax-create-diagnostic';"} END IF; RETURN NEW; END $$`);
+    await admin.query('CREATE TRIGGER synthetic_tax_create_audit_failure BEFORE INSERT ON public.accounting_audit_events FOR EACH ROW EXECUTE FUNCTION public.synthetic_tax_create_audit_failure()');
+    try {
+      if (action === 'personal_tax_preparation_create') {
+        await assert.rejects(() => directTaxCreate(f.company, f.owner, body));
+        assert.deepEqual(await storedTaxInputs(f.company), []); assert.deepEqual(await sensitiveAudit(f.company), []);
+      }
+      const response = await request(taxCreatePath(f.company), 'POST', body, f.owner);
+      assert.equal(response.status, 503); assert.equal(response.cacheControl, 'no-store');
+      assert.equal(response.body.includes('synthetic-private-tax-create-diagnostic'), false);
+      assert.deepEqual(await storedTaxInputs(f.company), []); assert.deepEqual(await sensitiveAudit(f.company), []);
+      assert.equal(JSON.stringify(logs).includes('synthetic-private-tax-create-diagnostic'), false);
+    } finally {
+      await admin.query('DROP TRIGGER synthetic_tax_create_audit_failure ON public.accounting_audit_events');
+      await admin.query('DROP FUNCTION public.synthetic_tax_create_audit_failure()');
+    }
+    assert.equal((await request(taxCreatePath(f.company), 'POST', body, f.owner)).status, 201);
+    assert.equal((await taxCreationAudits(f.company)).length, 1); assert.equal((await taxPrepareAudits(f.company)).length, 1);
+  }
+});
+
+test("failed replay audit leaves the original tax input and creation receipt intact", async () => {
+  const f = await fixture(), body = taxIntent();
+  assert.equal((await request(taxCreatePath(f.company), 'POST', body, f.owner)).status, 201);
+  const before = await sensitiveAudit(f.company);
+  await admin.query(`CREATE FUNCTION public.synthetic_tax_replay_audit_skip() RETURNS trigger LANGUAGE plpgsql AS $$
+    BEGIN IF NEW.company_id='${f.company}'::uuid AND NEW.action='sensitive_access' THEN RETURN NULL; END IF; RETURN NEW; END $$`);
+  await admin.query('CREATE TRIGGER synthetic_tax_replay_audit_skip BEFORE INSERT ON public.accounting_audit_events FOR EACH ROW EXECUTE FUNCTION public.synthetic_tax_replay_audit_skip()');
+  try {
+    assert.equal((await request(taxCreatePath(f.company), 'POST', body, f.owner)).status, 503);
+    assert.deepEqual(await storedTaxInputs(f.company), [body]); assert.deepEqual(await sensitiveAudit(f.company), before);
+  } finally {
+    await admin.query('DROP TRIGGER synthetic_tax_replay_audit_skip ON public.accounting_audit_events');
+    await admin.query('DROP FUNCTION public.synthetic_tax_replay_audit_skip()');
+  }
+  assert.equal((await request(taxCreatePath(f.company), 'POST', body, f.owner)).status, 200);
+  assert.equal((await taxCreationAudits(f.company)).length, 1); assert.equal((await taxPrepareAudits(f.company)).length, 2);
+});
+
+test("tax creation fails closed on unsafe function grants and unknown or null command status", async () => {
+  const f = await fixture(), body = taxIntent();
+  const signature = 'public.ledgerly_create_personal_tax_preparation(uuid,text,uuid,uuid,integer,bigint)';
+  await admin.query(`GRANT EXECUTE ON FUNCTION ${signature} TO PUBLIC`);
+  try { assert.equal((await request(taxCreatePath(f.company), 'POST', body, f.owner)).status, 503); }
+  finally { await admin.query(`REVOKE EXECUTE ON FUNCTION ${signature} FROM PUBLIC`); }
+  const definition = (await admin.query('SELECT pg_get_functiondef($1::regprocedure) definition', [signature])).rows[0].definition;
+  try {
+    for (const value of ['NULL', "'unexpected-status'"]) {
+      await admin.query(`CREATE OR REPLACE FUNCTION public.ledgerly_create_personal_tax_preparation(c uuid,a text,r uuid,t uuid,y integer,p bigint)
+        RETURNS text LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$ BEGIN RETURN ${value}; END $$`);
+      const response = await request(taxCreatePath(f.company), 'POST', body, f.owner);
+      assert.equal(response.status, 503); assert.equal(response.cacheControl, 'no-store');
+      assert.deepEqual(await storedTaxInputs(f.company), []); assert.deepEqual(await sensitiveAudit(f.company), []);
+    }
+  } finally { await admin.query(definition); }
+  assert.equal((await request(taxCreatePath(f.company), 'POST', body, f.owner)).status, 201);
 });

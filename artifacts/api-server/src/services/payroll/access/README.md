@@ -152,8 +152,7 @@ No role, field, company or year query overrides are accepted.
 Both native sensitive record stores use one closed internal table allowlist to
 attest canonical ownership, an ordinary table and runtime SELECT-only access,
 including absence of column INSERT/UPDATE grants. Existing pay read/create
-behaviour is unchanged. Personal-tax inputs here are seeded only by the isolated test
-administrator; no tax create, list, export, submission or UI is enabled.
+behaviour is unchanged. There are no tax list, export, submission or UI endpoints.
 One company/taxpayer/year may hold one annual employment-income input, not one
 row per employer. Amounts are nonnegative bigint pence and the storage year is
 an integer from 1 to 9998.
@@ -165,6 +164,33 @@ residency, region and period evidence absent from this single input. This read
 does not resolve a declared calculation case, calculate taxable income or a
 liability, map a return box, or grant external filing authority. A populated
 owner/submitter fixture is retained for independent encrypted-restore checks.
+
+`POST /api/companies/:id/personal-tax-preparations` creates one raw annual input
+for a current unique active owner or `personal_tax_preparer`. The exact body is
+`id` (client-generated record UUID and idempotency key), `taxpayer_id`,
+`tax_year_start` (JSON integer 1–9998) and `employment_income_pence` (canonical
+nonnegative bigint string). Currency is implicitly GBP. Extra authority,
+currency, protected-origin fields, query overrides and type coercion are rejected.
+The response contains only `{id,status}`: 201/`created` or 200/`replayed`.
+
+A currently authorised owner/preparer may replay the exact company/id and
+taxpayer/year/amount intent. Changed intent or a different ID for an occupied
+company/taxpayer/year returns a fixed 409 conflict with no new success receipt.
+Later years are separate immutable inputs; one year is not overwritten.
+Administrator-seeded inputs cannot become command replays even if a matching
+audit row is forged: protected `created_by_tax_command` origin is also required.
+
+The restricted canonical-owner function rechecks locked membership and protected
+audit storage before create or replay. Runtime table writes remain forbidden.
+One creation atomically records `personal_tax_preparation_create` with the
+`personal-tax-create.v1` contract; the existing boundary records a separate
+`personal_tax.prepare` receipt for every successful create/replay. Neither stores
+taxpayer reference, tax year, income or the request body. Any failed/skipped audit
+step rolls back a new input and its receipts; failed replay leaves original
+evidence unchanged. Unknown/null command status fails closed. Both pay and tax
+commands share a closed static signature map that checks canonical ownership,
+restricted EXECUTE grants, scalar text return and pinned `pg_catalog` search path.
+This creation operation adds no tax calculation, classification or filing support.
 
 Native disposable tests exercise the boundary with synthetic payloads and
 transactional fixture mutations, current membership races, audit failure and

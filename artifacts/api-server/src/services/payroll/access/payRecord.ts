@@ -1,5 +1,6 @@
-import { withPayrollAccess, SensitiveAccessError, type SensitiveContext } from './service';
+import { withPayrollAccess, SensitiveAccessError } from './service';
 import { requireReadOnlySensitiveStorage } from './recordStorage';
+import { requireSensitiveCreationCommand } from './commandProtection';
 
 export interface PayRecord {
   id: string;
@@ -40,17 +41,6 @@ export function parsePayRecordCreation(input: unknown): PayRecordCreation {
     effective_from: body.effective_from, annual_salary_pence: body.annual_salary_pence };
 }
 
-async function requirePayCreationFunction(context: SensitiveContext) {
-  const rows = (await context.query(`SELECT pg_get_userbyid(p.proowner) owner,p.prosecdef,p.proretset,p.prokind,p.proconfig,
-    p.prorettype='text'::regtype text_result,has_function_privilege(current_user,p.oid,'EXECUTE') can_execute,
-    EXISTS(SELECT 1 FROM aclexplode(COALESCE(p.proacl,acldefault('f',p.proowner))) acl
-      WHERE acl.grantee<>p.proowner AND (acl.grantee<>'ledgerly_api'::regrole OR acl.privilege_type<>'EXECUTE' OR acl.is_grantable)) unsafe_acl
-    FROM pg_proc p WHERE p.oid=to_regprocedure('public.ledgerly_create_employee_pay_record(uuid,text,uuid,uuid,date,bigint)')`)).rows;
-  if (rows.length !== 1 || rows[0].owner !== 'ledgerly_canonical_owner' || !rows[0].prosecdef || rows[0].proretset ||
-      rows[0].prokind !== 'f' || !rows[0].text_result || !rows[0].can_execute || rows[0].unsafe_acl ||
-      JSON.stringify(rows[0].proconfig) !== '["search_path=pg_catalog"]') unavailable();
-}
-
 /** Create one dated record or replay the same native-created intent. The restricted
  * function owns the creation receipt; the boundary audits each successful prepare call. */
 export async function createPayRecord(companyId: string, actorId: string, input: unknown): Promise<{
@@ -60,7 +50,7 @@ export async function createPayRecord(companyId: string, actorId: string, input:
   return withPayrollAccess({ company_id: companyId, actor_id: actorId, resource_company_id: companyId,
     resource_id: body.id, action: 'payroll.prepare' }, async context => {
     await requireReadOnlySensitiveStorage(context, 'employee_pay_records');
-    await requirePayCreationFunction(context);
+    await requireSensitiveCreationCommand(context, 'pay');
     const result = await context.query(`SELECT public.ledgerly_create_employee_pay_record(
       $1::uuid,$2::text,$3::uuid,$4::uuid,$5::date,$6::bigint) status`,
     [context.companyId, context.actorId, context.resourceId, body.employee_id, body.effective_from, body.annual_salary_pence]);

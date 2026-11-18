@@ -25,6 +25,7 @@ export const migrationOrder = Object.freeze([
   'employee-pay-records',
   'employee-pay-create',
   'personal-tax-preparations',
+  'personal-tax-create',
 ]);
 const fail = code => { throw Object.assign(new Error(code), { code }); };
 export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
