@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "revision": 542,
+  "revision": 543,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "2ec0fb120149fad9e8caec59047b61ab0020a93d",
+  "codeHead": "7a3553913fa5318f1a3c9c2734991df651735fbb",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -21,59 +21,29 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "7b3587f23960ef4f3b96bbe3236108180c568325",
+    "sha": "7baa16b6803002b5b1aef102da897b713b9dd49c",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "7b3587f23960ef4f3b96bbe3236108180c568325",
-        "path": "docs/development/candidates/pay-create-20261118/accepted/accepted-queue-delta.json"
+        "sha": "7baa16b6803002b5b1aef102da897b713b9dd49c",
+        "path": "docs/development/candidates/pay-ui-20261118/migration/queue-base.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "7b3587f23960ef4f3b96bbe3236108180c568325",
-        "path": "docs/development/candidates/pay-create-20261118/accepted/ci.log"
+        "sha": "7baa16b6803002b5b1aef102da897b713b9dd49c",
+        "path": "docs/development/candidates/pay-ui-20261118/migration/review.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "7b3587f23960ef4f3b96bbe3236108180c568325",
-        "path": "docs/development/candidates/pay-create-20261118/accepted/ci.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "7b3587f23960ef4f3b96bbe3236108180c568325",
-        "path": "docs/development/candidates/pay-create-20261118/accepted/acceptance.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "7b3587f23960ef4f3b96bbe3236108180c568325",
-        "path": "docs/development/candidates/pay-create-20261118/accepted/source-review.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "7b3587f23960ef4f3b96bbe3236108180c568325",
-        "path": "docs/development/candidates/pay-create-20261118/accepted/schema-review.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "7b3587f23960ef4f3b96bbe3236108180c568325",
-        "path": "docs/development/candidates/pay-create-20261118/accepted/direct-audit-review.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "7b3587f23960ef4f3b96bbe3236108180c568325",
-        "path": "docs/development/candidates/pay-create-20261118/accepted/current-view.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "7b3587f23960ef4f3b96bbe3236108180c568325",
-        "path": "docs/development/candidates/pay-create-20261118/accepted/run-metrics.json"
+        "sha": "7baa16b6803002b5b1aef102da897b713b9dd49c",
+        "path": "docs/development/candidates/pay-ui-20261118/migration/disclosure-review.json"
       }
     ],
-    "runId": "paycreate-1795019320047",
-    "at": 1795020387363,
-    "codeHead": "2ec0fb120149fad9e8caec59047b61ab0020a93d"
+    "runId": "payui-1795020623087",
+    "at": 1795020854324,
+    "codeHead": "7a3553913fa5318f1a3c9c2734991df651735fbb"
   },
-  "updatedAt": 1795020623087,
+  "updatedAt": 1795020854324,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -202,12 +172,12 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "7b3587f23960ef4f3b96bbe3236108180c568325",
-    "path": "docs/development/candidates/pay-create-20261118/accepted/accepted-queue-delta.json",
-    "bytesSha256": "a723be9cd083c8c826016f383ab4bf5eefdf2f8c9226246ca402453bac3d9de9",
-    "queueSha256": "6fb5c6aa8bb4ad38e0271eadfbed2e217a8f8ca6f942783d81f336a45951fbc9",
+    "sha": "7baa16b6803002b5b1aef102da897b713b9dd49c",
+    "path": "docs/development/candidates/pay-ui-20261118/migration/queue-base.json",
+    "bytesSha256": "a4701f43fbc337ec084241e0d460a16ad484ba875f64b729214db63a77a22774",
+    "queueSha256": "9bf5b01a62f22f4adedd89126e11a2a941b08a706f551916f4d2ed4be1f04376",
     "revision": 945,
-    "catalogDigest": "5e86c173103402a6c097d9030aff3479165255a5adb32db747cee1efe4c32983"
+    "catalogDigest": "e2062b766ab4d6c1925cec45996df85511974cc96a5873b02adbfe7392a3efbc"
   },
   "historyReference": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
@@ -235,18 +205,18 @@
       "path": "docs/development/candidates/correction-discovery-20261117/compact/queue-reference.mjs",
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
-    "baseRevision": 922,
+    "baseRevision": 945,
     "currentRevision": 945,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
       "ref": "refs/heads/codex/ledgerly-work-queue-state",
-      "sha": "0bba917ef43fd69b8c52c57d9b270f45e4823775",
-      "path": "docs/development/candidates/role-audit-20261118/migration/queue-base.json",
-      "bytesSha256": "4781ea04dadc6d7e97522f52d23ec48a84c3f5ee309c2b7c093ab10b55614770",
-      "queueSha256": "26f1abfffe95f78111996bf032059402cfab3db410b0e3f9adf8b62353b18787",
-      "revision": 922,
-      "catalogDigest": "5e86c173103402a6c097d9030aff3479165255a5adb32db747cee1efe4c32983"
+      "sha": "7baa16b6803002b5b1aef102da897b713b9dd49c",
+      "path": "docs/development/candidates/pay-ui-20261118/migration/queue-base.json",
+      "bytesSha256": "a4701f43fbc337ec084241e0d460a16ad484ba875f64b729214db63a77a22774",
+      "queueSha256": "9bf5b01a62f22f4adedd89126e11a2a941b08a706f551916f4d2ed4be1f04376",
+      "revision": 945,
+      "catalogDigest": "e2062b766ab4d6c1925cec45996df85511974cc96a5873b02adbfe7392a3efbc"
     }
   },
   "admissionRun": {
@@ -376,7 +346,7 @@
   },
   "twoTrackRun": {
     "startedAt": "2026-11-18T14:36:15.627Z",
-    "activity": "Audited dated pay record creation accepted, including concurrent retries and replay after encrypted restore.",
+    "activity": "Payroll UI ownership recorded; runtime history preserved.",
     "providerCost": null,
     "credits": null,
     "publishedCommit": "2ec0fb120149fad9e8caec59047b61ab0020a93d",
@@ -389,10 +359,10 @@
     ],
     "queueRevision": 945,
     "migration": {
-      "published": "ec5b31e504673035604a802dd05e5f469ffbad8f",
-      "archive": "0bba917ef43fd69b8c52c57d9b270f45e4823775",
+      "published": "7a3553913fa5318f1a3c9c2734991df651735fbb",
+      "archive": "7baa16b6803002b5b1aef102da897b713b9dd49c",
       "reviewer": "root",
-      "catalogDigest": "5e86c173103402a6c097d9030aff3479165255a5adb32db747cee1efe4c32983"
+      "catalogDigest": "e2062b766ab4d6c1925cec45996df85511974cc96a5873b02adbfe7392a3efbc"
     }
   }
 }
