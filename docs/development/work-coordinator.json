@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "revision": 511,
+  "revision": 512,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "1c52f77c63599b26c4d90862c485db951f12ca66",
@@ -21,24 +21,24 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "ddcd5202009047c1945ff6c0a7a9a05768350091",
+    "sha": "24e36e029fbb9b7d8acb32bb0b3ff148e4f6615a",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "ddcd5202009047c1945ff6c0a7a9a05768350091",
-        "path": "docs/development/candidates/access-fixtures-20261118/reservation/reservation-queue-delta.json"
+        "sha": "24e36e029fbb9b7d8acb32bb0b3ff148e4f6615a",
+        "path": "docs/development/candidates/access-fixtures-20261118/activity/activity-queue-delta.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "ddcd5202009047c1945ff6c0a7a9a05768350091",
-        "path": "docs/development/candidates/access-fixtures-20261118/reservation/brief.json"
+        "sha": "24e36e029fbb9b7d8acb32bb0b3ff148e4f6615a",
+        "path": "docs/development/candidates/access-fixtures-20261118/activity/fixture-independent-source-check.json"
       }
     ],
     "runId": "access-fixtures-1795012575624",
-    "at": 1795012747187,
+    "at": 1795013058983,
     "codeHead": "1c52f77c63599b26c4d90862c485db951f12ca66"
   },
-  "updatedAt": 1795012747187,
+  "updatedAt": 1795013058983,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -131,18 +131,18 @@
       "actor": "payroll-access-implementer",
       "task": "P02-04",
       "provider": "Codex",
-      "status": "reserved",
-      "stopped": true
+      "status": "running",
+      "stopped": false
     },
     {
       "actor": "replit-fixture-implementer",
       "task": "P04-03",
       "provider": "Replit",
-      "status": "reserved",
-      "stopped": true
+      "status": "running",
+      "stopped": false
     }
   ],
-  "workersStopped": true,
+  "workersStopped": false,
   "discoveryRun": {
     "runId": "correction-discovery-1794927549982",
     "startedAt": "2026-11-17T14:59:10.335Z",
@@ -182,11 +182,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "ddcd5202009047c1945ff6c0a7a9a05768350091",
-    "path": "docs/development/candidates/access-fixtures-20261118/reservation/reservation-queue-delta.json",
-    "bytesSha256": "d7d2352f9f35586d0f47d71f138a14fd1940bbf70cbd870d64bab6f210835a25",
-    "queueSha256": "911acd568a36cf4c9c3f8400c74a24076562c68da010691e72f10730a113b44f",
-    "revision": 916,
+    "sha": "24e36e029fbb9b7d8acb32bb0b3ff148e4f6615a",
+    "path": "docs/development/candidates/access-fixtures-20261118/activity/activity-queue-delta.json",
+    "bytesSha256": "a1cddb8eb0dccaf61e7f56e5e50b33734dfdfa11f8093ffa6831ba612889f662",
+    "queueSha256": "c68df9b38368078b2e1f0f06df6d999036f904151ecb209d8d4c1ea85b76eed7",
+    "revision": 918,
     "catalogDigest": "df1d49d22e3a0fff74ed2b375bbe7b86279de43f82d996c3085a3c9b50740b6f"
   },
   "historyReference": {
@@ -205,7 +205,7 @@
       "constraint": "Current fixture waits for loaded readiness; financial safeguards remain fail-closed."
     }
   ],
-  "worktreesClean": true,
+  "worktreesClean": false,
   "queueHydration": {
     "required": true,
     "note": "queueState is an immutable reference, not a runnable queue. Fetch the exact artifact, verify byte and resolved queue digests and catalogue digest, validate with core.mjs, then hydrate before CLI init/scheduling/currentView. Never initialize an archived base alone. Existing coordinator ownership/fencing and expected-head publication remain unchanged.",
@@ -216,7 +216,7 @@
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
     "baseRevision": 901,
-    "currentRevision": 916,
+    "currentRevision": 918,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
@@ -356,10 +356,10 @@
   },
   "twoTrackRun": {
     "startedAt": "2026-11-18T14:36:15.627Z",
-    "activity": "Exactq914 hydrated, source1c52f77 verified. Highesteligible primaryP02-04 reservedCodex and then taxtrackP04-03 reservedReplit. Isolatedwork/export/stoppedReplit preflight reverified; sourcefetch required. Bounded authorsstop15:00UTC.",
+    "activity": "Codex specialized role matrix/internal audited boundary authored; independent security review underway. Replit authored6officialweeklyrow fixtures and conditional notices at exactsource; focusedtests running. Root independently checked6ODSrows and16noticecontexts without calling applicationcode.",
     "providerCost": null,
     "credits": null,
     "publishedCommit": "1c52f77c63599b26c4d90862c485db951f12ca66",
-    "observedAt": "2026-11-18T14:38:50.308Z"
+    "observedAt": "2026-11-18T14:44:05.504Z"
   }
 }
