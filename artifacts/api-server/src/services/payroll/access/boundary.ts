@@ -3,10 +3,10 @@ import { transact, type Queryable } from '../../accountingDocuments/core';
 import { canAccessSensitiveData, isSensitiveAction, type CompanyRole, type SensitiveAction } from '../../../security/roles';
 
 export class SensitiveAccessError extends Error {
-  constructor(readonly code: 'SENSITIVE_ACCESS_DENIED' | 'SENSITIVE_REQUEST_INVALID' | 'SENSITIVE_OPERATION_UNAVAILABLE') {
+  constructor(readonly code: 'SENSITIVE_ACCESS_DENIED' | 'SENSITIVE_REQUEST_INVALID' | 'SENSITIVE_REQUEST_CONFLICT' | 'SENSITIVE_OPERATION_UNAVAILABLE') {
     super(code);
   }
-  get status() { return this.code === 'SENSITIVE_ACCESS_DENIED' ? 403 : this.code === 'SENSITIVE_REQUEST_INVALID' ? 400 : 503; }
+  get status() { return this.code === 'SENSITIVE_ACCESS_DENIED' ? 403 : this.code === 'SENSITIVE_REQUEST_INVALID' ? 400 : this.code === 'SENSITIVE_REQUEST_CONFLICT' ? 409 : 503; }
 }
 
 export interface SensitiveRequest {

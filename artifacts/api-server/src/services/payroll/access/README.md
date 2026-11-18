@@ -97,11 +97,39 @@ be an ordinary table owned by the canonical owner with runtime SELECT only,
 including no column INSERT/UPDATE grants. Missing/foreign records share a denial;
 audit or storage protection failure releases no salary or employee reference.
 All route responses use `no-store`, including authentication failures. Query
-overrides, collections, exports and record mutation endpoints are absent.
+overrides, collections, exports and existing-record mutation endpoints are absent.
 
-This slice reads synthetic administrator-seeded records in disposable tests. It
-does not create live employee records, calculate payroll, or add a pay-record UI.
-The additive schema and its populated restore checks are coordinated separately.
+`POST /api/companies/:id/payroll-pay-records` creates one dated annual pay intent
+for a current unique active owner or `payroll_preparer`. Its exact body is `id`
+(client-generated record UUID and idempotency key), `employee_id`, `effective_from`
+(real Gregorian date `YYYY-MM-DD`, years 0001–9999) and `annual_salary_pence`
+(canonical nonnegative integer string through the PostgreSQL bigint maximum).
+Currency is implicitly GBP; extra fields, caller authority and query parameters
+are rejected. Employee references accept native PostgreSQL UUIDs; record IDs use
+the existing sensitive-request UUID contract.
+
+The response is only `{id,status}`, with 201/`created` or 200/`replayed`. A current
+authorized owner/preparer can replay the same company/id and exact canonical
+intent. Changed employee/date/amount or a different id on an occupied company,
+employee and effective date returns a redacted 409. Company identities are
+independent. A later date creates a separate record without overwriting earlier
+pay. Administrator-seeded rows cannot be claimed as native creations, even by
+forging an audit row: the restricted function also checks protected origin data.
+
+`ledgerly_api` retains SELECT-only table access. A fixed, canonical-owner definer
+function with pinned search path rechecks locked active membership, validates
+protected audit storage and writes the record plus one redacted creation receipt
+atomically. The normal `payroll.prepare` boundary adds an allowed-operation
+receipt for every successful create/replay. Neither receipt contains the employee
+reference, date or salary. Unknown function status, unsafe function grants and
+failed/skipped receipts fail closed; wrapper failure also rolls back a newly
+inserted record and its creation receipt. Denied/conflicting requests add no
+success receipts. Retries after revocation remain denied.
+
+These workflows are qualified with synthetic disposable records. They do not
+calculate payroll, manage full employee/employer setup, create a live pay run or
+add a pay-record UI. The additive schema and populated restore checks are
+coordinated separately.
 
 Native disposable tests exercise the boundary with synthetic payloads and
 transactional fixture mutations, current membership races, audit failure and

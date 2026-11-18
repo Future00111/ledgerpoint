@@ -218,6 +218,15 @@
         "accounting-documents"
       ],
       "sha256": "4ff1cfc51e934ce12e0348c326cee22c0c4e05cd97a0cdf0f57f3b2b66b421b6"
+    },
+    {
+      "id": "employee-pay-create",
+      "path": "lib/db/migrations/employee-pay-create.review.sql",
+      "contractVersion": 1,
+      "dependencies": [
+        "employee-pay-records"
+      ],
+      "sha256": "027877975e36c0df11a01e51e4ebbe24237e396f10511d3dba5c99836ab05a13"
     }
   ],
   "securityOverlay": {

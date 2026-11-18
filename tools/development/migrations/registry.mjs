@@ -23,6 +23,7 @@ export const migrationOrder = Object.freeze([
   'durable-jobs',
   'durable-job-execution',
   'employee-pay-records',
+  'employee-pay-create',
 ]);
 const fail = code => { throw Object.assign(new Error(code), { code }); };
 export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');

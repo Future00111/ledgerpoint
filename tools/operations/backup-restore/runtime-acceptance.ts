@@ -24,6 +24,7 @@ async function main() {
   const {recoverBankImport}=await import('../../../artifacts/api-server/src/services/accountingDocuments/bankImports');
   const {recoverBankMatch}=await import('../../../artifacts/api-server/src/services/accountingDocuments/bankStatements');
   const {recoverBankCorrection}=await import('../../../artifacts/api-server/src/services/accountingDocuments/bankCorrections');
+  const { createPayRecord, readPayRecord } = await import('../../../artifacts/api-server/src/services/payroll/access/payRecord');
   const {preparePaymentAttempts, verifyPaymentAttempts}=await import('./payment-attempt-acceptance');
   try {
     assert.deepEqual((await pool.query(`SELECT current_database() database,current_user actor,
@@ -159,13 +160,27 @@ async function main() {
       const banking = await bankingRecovery();
       const paymentAttempts = await preparePaymentAttempts(pool, { company: fixture.company_id, actor: fixture.actor_id,
         template: fixture.source.intent, foreignCompany: capture.company, foreignActor: capture.actor });
-      return { paymentAttempts,bankingRecovery:banking,replacementAcceptance,company: fixture.company_id, actor: fixture.actor_id, historicalEvent: fixture.id, historical,
+      const pay = { id: randomUUID(), employee_id: randomUUID(), effective_from: '2026-04-06', annual_salary_pence: '4250000' };
+      const creation = await createPayRecord(capture.company, capture.actor, pay);
+      assert.deepEqual(creation, { id: pay.id, status: 'created' });
+      return { pay, paymentAttempts,bankingRecovery:banking,replacementAcceptance,company: fixture.company_id, actor: fixture.actor_id, historicalEvent: fixture.id, historical,
         unwitnessedEvent: body.id, sourceCluster: transaction.cluster_id, template: fixture.source.intent, permissions, capture };
     }
     const fixture = JSON.parse(readFileSync(0, 'utf8'));
     assert.deepEqual(await bankingRecovery(),fixture.bankingRecovery,'Native banking receipts changed across restore');
     assert.deepEqual(permissions, fixture.permissions, 'Effective function permissions changed during restore.');
     await verifyCapture(fixture.capture);
+    const pay = fixture.pay;
+    const company = fixture.capture.company, owner = fixture.capture.actor;
+    assert.deepEqual(await createPayRecord(company, owner, pay), { id: pay.id, status: 'replayed' });
+    await assert.rejects(() => createPayRecord(company, owner, { ...pay, annual_salary_pence: '4250001' }),
+      (err: any) => err.code === 'SENSITIVE_REQUEST_CONFLICT');
+    const restoredPay = await readPayRecord(company, owner, pay.id);
+    assert.ok(restoredPay.id === pay.id && restoredPay.effective_from === pay.effective_from && restoredPay.currency === 'GBP' &&
+      restoredPay.annual_salary_pence === pay.annual_salary_pence && restoredPay.employee_id === pay.employee_id);
+    const receipts = await pool.query(`SELECT id FROM public.accounting_audit_events WHERE company_id=$1
+      AND target_type='employee_pay_record' AND target_id=$2 AND action='employee_pay_record_create'`, [company, pay.id]);
+    assert.equal(receipts.rowCount, 1, 'Restored retry must preserve the single pay creation receipt');
     assert.ok(fixture.replacementAcceptance?.length>=2);
     for(const row of fixture.replacementAcceptance) {
       assert.deepEqual(await conditionalReplacementOverview(row.company_id,row.actor_id,row.id),row.overview,'Restored replacement history/consumption changed');
@@ -198,7 +213,7 @@ async function main() {
     const origin = (await pool.query('SELECT cluster_id FROM conditional_discount_payment_transactions WHERE event_id=$1', [body.id])).rows[0];
     assert.notEqual(origin.cluster_id, fixture.sourceCluster, 'Restored cluster must have a different transaction origin.');
     assert.deepEqual(await captureCommittedPaymentWitness(fixture.company, fixture.actor, fixture.historicalEvent), fixture.historical);
-    return { paymentAttemptRecovery,nativeBankingRecoveryVerified:true,bankingRecoveryKinds:fixture.bankingRecovery.map((r:any)=>r.kind),
+    return { payRecordReplayVerified: true, paymentAttemptRecovery,nativeBankingRecoveryVerified:true,bankingRecoveryKinds:fixture.bankingRecovery.map((r:any)=>r.kind),
       replacementLifecyclesVerified:fixture.replacementAcceptance.length,replacementHistoricalReportsPreserved:true,
       replacementObservationAndConsumptionPreserved:true,newNativePaymentPosted: true, newCommittedWitnessRecorded: true, retrySingleEffect: true,
       historicalWitnessPreserved: true, foreignUnwitnessedRejected: true, distinctClusterOrigin: true,

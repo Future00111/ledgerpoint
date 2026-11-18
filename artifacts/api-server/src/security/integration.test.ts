@@ -955,3 +955,230 @@ test("pay read refuses missing storage, column-only mutations and unprotected au
   const response = await request(payRecordPath(f.company, f.id), 'GET', undefined, f.owner);
   assert.equal(response.status, 200); assert.equal((await payReadAudits(f.company)).length, 1);
 });
+
+const payCreatePath = (company: string) => `/${company}/payroll-pay-records`;
+const payIntent = () => ({ id: randomUUID(), employee_id: randomUUID(), effective_from: '2026-04-06', annual_salary_pence: '4800000' });
+const payCreationAudits = async (company: string) => (await sensitiveAudit(company)).filter(row => row.action === 'employee_pay_record_create');
+const payPrepareAudits = async (company: string) => (await sensitiveAudit(company)).filter(row => row.action === 'sensitive_access' && row.capability === 'payroll.prepare');
+const storedPay = async (company: string) => (await pool.query(`SELECT id,employee_id,to_char(effective_from,'YYYY-MM-DD') effective_from,
+  annual_salary_pence::text annual_salary_pence FROM public.employee_pay_records WHERE company_id=$1 ORDER BY id`, [company])).rows;
+const directPayCreate = async (company: string, actor: string, body: ReturnType<typeof payIntent>) => (await pool.query(
+  'SELECT public.ledgerly_create_employee_pay_record($1::uuid,$2::text,$3::uuid,$4::uuid,$5::date,$6::bigint) status',
+  [company, actor, body.id, body.employee_id, body.effective_from, body.annual_salary_pence])).rows[0].status;
+
+test("owner and verified payroll preparer create dated pay through normal HTTP then read exact persisted fields", async () => {
+  for (const role of ['owner', 'payroll_preparer']) {
+    const f = await fixture(), body = payIntent(), actor = role === 'owner' ? f.owner : `synthetic-pay-create-${randomUUID()}`;
+    if (role !== 'owner') {
+      identities.add(actor);
+      assert.equal((await request(`/${f.company}/members`, 'POST', { user_id: actor, role }, f.owner)).status, 201);
+    }
+    const created = await request(payCreatePath(f.company), 'POST', body, actor);
+    assert.equal(created.status, 201, created.body); assert.equal(created.cacheControl, 'no-store');
+    assert.deepEqual(JSON.parse(created.body), { id: body.id, status: 'created' });
+    assert.deepEqual(await storedPay(f.company), [body]);
+    assert.deepEqual(await payCreationAudits(f.company), [{ action: 'employee_pay_record_create', outcome: 'allowed',
+      target_type: 'employee_pay_record', target_id: body.id, actor_type: 'user', actor_id: actor, capability: 'payroll.prepare',
+      context: { contract: 'employee-pay-create.v1', role }, journal_id: null, posting_effect_id: null }]);
+    assert.deepEqual(await payPrepareAudits(f.company), [{ action: 'sensitive_access', outcome: 'allowed',
+      target_type: 'payroll_resource', target_id: body.id, actor_type: 'user', actor_id: actor, capability: 'payroll.prepare',
+      context: { contract: 'sensitive-access.v1', role }, journal_id: null, posting_effect_id: null }]);
+    const read = await request(payRecordPath(f.company, body.id), 'GET', undefined, actor);
+    assert.equal(read.status, 200); assert.deepEqual(JSON.parse(read.body), { ...body, currency: 'GBP' });
+    await assert.rejects(() => pool.query('INSERT INTO public.employee_pay_records SELECT * FROM public.employee_pay_records WHERE false'),
+      (error: any) => error.code === '42501');
+  }
+});
+
+test("pay creation replays identical current-authority intent and appends later dates without overwriting earlier pay", async () => {
+  const f = await fixture(), body = { ...payIntent(), annual_salary_pence: '9007199254740993' }, preparer = `synthetic-replay-${randomUUID()}`;
+  await addMember(f.company, preparer, 'payroll_preparer');
+  assert.equal((await request(payCreatePath(f.company), 'POST', body, f.owner)).status, 201);
+  for (const actor of [f.owner, preparer]) {
+    const response = await request(payCreatePath(f.company.toUpperCase()), 'POST', { ...body, id: body.id.toUpperCase(), employee_id: body.employee_id.toUpperCase() }, actor);
+    assert.equal(response.status, 200); assert.deepEqual(JSON.parse(response.body), { id: body.id, status: 'replayed' });
+  }
+  assert.deepEqual(await storedPay(f.company), [body]); assert.equal((await payCreationAudits(f.company)).length, 1);
+  assert.equal((await payPrepareAudits(f.company)).length, 3);
+  const later = { ...body, id: randomUUID(), effective_from: '2026-05-06', annual_salary_pence: '5000000' };
+  assert.equal((await request(payCreatePath(f.company), 'POST', later, preparer)).status, 201);
+  assert.deepEqual(await storedPay(f.company), [body, later].sort((a, b) => a.id.localeCompare(b.id)));
+  assert.equal((await payCreationAudits(f.company)).length, 2);
+});
+
+test("changed pay intent and company employee/date collisions return fixed conflict without writes or extra receipts", async () => {
+  const f = await fixture(), body = payIntent();
+  assert.equal((await request(payCreatePath(f.company), 'POST', body, f.owner)).status, 201);
+  const before = await sensitiveAudit(f.company);
+  for (const changed of [{ ...body, employee_id: randomUUID() }, { ...body, effective_from: '2026-05-06' },
+    { ...body, annual_salary_pence: '4800001' }, { ...body, id: randomUUID() }]) {
+    const response = await request(payCreatePath(f.company), 'POST', changed, f.owner);
+    assert.equal(response.status, 409); assert.equal(response.cacheControl, 'no-store');
+    assert.deepEqual(JSON.parse(response.body), { error: 'This request conflicts with an existing record.', code: 'SENSITIVE_REQUEST_CONFLICT' });
+    assert.deepEqual(await storedPay(f.company), [body]); assert.deepEqual(await sensitiveAudit(f.company), before);
+  }
+});
+
+test("administrator-seeded pay cannot be claimed as a replay even with a forged matching creation audit", async () => {
+  const f = await payRecordFixture(), body = { id: f.id, employee_id: f.employee, effective_from: '2026-04-06', annual_salary_pence: f.amount };
+  assert.equal((await request(payCreatePath(f.company), 'POST', body, f.owner)).status, 409);
+  await pool.query(`INSERT INTO public.accounting_audit_events
+    (id,company_id,action,outcome,target_type,target_id,actor_type,actor_id,capability,context)
+    VALUES($1,$2,'employee_pay_record_create','allowed','employee_pay_record',$3,'user',$4,'payroll.prepare',$5::jsonb)`,
+  [randomUUID(), f.company, f.id, f.owner, JSON.stringify({ contract: 'employee-pay-create.v1', role: 'owner' })]);
+  const before = await sensitiveAudit(f.company);
+  assert.equal(await directPayCreate(f.company, f.owner, body), 'conflict');
+  assert.equal((await request(payCreatePath(f.company), 'POST', body, f.owner)).status, 409);
+  assert.deepEqual(await storedPay(f.company), [body]); assert.deepEqual(await sensitiveAudit(f.company), before);
+  assert.deepEqual(await payPrepareAudits(f.company), []);
+});
+
+test("pay command identities and employee effective dates are independent across companies", async () => {
+  const f = await fixture(), other = await fixture(), body = payIntent(), otherBody = { ...body, annual_salary_pence: '7654321' };
+  assert.equal((await request(payCreatePath(f.company), 'POST', body, f.owner)).status, 201);
+  assert.equal((await request(payCreatePath(other.company), 'POST', otherBody, other.owner)).status, 201);
+  assert.equal((await request(payCreatePath(other.company), 'POST', otherBody, f.owner)).status, 403);
+  assert.deepEqual(await storedPay(f.company), [body]); assert.deepEqual(await storedPay(other.company), [otherBody]);
+  assert.equal((await payCreationAudits(f.company)).length, 1); assert.equal((await payCreationAudits(other.company)).length, 1);
+});
+
+test("concurrent duplicate pay creation has one effect and competing date keys have one winner", async () => {
+  const f = await fixture(), body = payIntent();
+  const same = await Promise.all([1, 2].map(() => request(payCreatePath(f.company), 'POST', body, f.owner)));
+  assert.deepEqual(same.map(response => response.status).sort(), [200, 201]);
+  assert.deepEqual(await storedPay(f.company), [body]); assert.equal((await payCreationAudits(f.company)).length, 1);
+  assert.equal((await payPrepareAudits(f.company)).length, 2);
+  const other = await fixture(), first = payIntent(), second = { ...first, id: randomUUID(), annual_salary_pence: '4800001' };
+  const competing = await Promise.all([first, second].map(intent => request(payCreatePath(other.company), 'POST', intent, other.owner)));
+  assert.deepEqual(competing.map(response => response.status).sort(), [201, 409]);
+  const winner = competing[0]!.status === 201 ? first : second;
+  assert.deepEqual(await storedPay(other.company), [winner]); assert.equal((await payCreationAudits(other.company)).length, 1);
+  assert.equal((await payPrepareAudits(other.company)).length, 1);
+});
+
+test("pay creation denies ordinary, read, approval, personal-tax and invalid memberships in HTTP and the direct function", async () => {
+  const f = await fixture(), other = await fixture(), body = payIntent(), actors = [other.owner];
+  for (const role of ['admin', 'accountant', 'staff', 'member', 'read_only', 'payroll_reader', 'payroll_approver',
+    'personal_tax_preparer', 'personal_tax_submitter', 'unknown', null]) {
+    const actor = `synthetic-denied-create-${randomUUID()}`; await addMember(f.company, actor, role); actors.push(actor);
+  }
+  for (const active of [false, null]) {
+    const actor = `synthetic-inactive-create-${randomUUID()}`; await addMember(f.company, actor, 'owner', active); actors.push(actor);
+  }
+  const ambiguous = `synthetic-ambiguous-create-${randomUUID()}`;
+  await addMember(f.company, ambiguous, 'payroll_preparer'); await addMember(f.company, ambiguous, 'owner', false); actors.push(ambiguous);
+  const anonymous = await request(payCreatePath(f.company), 'POST', body);
+  assert.equal(anonymous.status, 401); assert.equal(anonymous.cacheControl, 'no-store');
+  for (const actor of actors) {
+    const response = await request(payCreatePath(f.company), 'POST', body, actor);
+    assert.equal(response.status, 403); assert.equal(response.cacheControl, 'no-store');
+    assert.equal(await directPayCreate(f.company, actor, body), 'denied');
+  }
+  for (const malformed of [{ ...body, currency: 'GBP' }, { ...body, role: 'owner' }, { ...body, company_id: other.company }, { ...body, created_by_pay_command: true },
+    { ...body, annual_salary_pence: 4800000 }, { ...body, effective_from: '2026-02-29' }]) {
+    assert.equal((await request(payCreatePath(f.company), 'POST', malformed, f.owner)).status, 400);
+  }
+  assert.equal((await request(payCreatePath(f.company) + '?role=owner', 'POST', body, f.owner)).status, 400);
+  assert.deepEqual(await storedPay(f.company), []); assert.deepEqual(await sensitiveAudit(f.company), []);
+});
+
+test("pay creation and replay recheck revocation or demotion after the company lock", async () => {
+  for (const replay of [false, true]) for (const next of ['inactive', 'payroll_reader']) {
+    const f = await fixture(), actor = `synthetic-create-race-${randomUUID()}`, body = payIntent();
+    await addMember(f.company, actor, 'payroll_preparer');
+    if (replay) assert.equal((await request(payCreatePath(f.company), 'POST', body, actor)).status, 201);
+    const before = await sensitiveAudit(f.company), blocker = await admin.connect(); let pending: ReturnType<typeof request> | undefined;
+    try {
+      await blocker.query('BEGIN'); const { rows: [{ pid }] } = await blocker.query('SELECT pg_backend_pid() pid');
+      await blocker.query('SELECT id FROM companies WHERE id=$1 FOR UPDATE', [f.company]);
+      pending = request(payCreatePath(f.company), 'POST', body, actor);
+      const deadline = Date.now() + 5000; let waiting = false;
+      while (Date.now() < deadline) {
+        waiting = (await admin.query("SELECT EXISTS(SELECT 1 FROM pg_stat_activity WHERE usename='ledgerly_api' AND $1::int=ANY(pg_blocking_pids(pid))) waiting", [pid])).rows[0].waiting;
+        if (waiting) break; await new Promise(resolve => setTimeout(resolve, 10));
+      }
+      assert.equal(waiting, true);
+      if (next === 'inactive') await blocker.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2', [f.company, actor]);
+      else await blocker.query("UPDATE company_users SET role='payroll_reader' WHERE company_id=$1 AND user_id=$2", [f.company, actor]);
+      await blocker.query('COMMIT'); assert.equal((await pending).status, 403);
+      assert.deepEqual(await storedPay(f.company), replay ? [body] : []); assert.deepEqual(await sensitiveAudit(f.company), before);
+    } finally { await blocker.query('ROLLBACK'); blocker.release(); if (pending) await pending; }
+  }
+});
+
+test("direct pay command retains its own creation audit and refuses unprotected audit storage", async () => {
+  const f = await fixture(), body = payIntent();
+  await admin.query('ALTER TABLE public.accounting_audit_events DISABLE TRIGGER ledgerly_accounting_audit_events_guard');
+  try {
+    await assert.rejects(() => directPayCreate(f.company, f.owner, body));
+    assert.equal((await request(payCreatePath(f.company), 'POST', body, f.owner)).status, 503);
+    assert.deepEqual(await storedPay(f.company), []); assert.deepEqual(await sensitiveAudit(f.company), []);
+  } finally { await admin.query('ALTER TABLE public.accounting_audit_events ENABLE ALWAYS TRIGGER ledgerly_accounting_audit_events_guard'); }
+  assert.equal(await directPayCreate(f.company, f.owner, body), 'created');
+  assert.deepEqual(await storedPay(f.company), [body]); assert.equal((await payCreationAudits(f.company)).length, 1);
+  assert.deepEqual(await payPrepareAudits(f.company), []);
+  assert.equal((await request(payCreatePath(f.company), 'POST', body, f.owner)).status, 200);
+  assert.equal((await payCreationAudits(f.company)).length, 1); assert.equal((await payPrepareAudits(f.company)).length, 1);
+});
+
+test("creation or prepare audit faults roll back direct and wrapped pay creation, including skipped inserts", async () => {
+  for (const action of ['employee_pay_record_create', 'sensitive_access']) for (const failure of ['exception', 'skip']) {
+    const f = await fixture(), body = payIntent();
+    await admin.query(`CREATE FUNCTION public.synthetic_pay_create_audit_failure() RETURNS trigger LANGUAGE plpgsql AS $$
+      BEGIN IF NEW.company_id='${f.company}'::uuid AND NEW.action='${action}' THEN ${failure === 'skip' ? 'RETURN NULL;' : "RAISE EXCEPTION 'synthetic-private-create-diagnostic';"} END IF; RETURN NEW; END $$`);
+    await admin.query('CREATE TRIGGER synthetic_pay_create_audit_failure BEFORE INSERT ON public.accounting_audit_events FOR EACH ROW EXECUTE FUNCTION public.synthetic_pay_create_audit_failure()');
+    try {
+      if (action === 'employee_pay_record_create') {
+        await assert.rejects(() => directPayCreate(f.company, f.owner, body));
+        assert.deepEqual(await storedPay(f.company), []); assert.deepEqual(await sensitiveAudit(f.company), []);
+      }
+      const response = await request(payCreatePath(f.company), 'POST', body, f.owner);
+      assert.equal(response.status, 503); assert.equal(response.cacheControl, 'no-store');
+      assert.equal(response.body.includes('synthetic-private-create-diagnostic'), false);
+      assert.deepEqual(await storedPay(f.company), []); assert.deepEqual(await sensitiveAudit(f.company), []);
+      assert.equal(JSON.stringify(logs).includes('synthetic-private-create-diagnostic'), false);
+    } finally {
+      await admin.query('DROP TRIGGER synthetic_pay_create_audit_failure ON public.accounting_audit_events');
+      await admin.query('DROP FUNCTION public.synthetic_pay_create_audit_failure()');
+    }
+    assert.equal((await request(payCreatePath(f.company), 'POST', body, f.owner)).status, 201);
+    assert.equal((await payCreationAudits(f.company)).length, 1); assert.equal((await payPrepareAudits(f.company)).length, 1);
+  }
+});
+
+test("failed replay audit leaves the original pay record and creation receipt intact", async () => {
+  const f = await fixture(), body = payIntent();
+  assert.equal((await request(payCreatePath(f.company), 'POST', body, f.owner)).status, 201);
+  const before = await sensitiveAudit(f.company);
+  await admin.query(`CREATE FUNCTION public.synthetic_pay_replay_audit_skip() RETURNS trigger LANGUAGE plpgsql AS $$
+    BEGIN IF NEW.company_id='${f.company}'::uuid AND NEW.action='sensitive_access' THEN RETURN NULL; END IF; RETURN NEW; END $$`);
+  await admin.query('CREATE TRIGGER synthetic_pay_replay_audit_skip BEFORE INSERT ON public.accounting_audit_events FOR EACH ROW EXECUTE FUNCTION public.synthetic_pay_replay_audit_skip()');
+  try {
+    assert.equal((await request(payCreatePath(f.company), 'POST', body, f.owner)).status, 503);
+    assert.deepEqual(await storedPay(f.company), [body]); assert.deepEqual(await sensitiveAudit(f.company), before);
+  } finally {
+    await admin.query('DROP TRIGGER synthetic_pay_replay_audit_skip ON public.accounting_audit_events');
+    await admin.query('DROP FUNCTION public.synthetic_pay_replay_audit_skip()');
+  }
+  assert.equal((await request(payCreatePath(f.company), 'POST', body, f.owner)).status, 200);
+  assert.equal((await payCreationAudits(f.company)).length, 1); assert.equal((await payPrepareAudits(f.company)).length, 2);
+});
+
+test("pay creation fails closed on unsafe function grants and unknown or null command status", async () => {
+  const f = await fixture(), body = payIntent();
+  const signature = 'public.ledgerly_create_employee_pay_record(uuid,text,uuid,uuid,date,bigint)';
+  await admin.query(`GRANT EXECUTE ON FUNCTION ${signature} TO PUBLIC`);
+  try { assert.equal((await request(payCreatePath(f.company), 'POST', body, f.owner)).status, 503); }
+  finally { await admin.query(`REVOKE EXECUTE ON FUNCTION ${signature} FROM PUBLIC`); }
+  const definition = (await admin.query('SELECT pg_get_functiondef($1::regprocedure) definition', [signature])).rows[0].definition;
+  try {
+    for (const value of ['NULL', "'unexpected-status'"]) {
+      await admin.query(`CREATE OR REPLACE FUNCTION public.ledgerly_create_employee_pay_record(c uuid,a text,r uuid,e uuid,d date,p bigint)
+        RETURNS text LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$ BEGIN RETURN ${value}; END $$`);
+      const response = await request(payCreatePath(f.company), 'POST', body, f.owner);
+      assert.equal(response.status, 503); assert.equal(response.cacheControl, 'no-store');
+      assert.deepEqual(await storedPay(f.company), []); assert.deepEqual(await sensitiveAudit(f.company), []);
+    }
+  } finally { await admin.query(definition); }
+  assert.equal((await request(payCreatePath(f.company), 'POST', body, f.owner)).status, 201);
+});

@@ -8,6 +8,7 @@
  * GET    /api/companies/:id/members          — list members of a company
  * GET    /api/companies/:id/specialist-access-history — bounded audited owner-only history
  * GET    /api/companies/:id/payroll-pay-records/:recordId — audited pay fields by payroll role
+ * POST   /api/companies/:id/payroll-pay-records — create or replay dated pay intent (owner/preparer)
  * POST   /api/companies/:id/members          — add a member by Clerk user_id
  * PUT    /api/companies/:id/members/:userId  — change a member's role (owner only)
  * DELETE /api/companies/:id/members/:userId  — remove a member (owner can remove anyone; member can remove self)
@@ -27,7 +28,7 @@ import { queryAdapter } from "../services/accountingDocuments/core";
 import { auditSpecializedMembershipChange, auditSpecializedMembershipChanges } from "../services/payroll/access/membershipAudit";
 import { SensitiveAccessError } from "../services/payroll/access/boundary";
 import { readSpecialistAccessHistory } from "../services/payroll/access/membershipHistory";
-import { readPayRecord } from "../services/payroll/access/payRecord";
+import { readPayRecord, createPayRecord } from "../services/payroll/access/payRecord";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -48,7 +49,8 @@ async function lockedMembers(tx: CompanyTx, companyId: string) {
 
 function companyError(req: Request, res: Response, error: unknown, operation: string) {
   if (error instanceof SensitiveAccessError) {
-    res.status(error.status).json({ error: "Unable to complete this request. Please try again.", code: error.code });
+    res.status(error.status).json({ error: error.code === "SENSITIVE_REQUEST_CONFLICT"
+      ? "This request conflicts with an existing record." : "Unable to complete this request. Please try again.", code: error.code });
     return;
   }
   if (error instanceof CompanyPolicyError) {
@@ -86,6 +88,17 @@ router.use(["/:id/specialist-access-history", "/:id/payroll-pay-records"], (_req
   next();
 });
 router.use(auth);
+
+router.post("/:id/payroll-pay-records", async (req: Request, res: Response) => {
+  try {
+    if (Object.keys(req.query).length > 0) throw new SensitiveAccessError("SENSITIVE_REQUEST_INVALID");
+    const { userId } = req as AuthenticatedRequest;
+    const result = await createPayRecord(req.params["id"] as string, userId, req.body);
+    res.status(result.status === "created" ? 201 : 200).json(result);
+  } catch (error) {
+    companyError(req, res, error, "payroll pay record create error");
+  }
+});
 
 router.get("/:id/payroll-pay-records/:recordId", async (req: Request, res: Response) => {
   try {

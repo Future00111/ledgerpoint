@@ -6,7 +6,7 @@ import { COMPANY_ROLES, SENSITIVE_ACTIONS, canAccessSensitiveData } from "./role
 import { withPayrollAccess } from "../services/payroll/access/service";
 import { withPersonalTaxAccess } from "../services/tax/access/service";
 import { readSpecialistAccessHistory } from "../services/payroll/access/membershipHistory";
-import { readPayRecord } from "../services/payroll/access/payRecord";
+import { readPayRecord, parsePayRecordCreation } from "../services/payroll/access/payRecord";
 
 test("legacy compatibility writes accept only the five known write roles", () => {
   for (const role of ["owner", "admin", "accountant", "staff", "member"]) {
@@ -84,4 +84,30 @@ test("native pay reads reject malformed path identities before database access",
     [company, 'synthetic-owner', '00000000-0000-0000-0000-000000000000'], [company, 'synthetic-owner', '../other-record']]) {
     await assert.rejects(() => readPayRecord(scope!, actor!, id!), /SENSITIVE_REQUEST_INVALID/);
   }
+});
+
+test("pay creation validates exact canonical UUID, Gregorian date and bigint intent without money rounding", () => {
+  const body = { id: 'AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA', employee_id: '00000000-0000-0000-0000-000000000001',
+    effective_from: '2000-02-29', annual_salary_pence: '9223372036854775807' };
+  assert.deepEqual(parsePayRecordCreation(body), { ...body, id: body.id.toLowerCase() });
+  for (const date of ['0001-01-01', '2024-02-29', '9999-12-31']) {
+    assert.equal(parsePayRecordCreation({ ...body, effective_from: date, annual_salary_pence: '9007199254740993' }).annual_salary_pence, '9007199254740993');
+  }
+  assert.equal(parsePayRecordCreation({ ...body, annual_salary_pence: '0' }).annual_salary_pence, '0');
+});
+
+test("pay creation rejects extra authority, malformed and inherited fields, invalid dates and noncanonical amounts", () => {
+  const body = { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', employee_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+    effective_from: '2026-04-06', annual_salary_pence: '4800000' };
+  const invalid: unknown[] = [null, [], {}, Object.create(body), { ...body, role: 'owner' }, { ...body, currency: 'GBP' },
+    { ...body, company_id: body.id }, { ...body, actor_id: 'owner' }, { ...body, capabilities: ['payroll.prepare'] },
+    { ...body, id: '00000000-0000-0000-0000-000000000000' }, { ...body, employee_id: 'private@example.test' },
+    Object.defineProperty({ ...body }, 'id', { get() { throw Error('Getter must not execute'); } })];
+  for (const date of ['0000-01-01', '1900-02-29', '2026-02-29', '2026-04-31', '2026-00-01', '2026-13-01', '2026-01-00',
+    '2026-4-6', '2026-04-06T00:00:00Z', ' 2026-04-06', '10000-01-01', null, 20260406]) invalid.push({ ...body, effective_from: date });
+  for (const amount of [0, 1, '01', '-1', '-0', '+1', '1.0', '1e2', ' 1', '9223372036854775808', '99999999999999999999', null, {}]) {
+    invalid.push({ ...body, annual_salary_pence: amount });
+  }
+  for (const key of Object.keys(body)) { const missing = { ...body } as Record<string, unknown>; delete missing[key]; invalid.push(missing); }
+  for (const value of invalid) assert.throws(() => parsePayRecordCreation(value), /SENSITIVE_REQUEST_INVALID/);
 });
