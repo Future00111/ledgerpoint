@@ -6,6 +6,7 @@
  * PUT    /api/companies/:id                  — update company fields (owner only)
  * DELETE /api/companies/:id                  — delete company (owner only)
  * GET    /api/companies/:id/members          — list members of a company
+ * GET    /api/companies/:id/specialist-access-history — bounded audited owner-only history
  * POST   /api/companies/:id/members          — add a member by Clerk user_id
  * PUT    /api/companies/:id/members/:userId  — change a member's role (owner only)
  * DELETE /api/companies/:id/members/:userId  — remove a member (owner can remove anyone; member can remove self)
@@ -24,6 +25,7 @@ import { authorizeMemberChange, CompanyPolicyError, createCompanyBody, updateCom
 import { queryAdapter } from "../services/accountingDocuments/core";
 import { auditSpecializedMembershipChange, auditSpecializedMembershipChanges } from "../services/payroll/access/membershipAudit";
 import { SensitiveAccessError } from "../services/payroll/access/boundary";
+import { readSpecialistAccessHistory } from "../services/payroll/access/membershipHistory";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -76,7 +78,23 @@ const clerkIdentityLookup: CompanyIdentityLookup = {
 /** Injectable dependencies permit synthetic authorization tests without Clerk requests. */
 export function createCompaniesRouter(auth: RequestHandler = requireAuth, identities: CompanyIdentityLookup = clerkIdentityLookup) {
 const router = Router();
+// Apply before authentication so denied/unauthenticated responses also cannot be cached.
+router.use("/:id/specialist-access-history", (_req, res, next) => {
+  res.set("Cache-Control", "no-store");
+  next();
+});
 router.use(auth);
+
+router.get("/:id/specialist-access-history", async (req: Request, res: Response) => {
+  try {
+    if (Object.keys(req.query).length > 0) throw new SensitiveAccessError("SENSITIVE_REQUEST_INVALID");
+    const { userId } = req as AuthenticatedRequest;
+    const history = await readSpecialistAccessHistory(req.params["id"] as string, userId);
+    res.json(history);
+  } catch (error) {
+    companyError(req, res, error, "specialist access history error");
+  }
+});
 
 // ─── GET /api/companies ───────────────────────────────────────────────────────
 router.get("/", async (req: Request, res: Response) => {

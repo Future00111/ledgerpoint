@@ -62,11 +62,31 @@ grants, runner configuration or deployment permissions are changed. These
 conditional tests do not establish that deletion is available in the canonical
 runtime or authorize enabling it elsewhere.
 
+`GET /api/companies/:id/specialist-access-history` returns the latest 50 persisted
+specialized membership-change events for a current unique active owner. It locks
+the company before reloading authority and returns `events`, `limit: 50` and
+`has_more`, ordered by event timestamp then UUID, newest first. There are no query
+parameters or pagination. Each event contains only its UUID, UTC timestamp,
+membership UUID, allowlisted operation, previous/next known role and boolean/null
+active flags. Deleted membership rows do not erase history; deleted companies
+are inaccessible through this endpoint. Stored actor IDs, target identities,
+emails, monetary data and arbitrary context are excluded. Missing, unknown or
+contradictory projected metadata fails closed; valid historical null active flags
+are retained.
+
+Every successful read, including an empty result, commits a separate protected
+`sensitive_membership_history_read` receipt with the authenticated actor, company,
+fixed contract and result count before disclosure. Reads are excluded from the
+returned history. Protection failure, failed/skipped receipt insertion or commit
+failure returns no history. All endpoint responses, including unauthenticated
+failures, use `Cache-Control: no-store`. This endpoint does not expose other
+sensitive audit actions or add an access-management UI.
+
 Native disposable tests exercise the boundary with synthetic payloads and
 transactional fixture mutations, current membership races, audit failure and
 existing owner-only membership assignment. No employee/personal-tax record
 schema, public sensitive-record route, actual export or external submission is
 introduced. Wiring every future native record/read/export/change route,
-qualified field projection and sensitive audit retrieval
+qualified field projection and retrieval of other sensitive audit actions
 remain required before full P02-04 acceptance. These helpers are not evidence
 that those absent workflows are secured or implemented.

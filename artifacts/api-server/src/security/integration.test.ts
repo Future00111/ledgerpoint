@@ -95,7 +95,7 @@ async function request(path: string, method = "GET", body?: unknown, actor?: str
   const response = await fetch(base + path, { method, headers: {
     ...(actor ? { "x-test-actor": actor } : {}), ...(body === undefined ? {} : { "Content-Type": "application/json" }),
   }, ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
-  return { status: response.status, body: await response.text() };
+  return { status: response.status, body: await response.text(), cacheControl: response.headers.get('cache-control') };
 }
 async function fixture() {
   const company = randomUUID(), owner = `synthetic-owner-${randomUUID()}`;
@@ -593,4 +593,187 @@ test("silently skipped sensitive read audit cannot disclose results or commit lo
   }
   console.log('SENSITIVE_READ_AUDIT_SKIP_ACCEPTANCE', JSON.stringify({ scenario: 'silently-skipped-read-audit',
     resultNotDisclosed: true, mutationRolledBack: true }));
+});
+
+const historyPath = (company: string) => `/${company}/specialist-access-history`;
+const historyReceipts = async (company: string) => (await pool.query(
+  "SELECT actor_id,target_id,capability,context FROM public.accounting_audit_events WHERE company_id=$1 AND action='sensitive_membership_history_read' ORDER BY created_at,id", [company])).rows;
+const historyKeys = ['id', 'occurred_at', 'membership_id', 'operation', 'previous_role', 'next_role', 'previous_active', 'next_active'].sort();
+
+test("owner history reads real grants, invitations, transitions and removed memberships with an atomic redacted read receipt", async () => {
+  const f = await fixture(), other = await fixture(), target = `synthetic-private-target-${randomUUID()}`;
+  const invitee = `synthetic-private-invitee-${randomUUID()}`, email = `synthetic-${randomUUID()}@example.test`;
+  identities.add(target); emailIdentities.set(email, invitee);
+  const added = await request(`/${f.company}/members`, 'POST', { user_id: target, role: 'payroll_reader' }, f.owner);
+  assert.equal(added.status, 201); const membershipId = JSON.parse(added.body).id;
+  const invited = await request(`/${f.company}/invite`, 'POST', { email, role: 'personal_tax_preparer' }, f.owner);
+  assert.equal(invited.status, 201); const invitedMembershipId = JSON.parse(invited.body).member.id;
+  assert.equal((await request(`/${f.company}/members/${target}`, 'PUT', { role: 'payroll_preparer' }, f.owner)).status, 200);
+  // Existing route deletion is conditional on explicit disposable-only permissions.
+  assert.equal((await withDisposableDeletePrivileges(['company_users'], () =>
+    request(`/${f.company}/members/${target}`, 'DELETE', undefined, f.owner))).status, 200);
+  assert.equal((await request(`/${other.company}/members`, 'POST', { user_id: target, role: 'payroll_reader' }, other.owner)).status, 201);
+  const response = await request(historyPath(f.company), 'GET', undefined, f.owner);
+  assert.equal(response.status, 200, response.body); assert.equal(response.cacheControl, 'no-store');
+  const history = JSON.parse(response.body);
+  assert.deepEqual(Object.keys(history).sort(), ['events', 'has_more', 'limit']);
+  assert.equal(history.limit, 50); assert.equal(history.has_more, false); assert.equal(history.events.length, 4);
+  assert.deepEqual(history.events.map((event: any) => event.operation), ['member_remove', 'role_change', 'member_invite', 'member_add']);
+  assert.deepEqual(history.events.map((event: any) => event.membership_id), [membershipId, membershipId, invitedMembershipId, membershipId]);
+  assert.deepEqual(history.events.map((event: any) => [event.previous_role, event.next_role]),
+    [['payroll_preparer', null], ['payroll_reader', 'payroll_preparer'], [null, 'personal_tax_preparer'], [null, 'payroll_reader']]);
+  for (const event of history.events) assert.deepEqual(Object.keys(event).sort(), historyKeys);
+  for (const secret of [target, invitee, email, f.owner, other.owner, other.company]) assert.equal(response.body.includes(secret), false);
+  assert.equal((await pool.query('SELECT id FROM company_users WHERE id=$1', [membershipId])).rowCount, 0);
+  assert.deepEqual(await historyReceipts(f.company), [{ actor_id: f.owner, target_id: f.company,
+    capability: 'company.membership.history.read', context: { contract: 'sensitive-membership-history.v1', limit: 50, returned_count: 4, has_more: false } }]);
+  assert.equal((await request(historyPath(f.company), 'GET', undefined, f.owner)).body, response.body);
+  assert.equal((await historyReceipts(f.company)).length, 2);
+});
+
+test("empty history reads are audited without recursively including their own receipts", async () => {
+  const f = await fixture();
+  for (let i = 1; i <= 2; i++) {
+    const response = await request(historyPath(f.company.toUpperCase()), 'GET', undefined, f.owner);
+    assert.equal(response.status, 200); assert.equal(response.cacheControl, 'no-store');
+    assert.deepEqual(JSON.parse(response.body), { events: [], limit: 50, has_more: false });
+    const receipts = await historyReceipts(f.company); assert.equal(receipts.length, i);
+    assert.ok(receipts.every(row => row.actor_id === f.owner && row.context.returned_count === 0 && row.context.has_more === false));
+  }
+});
+
+test("history denies unauthenticated, nonowner, foreign, inactive and ambiguous callers without any read receipt", async () => {
+  const f = await fixture(), other = await fixture(); const actors = [other.owner];
+  for (const role of ['admin', 'accountant', 'staff', 'member', 'read_only', 'payroll_reader', 'payroll_preparer',
+    'payroll_approver', 'personal_tax_preparer', 'personal_tax_submitter', 'unknown', null]) {
+    const actor = `synthetic-history-denied-${randomUUID()}`; await addMember(f.company, actor, role); actors.push(actor);
+  }
+  for (const active of [false, null]) {
+    const actor = `synthetic-history-inactive-${randomUUID()}`; await addMember(f.company, actor, 'owner', active); actors.push(actor);
+  }
+  const ambiguous = `synthetic-history-ambiguous-${randomUUID()}`;
+  await addMember(f.company, ambiguous, 'owner', true); await addMember(f.company, ambiguous, 'payroll_reader', false); actors.push(ambiguous);
+  const unauthenticated = await request(historyPath(f.company));
+  assert.equal(unauthenticated.status, 401); assert.equal(unauthenticated.cacheControl, 'no-store');
+  for (const actor of actors) {
+    const response = await request(historyPath(f.company), 'GET', undefined, actor);
+    assert.equal(response.status, 403); assert.equal(response.cacheControl, 'no-store');
+    assert.equal(response.body.includes('events'), false);
+  }
+  for (const suffix of [`?company_id=${other.company}`, '?role=owner', '?limit=100000', '?offset=0']) {
+    const response = await request(historyPath(f.company) + suffix, 'GET', undefined, f.owner);
+    assert.equal(response.status, 400); assert.equal(response.cacheControl, 'no-store');
+  }
+  const foreign = await fetch(base + historyPath(other.company), { headers: { 'x-test-actor': f.owner, 'x-company-id': f.company, 'x-role': 'owner' } });
+  assert.equal(foreign.status, 403); assert.equal(foreign.headers.get('cache-control'), 'no-store'); await foreign.text();
+  assert.equal((await request(historyPath(randomUUID()), 'GET', undefined, f.owner)).status, 403);
+  const invalid = await request(historyPath('invalid-company'), 'GET', undefined, f.owner);
+  assert.equal(invalid.status, 400); assert.equal(invalid.cacheControl, 'no-store');
+  assert.deepEqual(await historyReceipts(f.company), []); assert.deepEqual(await historyReceipts(other.company), []);
+});
+
+test("history rechecks current owner authority after waiting for committed revocation or demotion", async () => {
+  for (const change of ['revoke', 'demote']) {
+    const f = await fixture(), blocker = await admin.connect(); let pending: ReturnType<typeof request> | undefined;
+    try {
+      await blocker.query('BEGIN'); const { rows: [{ pid }] } = await blocker.query('SELECT pg_backend_pid() pid');
+      await blocker.query('SELECT id FROM companies WHERE id=$1 FOR UPDATE', [f.company]);
+      pending = request(historyPath(f.company), 'GET', undefined, f.owner);
+      const deadline = Date.now() + 5000; let waiting = false;
+      while (Date.now() < deadline) {
+        waiting = (await admin.query("SELECT EXISTS(SELECT 1 FROM pg_stat_activity WHERE usename='ledgerly_api' AND $1::int=ANY(pg_blocking_pids(pid))) waiting", [pid])).rows[0].waiting;
+        if (waiting) break; await new Promise(resolve => setTimeout(resolve, 10));
+      }
+      assert.equal(waiting, true);
+      if (change === 'revoke') await blocker.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2', [f.company, f.owner]);
+      else await blocker.query("UPDATE company_users SET role='accountant' WHERE company_id=$1 AND user_id=$2", [f.company, f.owner]);
+      await blocker.query('COMMIT'); const response = await pending;
+      assert.equal(response.status, 403); assert.equal(response.cacheControl, 'no-store');
+      assert.deepEqual(await historyReceipts(f.company), []);
+    } finally { await blocker.query('ROLLBACK'); blocker.release(); if (pending) await pending; }
+  }
+});
+
+test("history audit exception or silent skip prevents empty or populated response disclosure and masks diagnostics", async () => {
+  for (const failure of ['exception', 'skip']) {
+    await admin.query(`CREATE FUNCTION public.synthetic_history_audit_failure() RETURNS trigger LANGUAGE plpgsql AS $$
+      BEGIN IF NEW.action='sensitive_membership_history_read' THEN ${failure === 'skip' ? 'RETURN NULL;' : "RAISE EXCEPTION 'synthetic-private-history-diagnostic';"} END IF; RETURN NEW; END $$`);
+    await admin.query('CREATE TRIGGER synthetic_history_audit_failure BEFORE INSERT ON public.accounting_audit_events FOR EACH ROW EXECUTE FUNCTION public.synthetic_history_audit_failure()');
+    try {
+      for (const populated of [false, true]) {
+        const f = await fixture(), target = `synthetic-history-failure-${randomUUID()}`; identities.add(target);
+        if (populated) assert.equal((await request(`/${f.company}/members`, 'POST', { user_id: target, role: 'payroll_reader' }, f.owner)).status, 201);
+        const before = await sensitiveAudit(f.company);
+        const response = await request(historyPath(f.company), 'GET', undefined, f.owner);
+        assert.equal(response.status, 503); assert.equal(response.cacheControl, 'no-store');
+        for (const secret of ['events', target, 'synthetic-private-history-diagnostic']) assert.equal(response.body.includes(secret), false);
+        assert.deepEqual(await sensitiveAudit(f.company), before); assert.deepEqual(await historyReceipts(f.company), []);
+      }
+      assert.equal(JSON.stringify(logs).includes('synthetic-private-history-diagnostic'), false);
+    } finally {
+      await admin.query('DROP TRIGGER synthetic_history_audit_failure ON public.accounting_audit_events');
+      await admin.query('DROP FUNCTION public.synthetic_history_audit_failure()');
+    }
+  }
+});
+
+test("history requires protected audit storage before disclosure or receipt insertion", async () => {
+  const f = await fixture();
+  await admin.query('ALTER TABLE public.accounting_audit_events DISABLE TRIGGER ledgerly_accounting_audit_events_guard');
+  try { assert.equal((await request(historyPath(f.company), 'GET', undefined, f.owner)).status, 503); }
+  finally { await admin.query('ALTER TABLE public.accounting_audit_events ENABLE ALWAYS TRIGGER ledgerly_accounting_audit_events_guard'); }
+  await admin.query('GRANT UPDATE(actor_id) ON public.accounting_audit_events TO ledgerly_api');
+  try { assert.equal((await request(historyPath(f.company), 'GET', undefined, f.owner)).status, 503); }
+  finally { await admin.query('REVOKE UPDATE(actor_id) ON public.accounting_audit_events FROM ledgerly_api'); }
+  assert.deepEqual(await historyReceipts(f.company), []);
+});
+
+const historicalContext = () => ({ contract: 'sensitive-membership.v1', operation: 'member_add',
+  previous_role: null, next_role: 'payroll_reader', previous_active: null, next_active: true });
+async function seedHistoricalEvent(company: string, id: string, target: string, context: unknown, timestamp = '2030-01-01T00:00:00.000001Z') {
+  await admin.query(`INSERT INTO public.accounting_audit_events
+    (id,company_id,action,outcome,target_type,target_id,actor_type,actor_id,capability,context,created_at)
+    VALUES($1,$2,'sensitive_membership_change','allowed','company_membership',$3,'user','synthetic-private-actor@example.test',
+      'company.membership.change',$4::jsonb,$5::timestamptz)`, [id, company, target, JSON.stringify(context), timestamp]);
+}
+
+test("history is bounded and deterministically ordered with exact timestamps while discarding arbitrary historical fields", async () => {
+  const f = await fixture(), other = await fixture(), expected: Array<{ id: string; at: string }> = [];
+  for (let i = 0; i < 55; i++) {
+    const id = randomUUID(), at = i === 0 ? '2030-01-01T00:00:00.000003Z' : i === 1 ? '2030-01-01T00:00:00.000002Z' : '2030-01-01T00:00:00.000001Z';
+    expected.push({ id, at });
+    await seedHistoricalEvent(f.company, id, randomUUID(), { ...historicalContext(), next_active: null,
+      target_user_id: 'synthetic-private-target-id', email: 'synthetic-private-email@example.test', salary: 'synthetic-private-99999', nested: { secret: 'synthetic-private-context' } }, at);
+  }
+  await seedHistoricalEvent(other.company, randomUUID(), randomUUID(), historicalContext(), '2031-01-01T00:00:00.000001Z');
+  expected.sort((a, b) => b.at.localeCompare(a.at) || b.id.localeCompare(a.id));
+  const response = await request(historyPath(f.company), 'GET', undefined, f.owner);
+  assert.equal(response.status, 200, response.body); assert.equal(response.cacheControl, 'no-store');
+  const history = JSON.parse(response.body);
+  assert.equal(history.events.length, 50); assert.equal(history.limit, 50); assert.equal(history.has_more, true);
+  assert.deepEqual(history.events.map((event: any) => ({ id: event.id, at: event.occurred_at })), expected.slice(0, 50));
+  for (const event of history.events) { assert.deepEqual(Object.keys(event).sort(), historyKeys); assert.equal(event.next_active, null); }
+  assert.equal(response.body.includes('synthetic-private'), false);
+  assert.ok(Buffer.byteLength(response.body) < 20000);
+  assert.equal((await request(historyPath(f.company), 'GET', undefined, f.owner)).body, response.body);
+  assert.deepEqual((await historyReceipts(f.company)).map(row => row.context), [1, 2].map(() =>
+    ({ contract: 'sensitive-membership-history.v1', limit: 50, returned_count: 50, has_more: true })));
+});
+
+test("malformed projected historical metadata fails closed without a successful read receipt or payload", async () => {
+  const missing = historicalContext() as Record<string, unknown>; delete missing.previous_role;
+  const cases = [missing, { ...historicalContext(), operation: 'synthetic-private-operation' },
+    { ...historicalContext(), next_role: 'synthetic-private-role' }, { ...historicalContext(), previous_role: 'owner' },
+    { ...historicalContext(), operation: 'role_change' }, { ...historicalContext(), next_active: 'synthetic-private-active' },
+    { ...historicalContext(), contract: 'unknown-contract' }];
+  for (const context of cases) {
+    const f = await fixture(); await seedHistoricalEvent(f.company, randomUUID(), randomUUID(), context);
+    const response = await request(historyPath(f.company), 'GET', undefined, f.owner);
+    assert.equal(response.status, 503); assert.equal(response.cacheControl, 'no-store');
+    assert.equal(response.body.includes('events'), false); assert.equal(response.body.includes('synthetic-private'), false);
+    assert.deepEqual(await historyReceipts(f.company), []);
+  }
+  const f = await fixture(); await seedHistoricalEvent(f.company, randomUUID(), 'synthetic-private-membership@example.test', historicalContext());
+  const response = await request(historyPath(f.company), 'GET', undefined, f.owner);
+  assert.equal(response.status, 503); assert.equal(response.body.includes('synthetic-private'), false); assert.deepEqual(await historyReceipts(f.company), []);
 });

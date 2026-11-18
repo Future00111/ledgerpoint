@@ -5,6 +5,7 @@ import { canWriteDraft } from "../services/financialDrafts/contract";
 import { COMPANY_ROLES, SENSITIVE_ACTIONS, canAccessSensitiveData } from "./roles";
 import { withPayrollAccess } from "../services/payroll/access/service";
 import { withPersonalTaxAccess } from "../services/tax/access/service";
+import { readSpecialistAccessHistory } from "../services/payroll/access/membershipHistory";
 
 test("legacy compatibility writes accept only the five known write roles", () => {
   for (const role of ["owner", "admin", "accountant", "staff", "member"]) {
@@ -64,5 +65,14 @@ test("compatibility permission does not give staff or members native draft autho
   for (const role of ["owner", "admin", "accountant"]) {
     assert.equal(canWriteDraft(role, true), true);
     for (const active of [false, null, undefined]) assert.equal(canWriteDraft(role, active), false);
+  }
+});
+
+test("specialist history rejects malformed company and actor identities before database access", async () => {
+  for (const [company, actor] of [['invalid-company', 'synthetic-owner'],
+    ['11111111-1111-4111-8111-111111111111', 'synthetic@example.test'],
+    ['11111111-1111-4111-8111-111111111111', ''],
+    ['11111111-1111-4111-8111-111111111111', 'owner\nprivate']]) {
+    await assert.rejects(() => readSpecialistAccessHistory(company!, actor!), /SENSITIVE_REQUEST_INVALID/);
   }
 });
