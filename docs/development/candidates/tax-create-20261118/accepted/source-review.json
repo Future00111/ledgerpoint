@@ -1,0 +1,1 @@
+{"reviewed":true,"reviewer":"root","authorCommit":"6c99410d2ed185c21d5a3917bd8cfd03f028a637","summary":"Reviewed route, validation, current-role admission, shared function protection, read compatibility, fixed error mapping and rollback/retry coverage.","tests":["48 focused checks, API typecheck and native suite compilation passed"]}

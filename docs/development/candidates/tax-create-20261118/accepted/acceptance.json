@@ -1,0 +1,36 @@
+{
+  "evidence": {
+    "summary": "Current owners and personal-tax preparers can record annual employment income. Matching retries reuse the record, conflicting requests are rejected, and the single creation receipt survives encrypted restore.",
+    "reviewer": "root",
+    "reviewed": true,
+    "commit": "6c99410d2ed185c21d5a3917bd8cfd03f028a637",
+    "integratedCommit": "9d6d27e77e19690c8d77e02a59b20c81b094e840",
+    "tests": [
+      {
+        "command": "Integrated build, typechecks and combined regression suite",
+        "passed": true
+      },
+      {
+        "command": "GitHub Actions 44363819716 on identical source tree, including native personal-tax field projection, role and audit checks plus populated encrypted restore",
+        "passed": true
+      }
+    ]
+  },
+  "outcome": {
+    "id": "personal-tax-preparation-create-20261118",
+    "scenario": "Current owners and personal-tax preparers can record annual employment income. Matching retries reuse the record, conflicting requests are rejected, and the single creation receipt survives encrypted restore.",
+    "integratedCommit": "9d6d27e77e19690c8d77e02a59b20c81b094e840",
+    "criteria": [
+      0,
+      1
+    ],
+    "remaining": [
+      "Qualify remaining employee identifier, bank, personal-tax and export workflows.",
+      "Connect and qualify remaining specialist access workflows."
+    ],
+    "nextAction": "Add annual employment-income entry and role-appropriate readback to the company workspace."
+  },
+  "queueRevision": 957,
+  "remainingParent": true,
+  "credits": null
+}
