@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "destination_kind": "integration",
+  "pullRequest": 29,
+  "successorDraftRequired": false,
+  "authorityCommit": "8bdaf72daadb7cc9f10bab9a935e9d8a3dd88608",
+  "authorityRevision": 579,
+  "coordinatorRunId": "bank-read-dedcd894-2441-493c-aa78-de8c08d5ede5",
+  "observedAt": 1795030399759,
+  "candidateTree": "7a5d96af2bf569b159217205216afdb57374649c",
+  "reviewedBy": "root",
+  "authorOrigin": {
+    "actor": "bank-read-author",
+    "commit": "39f1da154b941dfac6a067d7dd805bac44cae30d",
+    "branch": "codex/payroll-bank-read"
+  },
+  "updateRef": {
+    "repository_full_name": "Future00111/ledgerpoint",
+    "branch_name": "codex/whole-product-first-sprint",
+    "expected_sha": "74055330fa51112ae1da4567114a0ca8e457f34b",
+    "sha": "8099e0685c9b26fd77937affe21c24abb82e7036",
+    "force": false
+  },
+  "approvalGranted": false,
+  "sourcePublished": false
+}

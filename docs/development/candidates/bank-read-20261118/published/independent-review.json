@@ -1,0 +1,106 @@
+{
+  "reviewVersion": 1,
+  "reviewedAt": "2026-11-18T19:33:52.770Z",
+  "reviewer": "independent durable_execution_implementation reviewer",
+  "independentOfAuthors": true,
+  "baselineCommit": "74055330fa51112ae1da4567114a0ca8e457f34b",
+  "reviewedRootCommit": "51d75bd4712b9a55de4477bdb7124c1f48e0639b",
+  "reviewedRootTree": "688fade7db77af3075f733cadc4f65bfd278f422",
+  "reviewedApiCommit": "39f1da154b941dfac6a067d7dd805bac44cae30d",
+  "reviewedApiTree": "8667b1d59ad3107abbfa5c304e7a2a7dbbd56cbe",
+  "reviewedUiCommit": "2d94864be240d4926998a33f02c45b888a281b5d",
+  "reviewedUiTree": "38ec96ab7ef54d1598b0f72f470203121afbca69",
+  "verdict": "approved_for_integration_and_disposable_native_ci",
+  "openFindings": [],
+  "correctionsRequired": [],
+  "scope": "All eight root schema/registry/installer/restore/browser changes from 7405533 to 51d75bd, plus API and UI candidate compatibility, authorization, audit, projection and scope fencing.",
+  "conclusions": [
+    "The new company/employee composite key and eight-ASCII-digit text account column preserve leading zeroes, enforce company ownership and permit existing native employee UUID variants. The canonical owner owns the ordinary table; PUBLIC and ledgerly_api privileges are revoked before granting runtime SELECT only. No runtime mutation, export or payment instruction is introduced.",
+    "All 30 prior migration registry entries and SQL bytes plus the pinned security overlay are unchanged. The new employee-bank-details checksum matches, depends on accounting-documents and is installed unconditionally after that dependency in both installer modes.",
+    "The new payroll.bank.read capability is limited to owner, payroll_preparer and payroll_approver. Existing payroll.read remains insufficient. The API additionally allowlists full owner/preparer versus masked approver roles. Approver SQL projects right(account_number,4), so the full account never enters the approver result.",
+    "The API, frontend and restore contracts match exactly: full roles receive only account_number as eight digits; approver receives only last_four as four digits; reader and unrelated roles are denied. Bank resource parsing alone accepts all native employee UUID variants. Company UUID, actor identity and non-bank resource validation retain their previous contracts.",
+    "Company locking and current unique active membership precede projection selection. Read-only storage and protected audit checks remain mandatory. A verified minimal payroll.bank.read receipt commits before JSON disclosure; account digits are excluded from audit context and bounded errors. HEAD is rejected before reading/auditing, query overrides fail closed and successful GET avoids conditional 304/ETag behavior. All responses are no-store.",
+    "The browser preserves prior salary creation/retry, CSV, readback and scope tests. It additionally requires owner full account, cleared data after switching to approver, masked suffix only, no reader bank controls and exactly one owner plus one approver bank-read receipt for the employee. The fixed bank-detail diagnostic stage is allowlisted.",
+    "Restore preparation requires a populated bank row with unambiguous active owner and approver before fingerprint/dump. The plain restore fingerprint covers all public table data and schema controls. Encrypted native restore verifies exact one-field full and masked projections against source-derived digests using bounded boolean assertions and requires payrollBankReadVerified. Account digits are not printed by these assertions.",
+    "UI lookups are explicit and use the native company/employee endpoint with credentials, no cache and no redirects. Exact field validation rejects approver over-disclosure. Actor/company/role remounts, employee edits and fresh lookups clear prior results; cancellation plus generations prevents delayed replies restoring stale accounts. Denied/missing results clear the employee and result, and overlong input cannot be truncated into a valid UUID prefix.",
+    "Existing payroll, tax, export and history workflows remain compatible. No schema history rewriting, external bank connection, sort code, mutation, export, payment instruction or production change is added."
+  ],
+  "checks": [
+    {
+      "name": "Root registry and restore/backup tests",
+      "command": "node --test tools/development/migrations/registry.test.mjs tools/accounting-flow/restore-drill.test.mjs tools/operations/backup-restore/*.test.mjs",
+      "sourceCommit": "51d75bd4712b9a55de4477bdb7124c1f48e0639b",
+      "total": 52,
+      "passed": 51,
+      "failed": 1,
+      "result": "integration_dependency_pending",
+      "failure": "runtime-acceptance.test.mjs bundle cannot resolve bankDetails.ts until API author source is integrated. This is not a PostgreSQL execution failure."
+    },
+    {
+      "name": "Exact migration preservation and checksum/order verification",
+      "method": "git show baseline/tip byte comparison, validateMigrationInputs and expectedMigrationHistory for both modes, installer order assertions",
+      "result": "passed",
+      "oldMigrationsPreserved": 30,
+      "overlayUnchanged": true,
+      "newMigrationSha256": "6d26ebe54286b1ab3f6099015146da6fb8586e2b71f2844cf7d077fac4a7ecd7",
+      "dependency": [
+        "accounting-documents"
+      ],
+      "bothModesPresent": true
+    },
+    {
+      "name": "Independent bank/payroll/tax/history pure tests",
+      "command": "node --test artifacts/ledgerly/src/features/payroll/payRecords/*.test.mjs",
+      "worktree": "ledgerpoint-bank-ui",
+      "result": "passed",
+      "tests": 44
+    },
+    {
+      "name": "Independent bundled SSR and API role checks",
+      "method": "Repository esbuild CJS bundles in fresh temporary directory followed by node --test with unusable database target",
+      "result": "passed",
+      "tests": 34,
+      "breakdown": {
+        "bankSSR": 4,
+        "paySSR": 5,
+        "taxSSR": 5,
+        "historySSR": 6,
+        "apiRoles": 14
+      }
+    },
+    {
+      "name": "Exact API native suite compile and guarded loading",
+      "sourceCommit": "39f1da154b941dfac6a067d7dd805bac44cae30d",
+      "result": "passed",
+      "warnings": 0,
+      "observed": "Fresh external bundle rejects absent disposable socket before database work; no module resolution or network failure."
+    },
+    {
+      "name": "Actual bank HTTP route preflight probes",
+      "method": "Compiled final API company router on temporary loopback server with synthetic injected auth and unusable database URL",
+      "result": "passed",
+      "observed": "HEAD returns 405/Allow GET/no-store/empty body; query override returns bounded 400/no-store. No database required."
+    },
+    {
+      "name": "Composed browser compatibility compile",
+      "result": "passed",
+      "warnings": 0,
+      "observed": "Exact root 51d75bd browser fixture plus final UI 2d94864 resolves the real bank component/client and contains no Clerk/AuthContext/useCompany imports.",
+      "exactIntegratedSource": false
+    },
+    {
+      "name": "Final author clean states and whitespace validation",
+      "command": "git status --short and git diff --check against 7405533 in both author worktrees",
+      "result": "passed"
+    }
+  ],
+  "independentApiUiTestsPassed": 78,
+  "limitations": [
+    "Root 51d75bd is intentionally not integrated with the API candidate; its restore bundle test remains blocked until bankDetails.ts is present. The integrated source must rerun that test successfully.",
+    "No actual PostgreSQL, Chromium or populated restore was executed by this reviewer. Exact-source integrated build/typecheck and disposable native/browser/plain/encrypted restore CI remain required before acceptance.",
+    "Composed browser compilation establishes interface/module compatibility only, not integrated native execution. Author-reported broader checks are separate evidence."
+  ],
+  "sourceChanges": false,
+  "queueActions": false,
+  "remoteActions": false
+}
