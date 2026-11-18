@@ -1,64 +1,64 @@
 {
   "version": 2,
-  "revision": 527,
+  "revision": 529,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "422e278ae4b28f7837a577eae05c48b599964414",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "history-1795016774974",
     "tokenSha256": "47f62f2cb5e7974f84f1c1b993d566f74bdf0b52a6d34972ad4c9ab854777528",
     "acquiredAt": 1795016775016,
     "expiresAt": 1795020375016
   },
-  "lastOwner": {
-    "runId": "role-audit-1795014864638",
-    "tokenSha256": "44a585427a6c79164ce582d2498e30fa2bccc801e7c951cb99a45f35d9568567",
-    "acquiredAt": 1795014864639,
-    "expiresAt": 1795018464639
-  },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "b2edb0379619b6eb33662e878689ce3f1926b7f6",
+    "sha": "c0744f4be3fc76e5736e392a0c3674bf7ffb2ac1",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "b2edb0379619b6eb33662e878689ce3f1926b7f6",
-        "path": "docs/development/candidates/history-read-20261118/published/published-queue-delta.json"
+        "sha": "c0744f4be3fc76e5736e392a0c3674bf7ffb2ac1",
+        "path": "docs/development/candidates/history-read-20261118/accepted/accepted-queue-delta.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "b2edb0379619b6eb33662e878689ce3f1926b7f6",
-        "path": "docs/development/candidates/history-read-20261118/published/source-review.json"
+        "sha": "c0744f4be3fc76e5736e392a0c3674bf7ffb2ac1",
+        "path": "docs/development/candidates/history-read-20261118/accepted/ci.log"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "b2edb0379619b6eb33662e878689ce3f1926b7f6",
-        "path": "docs/development/candidates/history-read-20261118/published/author-report.json"
+        "sha": "c0744f4be3fc76e5736e392a0c3674bf7ffb2ac1",
+        "path": "docs/development/candidates/history-read-20261118/accepted/ci.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "b2edb0379619b6eb33662e878689ce3f1926b7f6",
-        "path": "docs/development/candidates/history-read-20261118/published/publication-preflight.json"
+        "sha": "c0744f4be3fc76e5736e392a0c3674bf7ffb2ac1",
+        "path": "docs/development/candidates/history-read-20261118/accepted/acceptance.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "b2edb0379619b6eb33662e878689ce3f1926b7f6",
-        "path": "docs/development/candidates/history-read-20261118/published/combined.log"
+        "sha": "c0744f4be3fc76e5736e392a0c3674bf7ffb2ac1",
+        "path": "docs/development/candidates/history-read-20261118/accepted/source-review.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "b2edb0379619b6eb33662e878689ce3f1926b7f6",
-        "path": "docs/development/candidates/history-read-20261118/published/build.log"
+        "sha": "c0744f4be3fc76e5736e392a0c3674bf7ffb2ac1",
+        "path": "docs/development/candidates/history-read-20261118/accepted/current-view.json"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "c0744f4be3fc76e5736e392a0c3674bf7ffb2ac1",
+        "path": "docs/development/candidates/history-read-20261118/accepted/run-metrics.json"
       }
     ],
     "runId": "history-1795016774974",
-    "at": 1795017395792,
+    "at": 1795017640423,
     "codeHead": "422e278ae4b28f7837a577eae05c48b599964414"
   },
-  "updatedAt": 1795017395792,
+  "updatedAt": 1795017640424,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -146,14 +146,7 @@
       "ownerApproved": true
     }
   },
-  "activeWorkers": [
-    {
-      "actor": "history-read-author",
-      "task": "P02-04",
-      "stopped": true,
-      "status": "review"
-    }
-  ],
+  "activeWorkers": [],
   "workersStopped": true,
   "discoveryRun": {
     "runId": "correction-discovery-1794927549982",
@@ -194,11 +187,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "b2edb0379619b6eb33662e878689ce3f1926b7f6",
-    "path": "docs/development/candidates/history-read-20261118/published/published-queue-delta.json",
-    "bytesSha256": "770006e7d775588081ec5d0a3675c68ec3107111847fa9362baa119d305c6ccd",
-    "queueSha256": "a7565062ac2b389bb24cb70072c414847ec748348a24c24bb3f906477d26e0ae",
-    "revision": 934,
+    "sha": "c0744f4be3fc76e5736e392a0c3674bf7ffb2ac1",
+    "path": "docs/development/candidates/history-read-20261118/accepted/accepted-queue-delta.json",
+    "bytesSha256": "6dd3687faa552d17c46b13908eb3cd21b7626ce4571964f36bea031b57a32a72",
+    "queueSha256": "efdbc568f23cd1a866e9f3cc65d80388f0ca6b146ea1e590771ef0c947214207",
+    "revision": 935,
     "catalogDigest": "5e86c173103402a6c097d9030aff3479165255a5adb32db747cee1efe4c32983"
   },
   "historyReference": {
@@ -228,7 +221,7 @@
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
     "baseRevision": 922,
-    "currentRevision": 934,
+    "currentRevision": 935,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
@@ -368,18 +361,18 @@
   },
   "twoTrackRun": {
     "startedAt": "2026-11-18T14:36:15.627Z",
-    "activity": "Independently reviewed owner history read published; exact-source CI pending.",
+    "activity": "Owner-only audited specialist membership history accepted. Native payroll and tax record access remains pending.",
     "providerCost": null,
     "credits": null,
     "publishedCommit": "422e278ae4b28f7837a577eae05c48b599964414",
     "observedAt": "2026-11-18T14:59:09.452Z",
-    "publishedTree": "b8f1a28ef50349c204985f56ec580b514a7a0699",
-    "ciRun": 44337279646,
+    "publishedTree": "f1c31510fd03535c46367c359b49d7b2361bc9f7",
+    "ciRun": 44341326338,
     "ciJob": 134889313211,
     "acceptedOutcomes": [
-      "specialist-membership-audit-20261118"
+      "specialist-membership-history-20261118"
     ],
-    "queueRevision": 931,
+    "queueRevision": 935,
     "migration": {
       "published": "ec5b31e504673035604a802dd05e5f469ffbad8f",
       "archive": "0bba917ef43fd69b8c52c57d9b270f45e4823775",
