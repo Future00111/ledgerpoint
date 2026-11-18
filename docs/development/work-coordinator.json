@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "revision": 513,
+  "revision": 514,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "1c52f77c63599b26c4d90862c485db951f12ca66",
+  "codeHead": "3de4c5de8f0f6414cef14ef5589f28b4b6c3e994",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
   "status": "leased",
@@ -21,74 +21,29 @@
   },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "29b005e8709f11f449b755ef4d3c91a03b2f7a40",
+    "sha": "b6cc21ded5ff727b941a9713af6c912fc380b634",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "29b005e8709f11f449b755ef4d3c91a03b2f7a40",
-        "path": "docs/development/candidates/access-fixtures-20261118/review/review-queue-delta.json"
+        "sha": "b6cc21ded5ff727b941a9713af6c912fc380b634",
+        "path": "docs/development/candidates/access-fixtures-20261118/published/published-queue-delta.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "29b005e8709f11f449b755ef4d3c91a03b2f7a40",
-        "path": "docs/development/candidates/access-fixtures-20261118/review/independent-review.json"
+        "sha": "b6cc21ded5ff727b941a9713af6c912fc380b634",
+        "path": "docs/development/candidates/access-fixtures-20261118/published/publication-preflight.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "29b005e8709f11f449b755ef4d3c91a03b2f7a40",
-        "path": "docs/development/candidates/access-fixtures-20261118/review/fixture-independent-source-check.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "29b005e8709f11f449b755ef4d3c91a03b2f7a40",
-        "path": "docs/development/candidates/access-fixtures-20261118/review/access-author-report.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "29b005e8709f11f449b755ef4d3c91a03b2f7a40",
-        "path": "docs/development/candidates/access-fixtures-20261118/review/fixture-author-report.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "29b005e8709f11f449b755ef4d3c91a03b2f7a40",
-        "path": "docs/development/candidates/access-fixtures-20261118/review/access.patch"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "29b005e8709f11f449b755ef4d3c91a03b2f7a40",
-        "path": "docs/development/candidates/access-fixtures-20261118/review/fixture-export.patch"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "29b005e8709f11f449b755ef4d3c91a03b2f7a40",
-        "path": "docs/development/candidates/access-fixtures-20261118/review/fixture-root-tests.log"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "29b005e8709f11f449b755ef4d3c91a03b2f7a40",
-        "path": "docs/development/candidates/access-fixtures-20261118/review/access-focused.log"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "29b005e8709f11f449b755ef4d3c91a03b2f7a40",
-        "path": "docs/development/candidates/access-fixtures-20261118/review/access-native-compile.json"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "29b005e8709f11f449b755ef4d3c91a03b2f7a40",
-        "path": "docs/development/candidates/access-fixtures-20261118/review/combined.log"
-      },
-      {
-        "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "29b005e8709f11f449b755ef4d3c91a03b2f7a40",
-        "path": "docs/development/candidates/access-fixtures-20261118/review/build.log"
+        "sha": "b6cc21ded5ff727b941a9713af6c912fc380b634",
+        "path": "docs/development/candidates/access-fixtures-20261118/published/source-candidate.json"
       }
     ],
     "runId": "access-fixtures-1795012575624",
-    "at": 1795013536007,
-    "codeHead": "1c52f77c63599b26c4d90862c485db951f12ca66"
+    "at": 1795013661090,
+    "codeHead": "3de4c5de8f0f6414cef14ef5589f28b4b6c3e994"
   },
-  "updatedAt": 1795013536007,
+  "updatedAt": 1795013661090,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -232,8 +187,8 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "29b005e8709f11f449b755ef4d3c91a03b2f7a40",
-    "path": "docs/development/candidates/access-fixtures-20261118/review/review-queue-delta.json",
+    "sha": "b6cc21ded5ff727b941a9713af6c912fc380b634",
+    "path": "docs/development/candidates/access-fixtures-20261118/published/published-queue-delta.json",
     "bytesSha256": "86eb5f917f3dbcdcd756d20a0e0de87549f6f5ab7d996bb4f70ecefb3ef21c41",
     "queueSha256": "dd08345a58b247f2c91f4975c374e70e75e44b1d1858caaa3328f58a948819c5",
     "revision": 920,
@@ -406,10 +361,11 @@
   },
   "twoTrackRun": {
     "startedAt": "2026-11-18T14:36:15.627Z",
-    "activity": "Both authors stopped clean; root reviewed all11files, verified exactReplit patch/tree/commit and independent official arithmetic/conditionalnotice interpretation. Local combinedchecks/build passed; awaiting exactsourceCI.",
+    "activity": "Reviewed combined source published to draft PR29; local combinedchecks/build pass; exactsource nativeCI pending.",
     "providerCost": null,
     "credits": null,
-    "publishedCommit": "1c52f77c63599b26c4d90862c485db951f12ca66",
-    "observedAt": "2026-11-18T14:51:52.827Z"
+    "publishedCommit": "3de4c5de8f0f6414cef14ef5589f28b4b6c3e994",
+    "observedAt": "2026-11-18T14:54:06.759Z",
+    "publishedTree": "58ab00801fc097080625a7e684277e6a2586bb3e"
   }
 }
