@@ -1,0 +1,54 @@
+{
+  "reviewVersion": 1,
+  "reviewedAt": "2026-11-18T18:05:49.129Z",
+  "reviewer": "independent durable_execution_implementation reviewer",
+  "independentOfAuthor": true,
+  "baselineCommit": "9d6d27e77e19690c8d77e02a59b20c81b094e840",
+  "reviewedCommit": "48302b7591b3d59e89ab26f9e89af840ec03f269",
+  "reviewedTree": "a22eb1f865bea69e8359ef1c5d04d8667aae81f5",
+  "verdict": "approved_for_integration_and_disposable_native_ci",
+  "findings": [],
+  "correctionsRequired": [],
+  "scope": [
+    "artifacts/api-server/src/security/integration.test.ts",
+    "artifacts/ledgerly/src/features/payroll/payRecords/taxBrowserAcceptance.jsx"
+  ],
+  "conclusions": [
+    "Existing native test bodies and payroll/history browser fixture bytes are preserved; only the shared runner entry union changes before the appended tax scenario.",
+    "The new browser fixture imports the actual TaxPreparationsWorkspace and tax HTTP client. Named export, props, labels, buttons and lookup form selectors match the current author implementation and author confirmation.",
+    "The fetch wrapper permits same-origin company API requests and forwards them to the real compiled company router with explicitly synthetic test actor identity. A successful first creation response is fully consumed before it is deliberately lost, making the retry exercise a committed operation.",
+    "The browser requires two POSTs with identical request IDs, visible native readback, disappearance of preparer controls and previous values on actor/role change, a real submitter lookup without taxpayer identity, and cleared result/lookup state on company change.",
+    "Native database assertions require exactly one stored input with the entered taxpayer/year/pence, zero inputs in the second company, one creation receipt, two prepare receipts and an audited submitter read.",
+    "The existing runner remains loopback-only with a fresh temporary browser profile, a 45-second bound and process/directory cleanup. It uses the existing guarded disposable PostgreSQL test runner and compiled production routes; no production or external identity provider is contacted.",
+    "The added scenario emits fixed allowlisted stage names and boolean success only. It does not log credentials, request bodies, taxpayer identifiers or amounts; the stored-field assertion is boolean and the fixtures are synthetic."
+  ],
+  "tests": [
+    {
+      "check": "Native security integration entry bundled as CommonJS using repository esbuild, external pg and @clerk/express, in a fresh /tmp directory; execution from that directory with no disposable socket and a dummy database URL",
+      "result": "passed",
+      "warnings": 0,
+      "observed": "Exited 1 with Disposable socket required; no module resolution or network connection errors",
+      "databaseExecution": false
+    },
+    {
+      "check": "Exact Git-byte comparison of 9d6d27e and 48302b7 native suite prefix and existing browserAcceptance.jsx/historyBrowserAcceptance.jsx",
+      "result": "passed",
+      "observed": "All earlier native tests unchanged except runner entry union; both prior fixture files byte-identical"
+    },
+    {
+      "check": "Read-only frontend esbuild with exact 48302b7 harness and current ledgerpoint-tax-ui author workspace, resolving locked root dependencies",
+      "result": "passed",
+      "warnings": 0,
+      "observed": "Imports actual TaxPreparationsWorkspace and taxClient; no Clerk, AuthContext or useCompany imports",
+      "exactIntegratedSource": false
+    }
+  ],
+  "limitations": [
+    "The reviewed root-only commit does not yet contain the author TaxPreparationsWorkspace module. Frontend compilation above deliberately combines the exact reviewed harness with the current author worktree and is not exact-source integrated acceptance.",
+    "No Chromium browser or native PostgreSQL execution was performed by this reviewer. Root must validate the integrated source in the existing disposable Chromium/native/restore CI before acceptance.",
+    "The scenario checks completed-response actor/company clearing. It does not independently demonstrate delayed-response fencing; author component tests and separate review cover that behavior."
+  ],
+  "sourceChanges": false,
+  "queueActions": false,
+  "remoteActions": false
+}

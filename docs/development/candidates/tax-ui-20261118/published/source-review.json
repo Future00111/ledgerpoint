@@ -1,0 +1,1 @@
+{"reviewed":true,"reviewer":"root","authorCommit":"4e89dcb0760125816a67e25b00388168e426b404","summary":"Reviewed real navigation and route, scoped form, immutable retry, strict role projections, shared pay behavior and tests.","tests":["40 focused checks and frontend typecheck passed"]}
