@@ -1,64 +1,59 @@
 {
   "version": 2,
-  "revision": 522,
+  "revision": 524,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "7c70001028ea7228e8b4bbab9ba83d5edeca261f",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "role-audit-1795014864638",
     "tokenSha256": "44a585427a6c79164ce582d2498e30fa2bccc801e7c951cb99a45f35d9568567",
     "acquiredAt": 1795014864639,
     "expiresAt": 1795018464639
   },
-  "lastOwner": {
-    "runId": "access-fixtures-1795012575624",
-    "tokenSha256": "1df3742fffff6ce563f00cd678805edc02bbbf65669b50e391d6bb57b479f62f",
-    "acquiredAt": 1795012575625,
-    "expiresAt": 1795016175625
-  },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "c838ca9e2995af3c3996d99cdbc5259757ab50a2",
+    "sha": "a548e7a899372f542e63cdf5f972dc0d6b93970e",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "c838ca9e2995af3c3996d99cdbc5259757ab50a2",
-        "path": "docs/development/candidates/role-audit-20261118/corrected/corrected-queue-delta.json"
+        "sha": "a548e7a899372f542e63cdf5f972dc0d6b93970e",
+        "path": "docs/development/candidates/role-audit-20261118/accepted/accepted-queue-delta.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "c838ca9e2995af3c3996d99cdbc5259757ab50a2",
-        "path": "docs/development/candidates/role-audit-20261118/corrected/source-review.json"
+        "sha": "a548e7a899372f542e63cdf5f972dc0d6b93970e",
+        "path": "docs/development/candidates/role-audit-20261118/accepted/ci.log"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "c838ca9e2995af3c3996d99cdbc5259757ab50a2",
-        "path": "docs/development/candidates/role-audit-20261118/corrected/correction-report.json"
+        "sha": "a548e7a899372f542e63cdf5f972dc0d6b93970e",
+        "path": "docs/development/candidates/role-audit-20261118/accepted/ci.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "c838ca9e2995af3c3996d99cdbc5259757ab50a2",
-        "path": "docs/development/candidates/role-audit-20261118/corrected/publication-preflight.json"
+        "sha": "a548e7a899372f542e63cdf5f972dc0d6b93970e",
+        "path": "docs/development/candidates/role-audit-20261118/accepted/acceptance.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "c838ca9e2995af3c3996d99cdbc5259757ab50a2",
-        "path": "docs/development/candidates/role-audit-20261118/corrected/final-combined.log"
+        "sha": "a548e7a899372f542e63cdf5f972dc0d6b93970e",
+        "path": "docs/development/candidates/role-audit-20261118/accepted/source-review.json"
       },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
-        "sha": "c838ca9e2995af3c3996d99cdbc5259757ab50a2",
-        "path": "docs/development/candidates/role-audit-20261118/corrected/final-build.log"
+        "sha": "a548e7a899372f542e63cdf5f972dc0d6b93970e",
+        "path": "docs/development/candidates/role-audit-20261118/accepted/current-view.json"
       }
     ],
     "runId": "role-audit-1795014864638",
-    "at": 1795016117587,
+    "at": 1795016344738,
     "codeHead": "7c70001028ea7228e8b4bbab9ba83d5edeca261f"
   },
-  "updatedAt": 1795016117587,
+  "updatedAt": 1795016344740,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -146,14 +141,7 @@
       "ownerApproved": true
     }
   },
-  "activeWorkers": [
-    {
-      "actor": "membership-audit-author",
-      "task": "P02-04",
-      "stopped": true,
-      "status": "review"
-    }
-  ],
+  "activeWorkers": [],
   "workersStopped": true,
   "discoveryRun": {
     "runId": "correction-discovery-1794927549982",
@@ -194,11 +182,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "c838ca9e2995af3c3996d99cdbc5259757ab50a2",
-    "path": "docs/development/candidates/role-audit-20261118/corrected/corrected-queue-delta.json",
-    "bytesSha256": "50e0ee658a2e8b0357888d5e835c2ce2e24dd3d7abdde113634b47a140c0bbf1",
-    "queueSha256": "62b7bb68789447eb2fc9a40b83224e4eea148ac61e66fec183f828fa130221b5",
-    "revision": 930,
+    "sha": "a548e7a899372f542e63cdf5f972dc0d6b93970e",
+    "path": "docs/development/candidates/role-audit-20261118/accepted/accepted-queue-delta.json",
+    "bytesSha256": "47286c7649fdbaa0d55beab1b902ee8cce847e224a9a0aca3e2d57e96903fa57",
+    "queueSha256": "3a59b080f2f53208d212216f7f8c01bbaf1afb9f7cd1b690a168665d8fb9d1a5",
+    "revision": 931,
     "catalogDigest": "5e86c173103402a6c097d9030aff3479165255a5adb32db747cee1efe4c32983"
   },
   "historyReference": {
@@ -228,7 +216,7 @@
       "bytesSha256": "8986e46417e8d5c345562a00e9d61e5b17ba39775deaae58f07cd443c3930e1b"
     },
     "baseRevision": 922,
-    "currentRevision": 930,
+    "currentRevision": 931,
     "baseReference": {
       "format": "ledgerpoint-queue-reference-v1",
       "repository": "Future00111/ledgerpoint",
@@ -368,19 +356,18 @@
   },
   "twoTrackRun": {
     "startedAt": "2026-11-18T14:36:15.627Z",
-    "activity": "Reviewed corrected permission fixtures published to draft PR29; exact-source CI pending.",
+    "activity": "Accepted atomic specialist membership auditing through native membership routes. Restricted deletion denied and permitted removal verified under disposable grants. Next: scoped sensitive record read with field projection.",
     "providerCost": null,
     "credits": null,
     "publishedCommit": "7c70001028ea7228e8b4bbab9ba83d5edeca261f",
     "observedAt": "2026-11-18T14:59:09.452Z",
-    "publishedTree": "58ab00801fc097080625a7e684277e6a2586bb3e",
-    "ciRun": 44329382408,
+    "publishedTree": "b8f1a28ef50349c204985f56ec580b514a7a0699",
+    "ciRun": 44337279646,
     "ciJob": 134889313211,
     "acceptedOutcomes": [
-      "sensitive-role-audited-boundary-20261118",
-      "independent-plan1-weekly-fixtures-20261118"
+      "specialist-membership-audit-20261118"
     ],
-    "queueRevision": 922,
+    "queueRevision": 931,
     "migration": {
       "published": "ec5b31e504673035604a802dd05e5f469ffbad8f",
       "archive": "0bba917ef43fd69b8c52c57d9b270f45e4823775",
