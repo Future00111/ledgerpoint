@@ -1,0 +1,36 @@
+{
+  "evidence": {
+    "summary": "The company payroll screen allows authorised dated pay entry, reuse of a stable ID after a lost response, and readback with role-scoped fields.",
+    "reviewer": "root",
+    "reviewed": true,
+    "commit": "94e42c76375561309be535936ea4d1d6946e706c",
+    "integratedCommit": "941247aec7ccc7a0d91f8c6adb539db49fbee146",
+    "tests": [
+      {
+        "command": "Integrated build, typechecks and combined regression suite",
+        "passed": true
+      },
+      {
+        "command": "GitHub Actions 44354472642 on identical source tree, including native Chromium pay entry, lost-response retry, readback, role and company switching, and populated restore checks",
+        "passed": true
+      }
+    ]
+  },
+  "outcome": {
+    "id": "employee-pay-screen-20261118",
+    "scenario": "The company payroll screen allows authorised dated pay entry, reuse of a stable ID after a lost response, and readback with role-scoped fields.",
+    "integratedCommit": "941247aec7ccc7a0d91f8c6adb539db49fbee146",
+    "criteria": [
+      0,
+      1
+    ],
+    "remaining": [
+      "Qualify remaining employee identifier, bank, personal-tax and export workflows.",
+      "Connect the owner-facing history UI and cover outstanding sensitive-record workflows."
+    ],
+    "nextAction": "Connect the owner-only specialist access history to the company workspace and verify company and role changes in the browser."
+  },
+  "queueRevision": 948,
+  "remainingParent": true,
+  "credits": null
+}
