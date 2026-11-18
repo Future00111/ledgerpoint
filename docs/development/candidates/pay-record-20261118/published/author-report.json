@@ -1,0 +1,142 @@
+{
+  "task": "P02-04",
+  "actor": "pay-record-author",
+  "claimedRevision": 936,
+  "baseCommit": "422e278ae4b28f7837a577eae05c48b599964414",
+  "authorCommit": "23957ed8abe6772841e43bebf3178a43bb8f63b8",
+  "authorTree": "68de7c7f38cd1bb3469d205e2c799eb1432ab135",
+  "branch": "codex/employee-pay-record",
+  "changedFiles": [
+    "artifacts/api-server/src/routes/companies.ts",
+    "artifacts/api-server/src/security/integration.test.ts",
+    "artifacts/api-server/src/security/roles.test.ts",
+    "artifacts/api-server/src/services/payroll/access/README.md",
+    "artifacts/api-server/src/services/payroll/access/payRecord.ts"
+  ],
+  "files": [
+    {
+      "path": "artifacts/api-server/src/routes/companies.ts",
+      "bytes": 18767,
+      "sha256": "906716af97fa335d7178eda4ac0fe84e6dd1d6c15bc1a882ea62db5084a45bb7"
+    },
+    {
+      "path": "artifacts/api-server/src/security/integration.test.ts",
+      "bytes": 72059,
+      "sha256": "81bc0ed5a6bf974f92d0211ae24e17f73c0cfcc5fcb73e997dc9b1be69a79593"
+    },
+    {
+      "path": "artifacts/api-server/src/security/roles.test.ts",
+      "bytes": 5253,
+      "sha256": "727a9e387b51f998e193db992fd7c75b449d92b8daa469001fab9b27624baa77"
+    },
+    {
+      "path": "artifacts/api-server/src/services/payroll/access/README.md",
+      "bytes": 7298,
+      "sha256": "ff682f27986bf89e889acfb2fbf47d45ae9e114b2fa16a332da517c403e3232c"
+    },
+    {
+      "path": "artifacts/api-server/src/services/payroll/access/payRecord.ts",
+      "bytes": 3150,
+      "sha256": "9c753051f244e5bc267cc686199eaf7948b8da523bb2722ee1763bfa6a6efffc"
+    }
+  ],
+  "patch": {
+    "file": "pay-record-author.patch",
+    "bytes": 24797,
+    "sha256": "50e54bf7443b8b503bfca0a8bed0ec87e343d2254ee52ebeabe46afd4686b6f0"
+  },
+  "scope": "Read-only GET /api/companies/:id/payroll-pay-records/:recordId of one persisted GBP annual pay record through the existing locked current-membership/audited payroll.read boundary.",
+  "schemaContract": {
+    "table": "public.employee_pay_records",
+    "columns": [
+      "company_id uuid",
+      "id uuid",
+      "employee_id uuid",
+      "effective_from date",
+      "annual_salary_pence bigint"
+    ],
+    "schemaOwnedBy": "root",
+    "rootSchemaCommitPrefix": "9002d84",
+    "schemaCherryPickedIntoAuthorWorktree": false
+  },
+  "fieldMatrix": {
+    "owner_and_payroll_preparer": [
+      "id",
+      "effective_from",
+      "annual_salary_pence",
+      "currency",
+      "employee_id"
+    ],
+    "payroll_reader_and_payroll_approver": [
+      "id",
+      "effective_from",
+      "annual_salary_pence",
+      "currency"
+    ],
+    "ordinary_and_personal_tax_roles": []
+  },
+  "implementation": [
+    "Salary is cast to text by PostgreSQL and returned as an exact nonnegative decimal integer string; currency fixed GBP.",
+    "Employee column is selected only for locked owner/preparer roles. Stored employee UUID accepts all PostgreSQL variants; path IDs retain the existing sensitive request contract.",
+    "Exact company_id/id predicates; missing and foreign records share denial; no client roles/scope overrides.",
+    "Record table attestation requires ordinary canonical-owner table and runtime SELECT only, including no column INSERT/UPDATE.",
+    "Existing protected redacted audit must insert expected receipt ID and commit before response; no pay or employee reference in receipt.",
+    "No-store middleware runs before authentication. No collection, export, record creation or changes API."
+  ],
+  "checks": [
+    {
+      "command": "node tools/development/check-company-access.mjs",
+      "passed": true,
+      "tests": 41,
+      "log": "author-focused.log",
+      "sha256": "d235b6fa8c1956e14346918cd815fdc094071151e6aa542a4e187aa19ff2bae3"
+    },
+    {
+      "command": "pnpm --filter @workspace/api-server exec tsc -p tsconfig.json --noEmit",
+      "passed": true,
+      "log": "author-typecheck.log"
+    },
+    {
+      "command": "Exact security/integration.test.ts bundled CJS with harness externals; node --check; changed source inclusion and import kinds verified",
+      "passed": true,
+      "nativeDatabasePassed": false,
+      "log": "author-native-compile.log"
+    },
+    {
+      "command": "git diff --cached --check before commit",
+      "passed": true
+    }
+  ],
+  "nativeScenariosAdded": 8,
+  "nativeScenarios": [
+    "Real verified role assignment and exact per-role pay fields/read audit; runtime mutations denied.",
+    "Zero, 9007199254740993 and bigint maximum returned exactly as strings.",
+    "Negative salary, duplicate company/employee/date and SQL nil record ID rejected; nil HTTP record ID invalid.",
+    "Ordinary/personal-tax/inactive/ambiguous/cross-company/missing-record denial without data or receipt.",
+    "Query overrides rejected; collections, exports and mutation endpoints absent and data unchanged.",
+    "Revocation and permission demotion after company-lock wait; preparer-to-reader removes employee reference.",
+    "Raised/skipped audit receipt prevents disclosure and preserves persisted pay data.",
+    "Missing record table, column-only INSERT/UPDATE and missing audit guard fail closed."
+  ],
+  "reviewCorrections": [
+    "Native PostgreSQL employee UUID variants accepted without imposing path UUID restriction.",
+    "Exact structural audit assertions replace probabilistic monetary substring checks.",
+    "SQL nil record-ID insertion exercises the coordinator migration CHECK."
+  ],
+  "nativeQualification": "Requires combined exact-source disposable PostgreSQL CI with coordinator migration/registry/installer and populated encrypted restore changes. No local database runtime pass claimed.",
+  "remaining": [
+    "Independent review and combined native/restore CI.",
+    "Records are synthetic administrator-seeded only; no customer create/change/export/collection UI or endpoints.",
+    "Full employee lifecycle, bank/NINO data, personal-tax records, payroll calculation and external submission remain outside this slice.",
+    "Full original P02-04 acceptance remains pending the remaining connected sensitive workflows."
+  ],
+  "schemaRegistryRunnerAndRestoreFilesUnchangedByAuthor": true,
+  "independentReviewRequired": true,
+  "independentlyReviewed": false,
+  "stopped": true,
+  "worktreeClean": true,
+  "finishedAt": "2026-11-18T16:13:30.229537+00:00",
+  "providerCost": null,
+  "credits": null,
+  "noPushQueueOrProductionChanges": true
+}

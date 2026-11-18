@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "destination_kind": "integration",
+  "pullRequest": 29,
+  "successorDraftRequired": false,
+  "authorityCommit": "cfdba7c68697d0e82d18cfd055a7f4970bee4128",
+  "authorityRevision": 531,
+  "coordinatorRunId": "payrecord-1795017862350",
+  "observedAt": 1795018470806,
+  "candidateTree": "04abee15c354bfa7691c182212cd8527aa47bff5",
+  "reviewedBy": "root",
+  "authorOrigin": {
+    "actor": "pay-record-author",
+    "commit": "23957ed8abe6772841e43bebf3178a43bb8f63b8",
+    "branch": "codex/employee-pay-record"
+  },
+  "updateRef": {
+    "repository_full_name": "Future00111/ledgerpoint",
+    "branch_name": "codex/whole-product-first-sprint",
+    "expected_sha": "422e278ae4b28f7837a577eae05c48b599964414",
+    "sha": "674b3bdf0c3be5811743efb53e19aefc0a4eeeaa",
+    "force": false
+  },
+  "approvalGranted": false,
+  "sourcePublished": false
+}
