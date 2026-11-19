@@ -61,13 +61,30 @@ function pairedLoanTrace(raw, monthlyOnly) {
   if (['plan', 'confirmedInstruction', 'concurrentLoan'].some(key => Object.hasOwn(period, key))) fail('SPEC_INPUT_FIELDS');
 
   if (monthlyOnly && period.frequency !== 'monthly') fail('SPEC_PERIOD');
+  const { qualified, notForPayroll, student: plan2, postgraduate, totalDeductionMinor } = calculateRegularPair(period, 'plan_2');
+  return { qualified, notForPayroll, plan2, postgraduate, totalDeductionMinor };
+}
+
+function calculateRegularPair(period, studentPlan) {
   const component = { ...period, confirmedInstruction: true, concurrentLoan: false };
-  const plan2 = specificationTrace({ ...component, plan: 'plan_2' });
+  const student = specificationTrace({ ...component, plan: studentPlan });
   const postgraduate = specificationTrace({ ...component, plan: 'postgraduate' });
   return {
-    qualified: false, notForPayroll: true, plan2, postgraduate,
-    totalDeductionMinor: (BigInt(plan2.deductionMinor) + BigInt(postgraduate.deductionMinor)).toString(),
+    qualified: false, notForPayroll: true, studentPlan, student, postgraduate,
+    totalDeductionMinor: (BigInt(student.deductionMinor) + BigInt(postgraduate.deductionMinor)).toString(),
   };
+}
+
+// The caller supplies the confirmed plan. Notice interpretation and plan selection
+// are outside this offline arithmetic reference.
+export function regularStudentPostgraduateTrace(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) fail('SPEC_INPUT_FIELDS');
+  const { confirmedStudentPlan, postgraduateInstruction, ...period } = raw;
+  if (!Object.hasOwn(raw, 'confirmedStudentPlan') || !Object.hasOwn(raw, 'postgraduateInstruction') ||
+      !['plan_1', 'plan_2', 'plan_4', 'plan_5'].includes(confirmedStudentPlan) ||
+      postgraduateInstruction !== true) fail('SPEC_PAIR_INSTRUCTIONS');
+  if (['plan', 'confirmedInstruction', 'concurrentLoan'].some(key => Object.hasOwn(period, key))) fail('SPEC_INPUT_FIELDS');
+  return calculateRegularPair(period, confirmedStudentPlan);
 }
 
 export function regularPlan2PostgraduateTrace(raw) {
