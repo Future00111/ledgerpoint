@@ -1,13 +1,18 @@
 {
   "version": 2,
-  "revision": 624,
+  "revision": 625,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "f70cd6ce05e88c309810fb9c0d9b5b35eaad04c9",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "idle",
-  "lease": null,
+  "status": "leased",
+  "lease": {
+    "runId": "notice-timing-f9b8a123-9396-46ee-869f-30f69eeb61ec",
+    "tokenSha256": "4f49e5d4c2765aa0ae2f5c80a5159c93a736c660b70363f655a53500b9ae55ff",
+    "acquiredAt": 1795105668526,
+    "expiresAt": 1795109268526
+  },
   "lastOwner": {
     "runId": "solo-protected-b1f5db9d-bef1-4687-b0ee-41abbe02f53b",
     "tokenSha256": "7c273de4482b7508983522b79f1fa06f5cbed9045388fe553425fab671a572d4",
@@ -133,7 +138,7 @@
     "at": 1795105524005,
     "codeHead": "f70cd6ce05e88c309810fb9c0d9b5b35eaad04c9"
   },
-  "updatedAt": 1795105524009,
+  "updatedAt": 1795105668526,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
