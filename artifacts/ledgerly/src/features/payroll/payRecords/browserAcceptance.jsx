@@ -89,6 +89,16 @@ async function exercise() {
   stage = 'company-change';
   mount(fixture.other, fixture.reader, 'payroll_reader');
   await wait(() => !text().includes('45,250.75') && input('Pay record ID')?.value === '', 'company scope reset');
+  stage = 'pay-denial-clears-bank';
+  mount(fixture.company, fixture.owner, 'owner');
+  await lookupBank();
+  await wait(() => text().includes('00123456'), 'owner bank result before denial');
+  // Keep the displayed scope mounted while the next server request loses its identity.
+  actor = '';
+  fill(await wait(() => input('Pay record ID'), 'owner lookup input'), requests[0]);
+  (await ready('Look up pay record')).click();
+  await wait(() => text().includes('Previous values have been cleared') && !text().includes('00123456')
+    && !input('Employee UUID for bank lookup') && !button('Look up bank details'), 'bank details cleared on denial');
   await nativeFetch('/pay-ui-result', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ok:true})});
 }
 exercise().catch(async () => {

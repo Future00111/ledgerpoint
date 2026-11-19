@@ -34,7 +34,7 @@ before(async () => {
   app.get('/pay-ui-bundle', (_req,res) => res.type('application/javascript').send(payBrowserScript));
   app.post('/pay-ui-result', (req,res) => {
     if (!reportPayBrowser) { res.sendStatus(404); return; }
-    const stage = ['entry','retry','csv-download','bank-detail','reader','company-change','initial','history','refresh','scope','empty','denial'].includes(req.body?.stage) ? req.body.stage : 'unknown';
+    const stage = ['entry','retry','csv-download','bank-detail','pay-denial-clears-bank','reader','company-change','initial','history','refresh','scope','empty','denial'].includes(req.body?.stage) ? req.body.stage : 'unknown';
     reportPayBrowser({ok: req.body?.ok === true, stage}); res.sendStatus(200);
   });
   app.use(createCompaniesRouter((req, res, next) => {
@@ -1238,7 +1238,7 @@ test("Chromium payroll screen preserves salary workflows and restricts employee 
     [f.company, employee, '00123456']);
   await runPayrollBrowser('browserAcceptance.jsx', {company:f.company, other:other.company, owner:f.owner, reader, employee, approver});
   const bankReads = (await sensitiveAudit(f.company)).filter(row => row.capability === 'payroll.bank.read');
-  assert.deepEqual(bankReads.map(row => [row.actor_id, row.target_id]), [[f.owner,employee],[approver,employee],[approver,employee]]);
+  assert.deepEqual(bankReads.map(row => [row.actor_id, row.target_id]), [[f.owner,employee],[approver,employee],[approver,employee],[f.owner,employee]]);
   assert.equal((await storedPay(f.company)).length,1);
   assert.deepEqual((await storedPay(other.company)),[]);
   assert.equal((await payCreationAudits(f.company)).length,1);
