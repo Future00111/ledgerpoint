@@ -38,9 +38,11 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
     await payInput(company,line.employee_id,future,'2026-11-01');
     await payInput(other,line.employee_id,foreign,'2026-10-01');
     await payInput(company,another.employee_id,another.input_revision_id,'2026-08-01');
-    const insert = (id:string,revision:number,version:string,lines:unknown[] = []) => admin.query(
+    const insert = (id:string,revision:number,version:string,lines:unknown[] = [],
+      writer = admin, tenant = company, runId = run) => writer.query(
       `INSERT INTO pay_run_draft_revisions(company_id,run_id,revision_number,revision_id,period_start,period_end,payday,currency,rules_version,prepared_by,employee_lines)
-       VALUES ($1,$2,$3,$4,'2026-10-01','2026-10-31','2026-10-30','GBP',$5,'synthetic-preparer',$6::jsonb)`,[company,run,revision,id,version,JSON.stringify(lines)]);
+       VALUES ($1,$2,$3,$4,'2026-10-01','2026-10-31','2026-10-30','GBP',$5,'synthetic-preparer',$6::jsonb)`,[tenant,runId,revision,id,version,JSON.stringify(lines)]);
+    await assert.rejects(insert(randomUUID(),2,'missing-first'),{code:'23514'});
     await insert(first,1,'synthetic-v1');
     await admin.query('BEGIN ISOLATION LEVEL REPEATABLE READ');
     try { await assert.rejects(insert(randomUUID(),2,'pinned-snapshot'),{code:'25000'}); }
@@ -56,6 +58,14 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
     const rejectedSource = (source:string) => assert.rejects(
       insert(randomUUID(),3,'source-check',[another,{...line,input_revision_id:source}]),{code:'23514'});
     for (const source of [stale,foreign,future,another.input_revision_id,randomUUID()]) await rejectedSource(source);
+    const waitForBlockedWriter = async (pid:number) => {
+      let blocked = false;
+      for (let attempt=0; attempt<100 && !blocked; attempt++) {
+        blocked = (await admin.query('SELECT pg_backend_pid()=ANY(pg_blocking_pids($1)) AS blocked',[pid])).rows[0].blocked;
+        if (!blocked) await new Promise(resolve => setTimeout(resolve,20));
+      }
+      assert.equal(blocked,true);
+    };
     // A later backdated change does not alter the saved snapshot. New drafts require split-period support.
     const changed = randomUUID();
     const concurrent = new pg.Client({host:socket,port:55441,database,user:'w03_bootstrap',ssl:false});
@@ -70,12 +80,7 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
           currency,rules_version,prepared_by,prepared_at,employee_lines) SELECT company_id,run_id,3,$1,period_start,period_end,payday,currency,
           rules_version,prepared_by,prepared_at,employee_lines FROM pay_run_draft_revisions WHERE revision_id=$2`,
         [randomUUID(),second]).then(() => 'accepted', error => error.code);
-      let blocked = false;
-      for (let attempt=0; attempt<100 && !blocked; attempt++) {
-        blocked = (await admin.query('SELECT pg_backend_pid()=ANY(pg_blocking_pids($1)) AS blocked',[pid])).rows[0].blocked;
-        if (!blocked) await new Promise(resolve => setTimeout(resolve,20));
-      }
-      assert.equal(blocked,true);
+      await waitForBlockedWriter(pid);
       await admin.query('COMMIT');
       assert.equal(await result,'23514');
     } finally { await admin.query('ROLLBACK'); await concurrent.end(); }
@@ -113,6 +118,25 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
     await rejectedSource(changed);
     assert.deepEqual((await rawHeaders()).rows,beforeRestore);
     await verify();
+    // Competing drafts based on revision 2: one wins, the other must reload.
+    const contender = new pg.Client({host:socket,port:55441,database,user:'w03_bootstrap',ssl:false});
+    await contender.connect();
+    try {
+      const pid = (await contender.query('SELECT pg_backend_pid() AS pid')).rows[0].pid;
+      await assert.rejects(insert(randomUUID(),4,'gap'),{code:'23514'});
+      await admin.query('BEGIN');
+      const winner = randomUUID();
+      await insert(winner,3,'winner');
+      const outcome = insert(randomUUID(),3,'contender',[],contender).then(() => 'accepted', error => error.code);
+      await waitForBlockedWriter(pid);
+      await admin.query('COMMIT');
+      assert.equal(await outcome,'23505');
+      const head = await admin.query('SELECT revision_id FROM pay_run_draft_revisions WHERE company_id=$1 AND run_id=$2 ORDER BY revision_number DESC LIMIT 1',[company,run]);
+      assert.equal(head.rows[0].revision_id,winner);
+      await insert(randomUUID(),4,'after-reload');
+      await insert(randomUUID(),1,'same-run-different-company',[],admin,other);
+      await insert(randomUUID(),1,'different-run',[],admin,company,randomUUID());
+    } finally { await admin.query('ROLLBACK'); await contender.end(); }
     const receipts = await admin.query("SELECT company_id,actor_id,target_id FROM accounting_audit_events WHERE actor_id=$1 AND capability='payroll.read'",[actor]);
     assert.equal(receipts.rowCount,5);
     assert.ok(receipts.rows.every(row => row.company_id === company && row.actor_id === actor && [first,second].includes(row.target_id)));

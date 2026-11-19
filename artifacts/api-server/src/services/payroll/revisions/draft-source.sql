@@ -1,6 +1,8 @@
 -- Each draft line currently names one dated annual-pay input for the entire period.
 CREATE FUNCTION public.check_pay_run_draft_sources() RETURNS trigger
 LANGUAGE plpgsql SET search_path = pg_catalog AS $$
+DECLARE
+  next_revision bigint;
 BEGIN
   -- A pinned transaction snapshot cannot re-read a source committed during a lock wait.
   IF current_setting('transaction_isolation') NOT IN ('read committed','read uncommitted') THEN
@@ -8,6 +10,16 @@ BEGIN
   END IF;
   -- Native pay-input creation takes this same company lock before inserting.
   PERFORM id FROM public.companies WHERE id = NEW.company_id FOR UPDATE;
+  -- The requested successor identifies the head the preparer saw. Immutable history
+  -- makes the revision number unambiguous within this company and run.
+  SELECT coalesce(max(revision_number)::bigint, 0) + 1 INTO next_revision
+    FROM public.pay_run_draft_revisions
+    WHERE company_id = NEW.company_id AND run_id = NEW.run_id;
+  IF NEW.revision_number < next_revision THEN
+    RAISE EXCEPTION 'Draft revision already exists; reload the run' USING ERRCODE='23505';
+  ELSIF NEW.revision_number > next_revision THEN
+    RAISE EXCEPTION 'Draft revision must follow the current head' USING ERRCODE='23514';
+  END IF;
   -- The generated breakdown column rejects malformed structures after BEFORE triggers.
   IF jsonb_typeof(NEW.employee_lines) IS DISTINCT FROM 'array' THEN RETURN NEW; END IF;
   IF EXISTS (
