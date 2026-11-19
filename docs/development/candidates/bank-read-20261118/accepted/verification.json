@@ -1,0 +1,9 @@
+{
+  "outcome": "payroll-bank-read-20261119",
+  "task": "P02-04",
+  "verifiedSource": "8a2dbc159c1f9396bfc26797fb2c49aabbf53a8b",
+  "ci": "https://github.com/Future00111/ledgerpoint/actions/runs/44383549859",
+  "successfulSteps": 20,
+  "scope": "Audited role-specific bank lookup, browser role switching and encrypted restore.",
+  "queueTransition": "Validated locally. Publication of the expanded queue history is pending."
+}
