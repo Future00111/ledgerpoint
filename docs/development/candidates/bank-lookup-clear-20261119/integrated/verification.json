@@ -1,0 +1,8 @@
+{
+  "codeHead": "6b3cfbc7c654a4f6961d2846bd145c1ffd2597bc",
+  "scope": "Clear payroll bank lookup on demand, cancel pending response and return focus",
+  "focusedClientTests": 45,
+  "ciRunId": 44574541831,
+  "ciSuccessfulSteps": 20,
+  "review": "Independent reviewer confirmed role-switch coverage and exact browser read receipt count."
+}
