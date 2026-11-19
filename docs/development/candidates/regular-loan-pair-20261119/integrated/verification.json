@@ -1,0 +1,12 @@
+{
+  "scope": "2026-27 offline regular weekly, fortnightly and four-weekly Plan 2 and postgraduate loan calculations without protected earnings",
+  "sourceCommit": "3d0c0e4fd3506f52c9bc100f3147e564ea19a46b",
+  "independentlyReviewedExamples": 9,
+  "localTestsPassed": 142,
+  "ciRun": 44556877685,
+  "firstAttempt": "Commercial discount Chromium scenario failed.",
+  "secondAttemptJob": 135677200959,
+  "successfulSteps": 20,
+  "threeNewTestsObservedInCi": true,
+  "qualification": "Offline reference only."
+}
