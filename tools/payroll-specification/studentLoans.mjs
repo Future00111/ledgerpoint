@@ -51,16 +51,16 @@ export function specificationTrace(raw) {
     recoveryNumerator:numerator.toString(),wholePoundsDenominator:'10000',deductionMinor:deduction.toString()};
 }
 
-/** Offline 2026–27 reference for one confirmed monthly Plan 2 instruction and one
+/** Offline 2026–27 reference for one confirmed regular-period Plan 2 instruction and one
  * confirmed postgraduate instruction, applied to the same Class 1 NI earnings. */
-export function monthlyPlan2PostgraduateTrace(raw) {
+function pairedLoanTrace(raw, monthlyOnly) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) fail('SPEC_INPUT_FIELDS');
   const { plan2Instruction, postgraduateInstruction, ...period } = raw;
   if (!Object.hasOwn(raw, 'plan2Instruction') || !Object.hasOwn(raw, 'postgraduateInstruction') ||
       plan2Instruction !== true || postgraduateInstruction !== true) fail('SPEC_PAIR_INSTRUCTIONS');
   if (['plan', 'confirmedInstruction', 'concurrentLoan'].some(key => Object.hasOwn(period, key))) fail('SPEC_INPUT_FIELDS');
-  if (period.frequency !== 'monthly') fail('SPEC_PERIOD');
 
+  if (monthlyOnly && period.frequency !== 'monthly') fail('SPEC_PERIOD');
   const component = { ...period, confirmedInstruction: true, concurrentLoan: false };
   const plan2 = specificationTrace({ ...component, plan: 'plan_2' });
   const postgraduate = specificationTrace({ ...component, plan: 'postgraduate' });
@@ -68,6 +68,15 @@ export function monthlyPlan2PostgraduateTrace(raw) {
     qualified: false, notForPayroll: true, plan2, postgraduate,
     totalDeductionMinor: (BigInt(plan2.deductionMinor) + BigInt(postgraduate.deductionMinor)).toString(),
   };
+}
+
+export function regularPlan2PostgraduateTrace(raw) {
+  return pairedLoanTrace(raw, false);
+}
+
+// The monthly entry point retains its frequency constraint for existing callers.
+export function monthlyPlan2PostgraduateTrace(raw) {
+  return pairedLoanTrace(raw, true);
 }
 
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
