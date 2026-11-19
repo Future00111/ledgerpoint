@@ -1,0 +1,10 @@
+{
+  "scope": "Offline 2026–27 regular single-loan start/stop timing using supplied first available paydays",
+  "sourceCommit": "767415eefd08d21c1ca5855e2f7f906e4e468e8e",
+  "independentReview": true,
+  "localTestsPassed": 161,
+  "ciRun": 44566593499,
+  "successfulSteps": 20,
+  "newTestsObservedInCi": 6,
+  "qualification": "No notice authentication, concurrent notices across loan families or production payroll qualification."
+}
