@@ -1,0 +1,8 @@
+{
+  "codeHead": "d60d4133978bd51ff6109973be7c63324b31cf12",
+  "scope": "Offline regular paired loan notice timing only",
+  "localTestsPassed": 170,
+  "ciRunId": 44568447830,
+  "ciSuccessfulSteps": 20,
+  "independentReview": "Reviewed; synthetic notice dates revised and local checks rerun."
+}
