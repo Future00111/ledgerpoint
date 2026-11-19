@@ -1,0 +1,11 @@
+{
+  "scope": "Offline 2026-27 regular pay with one confirmed Plan 1, 2, 4 or 5 and a postgraduate loan; no protected earnings",
+  "sourceCommit": "4e6c8470d7444fb381f7bb7ddd5af4f67a8c8722",
+  "officialStudentComponents": 104,
+  "independentlyCheckedMonthlyTotals": 4,
+  "localTestsPassed": 149,
+  "ciRun": 44560282432,
+  "successfulSteps": 20,
+  "newTestsObservedInCi": 3,
+  "qualification": "Reference only. Notice interpretation and production payroll qualification remain open."
+}
