@@ -1,0 +1,10 @@
+{
+  "scope": "Offline 2026-27 Plan 2 and postgraduate loan deductions under protected earnings for weekly, fortnightly and four-weekly pay",
+  "sourceCommit": "17ca582b33b64aab9aa636db6b4575b728e253fd",
+  "independentlyReviewedExamples": 12,
+  "localTestsPassed": 146,
+  "ciRun": 44558825375,
+  "successfulSteps": 20,
+  "newTestsObservedInCi": 4,
+  "qualification": "Reference only; inputs require a known protected level and net earnings after the priority order."
+}
