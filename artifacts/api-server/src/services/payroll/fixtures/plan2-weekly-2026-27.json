@@ -1,0 +1,53 @@
+{
+  "scope": "2026-27 regular weekly Plan 2 arithmetic only; an active deduction is assumed.",
+  "status": "reference_only",
+  "sources": [
+    "https://www.gov.uk/guidance/rates-and-thresholds-for-employers-2026-to-2027",
+    "https://www.gov.uk/hmrc-internal-manuals/collection-of-student-loans-manual/cslm10112"
+  ],
+  "weeklyThresholdMinor": "56509",
+  "percentage": 9,
+  "officialSheet": "Plan_2",
+  "officialRows": [
+    11,
+    12,
+    13,
+    14,
+    15,
+    16
+  ],
+  "boundaryCases": [
+    {
+      "payMinor": "0",
+      "deductionMinor": "0"
+    },
+    {
+      "payMinor": "56508",
+      "deductionMinor": "0"
+    },
+    {
+      "payMinor": "56509",
+      "deductionMinor": "0"
+    },
+    {
+      "payMinor": "56510",
+      "deductionMinor": "0"
+    },
+    {
+      "payMinor": "58731",
+      "deductionMinor": "100"
+    },
+    {
+      "payMinor": "58732",
+      "deductionMinor": "200"
+    },
+    {
+      "payMinor": "66508",
+      "deductionMinor": "800"
+    },
+    {
+      "payMinor": "66509",
+      "deductionMinor": "900"
+    }
+  ]
+}
