@@ -60,3 +60,23 @@ export function reviewPlan1NoticeTiming(input) {
 export function reviewRegularSingleLoanNoticeTiming(input) {
   return reviewNoticeTiming(input, false);
 }
+
+// Offline review of one regular student plan alongside a postgraduate loan.
+export function reviewPairedLoanNoticeTiming(input) {
+  if (!exact(input, inputFields)) fail('NOTICE_INPUT_FIELDS');
+  if (input.concurrentLoan !== true || !['plan_1','plan_2','plan_4','plan_5'].includes(input.plan)) fail('NOTICE_UNSUPPORTED_CASE');
+  if (!Array.isArray(input.notices) || input.notices.length > 4) fail('NOTICE_CONFLICT');
+  const student = [], postgraduate = [], ids = new Set();
+  for (const notice of input.notices) {
+    if (!exact(notice, noticeFields) || (notice.plan !== input.plan && notice.plan !== 'postgraduate')) fail('NOTICE_INVALID_INSTRUCTION');
+    if (ids.has(notice.id)) fail('NOTICE_CONFLICT');
+    ids.add(notice.id);
+    (notice.plan === 'postgraduate' ? postgraduate : student).push(notice);
+  }
+  const context = {...input, concurrentLoan:false};
+  return {
+    qualified:false, notForPayroll:true,
+    student:reviewRegularSingleLoanNoticeTiming({...context, notices:student}),
+    postgraduate:reviewRegularSingleLoanNoticeTiming({...context, plan:'postgraduate', notices:postgraduate}),
+  };
+}
