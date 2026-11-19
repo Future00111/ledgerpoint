@@ -1,0 +1,12 @@
+{
+  "scope": "Offline protected regular student and postgraduate loan pairs for plans 1, 2, 4 and 5",
+  "sourceCommit": "e6de0f8e4026e93fe7b3209f491de5dfedfd07c3",
+  "candidatePullRequest": 33,
+  "integrationPullRequest": 29,
+  "independentlyReviewedMonthlyExamples": 16,
+  "localTestsPassed": 152,
+  "ciRun": 44563326739,
+  "successfulSteps": 20,
+  "newTestsObservedInCi": 3,
+  "qualification": "Reference only."
+}
