@@ -1,0 +1,13 @@
+{
+  "task": "P04-03",
+  "scope": "2026–27 regular weekly Plan 2 arithmetic with an active deduction",
+  "sourceCommit": "40d31eb432c2972c7d719efed3e643989713e5f0",
+  "candidatePullRequest": 32,
+  "integrationPullRequest": 29,
+  "officialExamples": 6,
+  "additionalBoundaryCases": 8,
+  "focusedTestsPassed": 105,
+  "workflowRun": 44549334505,
+  "successfulSteps": 20,
+  "qualification": "Reference fixtures only. Accountant review remains open."
+}
