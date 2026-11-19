@@ -1,28 +1,28 @@
 {
   "version": 2,
-  "revision": 628,
+  "revision": 630,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "767415eefd08d21c1ca5855e2f7f906e4e468e8e",
+  "codeHead": "d60d4133978bd51ff6109973be7c63324b31cf12",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "dual-notice-0d404988-c925-428f-aae1-e4f8265f06ce",
     "tokenSha256": "a9a682c706ca2e92664fd3329e5bd99d9d8a299fd33c817bbccc511ebb75522a",
     "acquiredAt": 1795106248573,
     "expiresAt": 1795109848573
   },
-  "lastOwner": {
-    "runId": "notice-timing-f9b8a123-9396-46ee-869f-30f69eeb61ec",
-    "tokenSha256": "4f49e5d4c2765aa0ae2f5c80a5159c93a736c660b70363f655a53500b9ae55ff",
-    "acquiredAt": 1795105668526,
-    "expiresAt": 1795109268526
-  },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "7859eb36ca0fb82202dfebee4acfcc7aa91918c4",
+    "sha": "4b8d7b72861d71506c1cc6a5ce3bc86019056e35",
     "evidence": [
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "4b8d7b72861d71506c1cc6a5ce3bc86019056e35",
+        "path": "docs/development/candidates/dual-loan-notice-20261119/integrated/verification.json"
+      },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
         "sha": "7859eb36ca0fb82202dfebee4acfcc7aa91918c4",
@@ -139,11 +139,11 @@
         "path": "docs/development/candidates/bank-read-20261118/recovery/stop-evidence-20261119.json"
       }
     ],
-    "runId": "notice-timing-f9b8a123-9396-46ee-869f-30f69eeb61ec",
-    "at": 1795106031084,
-    "codeHead": "767415eefd08d21c1ca5855e2f7f906e4e468e8e"
+    "runId": "dual-notice-0d404988-c925-428f-aae1-e4f8265f06ce",
+    "at": 1795106591526,
+    "codeHead": "d60d4133978bd51ff6109973be7c63324b31cf12"
   },
-  "updatedAt": 1795106248573,
+  "updatedAt": 1795106591530,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
