@@ -1,0 +1,13 @@
+{
+  "sourceCommit": "a32928fffc0fdd03640f44956e0e60855f67f9a6",
+  "sourceTree": "1af492d8cbfae47e45fcbd94298c140fe4b8f4fc",
+  "candidatePullRequest": 31,
+  "integrationPullRequest": 29,
+  "queueTestsPassed": 105,
+  "observedStartupStates": [
+    "acquire",
+    "existing-owner"
+  ],
+  "ciRun": 44546568245,
+  "successfulSteps": 20
+}
