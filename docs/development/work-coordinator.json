@@ -1,13 +1,18 @@
 {
   "version": 2,
-  "revision": 585,
+  "revision": 586,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "8a2dbc159c1f9396bfc26797fb2c49aabbf53a8b",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "idle",
-  "lease": null,
+  "status": "leased",
+  "lease": {
+    "runId": "payroll-accept-283b0c22-0cb5-49bf-9c17-b59c87b571cc",
+    "tokenSha256": "34015eb19eb2ff13a9c04e71d0e10e5d7a685225ee3a2c9e8f21f709719c1e0e",
+    "acquiredAt": 1795098548722,
+    "expiresAt": 1795102148722
+  },
   "lastOwner": {
     "runId": "accept-bank-4609e479-ac35-47a7-924e-3bb12cb17800",
     "tokenSha256": "0fc661d9791ba201eac89ca6977fe39e2c80c65b2b617c2d3dbe0682dca9e6c8",
@@ -68,7 +73,7 @@
     "at": 1795098405721,
     "codeHead": "8a2dbc159c1f9396bfc26797fb2c49aabbf53a8b"
   },
-  "updatedAt": 1795098405724,
+  "updatedAt": 1795098548722,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
