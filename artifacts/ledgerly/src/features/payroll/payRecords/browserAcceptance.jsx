@@ -11,12 +11,14 @@ let actor = fixture.owner;
 let loseResponse = true;
 let heldPayRead;
 const requests = [];
+const exportStatuses = [];
 window.fetch = async (url, options = {}) => {
   const target = new URL(url, location.href);
   if (target.origin !== location.origin || !target.pathname.startsWith('/api/companies/')) throw Error('Unexpected browser request');
   const headers = new Headers(options.headers);
   headers.set('x-test-actor', actor);
   const response = await nativeFetch(target.pathname.slice('/api/companies'.length), {...options, headers});
+  if (target.pathname.endsWith('/export.csv')) exportStatuses.push(response.status);
   if (heldPayRead && response.ok && target.pathname.includes('/payroll-pay-records/')) {
     // Buffer a successful response before cancellation to model a transport that ignores abort.
     const buffered = new Response(await response.text(), {status:response.status, headers:response.headers});
@@ -96,6 +98,26 @@ async function exercise() {
   stage = 'company-change';
   mount(fixture.other, fixture.reader, 'payroll_reader');
   await wait(() => !text().includes('45,250.75') && input('Pay record ID')?.value === '', 'company scope reset');
+  stage = 'denial';
+  const originalClick = HTMLAnchorElement.prototype.click;
+  let downloadAttempts = 0;
+  HTMLAnchorElement.prototype.click = function () { downloadAttempts++; };
+  try {
+    for (const [requestActor, status] of [['', 401], [fixture.reader, 403]]) {
+      mount(fixture.company, fixture.owner, 'owner');
+      fill(await wait(() => input('Employee reference') && input('Pay record ID'), 'owner pay lookup'), requests[0]);
+      (await ready('Look up pay record')).click();
+      await wait(() => text().includes('45,250.75') && text().includes(fixture.employee), 'owner pay details');
+      actor = requestActor;
+      (await ready('Download CSV')).click();
+      await wait(() => text().includes('Previous values have been cleared'), 'denied payroll export');
+      if (exportStatuses.at(-1) !== status || downloadAttempts || text().includes('45,250.75')
+        || text().includes(fixture.employee) || input('Employee reference') || input('Employee UUID for bank lookup')
+        || input('Pay record ID')?.value !== '' || button('Download CSV')) throw Error('Denied payroll export retained data or downloaded');
+      mount(fixture.other, fixture.reader, 'payroll_reader');
+      await wait(() => !text().includes('Previous values have been cleared'), 'leave blocked payroll workspace');
+    }
+  } finally { HTMLAnchorElement.prototype.click = originalClick; }
   stage = 'pay-denial-clears-bank';
   mount(fixture.company, fixture.owner, 'owner');
   await lookupBank();
