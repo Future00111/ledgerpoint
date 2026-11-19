@@ -1,4 +1,4 @@
-import { verifyCsvDownload } from './verifyCsvDownload';
+import { verifyCsvDownload, verifyLateCsvAfterSwitch } from './verifyCsvDownload';
 // Disposable browser entry point. The component and HTTP client are the production implementations.
 import React from 'react';
 import {createRoot} from 'react-dom/client';
@@ -63,6 +63,12 @@ async function exercise() {
   stage = 'csv-download';
   await verifyCsvDownload(await ready('Download CSV'), 'personal-tax-input.csv',
     'tax_year_start,employment_income_pence,currency\r\n2026,4525075,GBP\r\n', wait);
+  stage = 'company-change';
+  await verifyLateCsvAfterSwitch(await ready('Download CSV'), async () => {
+    mount(fixture.other, fixture.preparer, 'personal_tax_preparer');
+    await wait(() => !text().includes('45,250.75') && input('Tax input ID')?.value === ''
+      && !button('Download CSV'), 'destination workspace loaded');
+  }, wait);
   stage = 'reader';
   mount(fixture.company, fixture.submitter, 'personal_tax_submitter');
   await wait(() => !button('Save tax input') && !text().includes('45,250.75'), 'reader scope reset');
