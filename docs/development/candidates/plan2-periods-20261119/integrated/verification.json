@@ -1,0 +1,12 @@
+{
+  "sourceCommit": "48639f163261b10981934ed8e60dc7e2e8765845",
+  "task": "P04-03",
+  "scope": "2026-27 Plan 2 regular fortnightly, four-weekly and monthly higher whole-pound deduction boundaries",
+  "witnesses": 12,
+  "independentArithmeticReview": "passed",
+  "focusedTestsPassed": 133,
+  "integrationPullRequest": 29,
+  "gitHubActionsRun": 44550660991,
+  "successfulSteps": 20,
+  "qualification": "Reference tests only. Accountant sign-off and production qualification remain open."
+}
