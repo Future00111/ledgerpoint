@@ -1879,6 +1879,7 @@ for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${
    import Payments from ${JSON.stringify(frontend+'/src/pages/Payments.jsx')};
    import {readDiscountRecovery} from ${JSON.stringify(frontend+'/src/features/paidCreditReview/model.mjs')};
    const nativeFetch=window.fetch.bind(window);let captures=0,saves=0,posts=0,observed=0,discountPosts=0,recoveries=0,refundPosts=0,refundResponses=0,savedId=null;
+   let ledgerGate;
    let stage='mount';
    const report=(passed,error=null)=>nativeFetch('/synthetic-browser-result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:${JSON.stringify(reportId)},stage,passed,error,captures,saves,posts,observed,discountPosts,recoveries,refundPosts,refundResponses})});
    const progress=async value=>{stage=value;await nativeFetch('/synthetic-browser-result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:${JSON.stringify(reportId)},stage})});};
@@ -1893,6 +1894,7 @@ for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${
     const isRefund=path.endsWith('/accounting-payments')&&options.method==='POST'&&JSON.parse(options.body).kind==='refund';
     if(isRefund)refundPosts++;
     const response=await nativeFetch(path,{...options,headers});
+    if(ledgerGate && path.includes('/accounting-reports?')) await ledgerGate;
     if(isRefund&&response.ok)refundResponses++;
     if(path.endsWith('/accounting-documents')&&options.method==='POST'&&response.ok)savedId=(await response.clone().json()).data.id;
     if(path.endsWith('/conditional-original/observe')&&response.ok)observed++;
@@ -1952,8 +1954,15 @@ for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${
     if(!recoverButton||recoverButton.disabled)throw Error('Posted page omitted recovery action');
     recoverButton.click();await wait(()=>!recovery()&&recoveries===1&&pending()===null&&document.getElementById('root').textContent.includes('Posted'));
     if(discountPosts!==1)throw Error('Recovery resubmitted discount');
+    let releaseLedger;
+    ledgerGate=new Promise(resolve=>{releaseLedger=resolve;});
     mount('/payments?event='+payment.id,'refund');
     const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent===text);
+    await wait(()=>button('Record refund'));
+    for(const action of ['Record payment','Allocate','Undo allocation','Record refund','Reverse payment']){
+      if(!button(action)?.disabled)throw Error(action+' enabled before ledger readiness');
+    }
+    releaseLedger();
     await wait(()=>button('Record payment')&&!button('Record payment').disabled&&button('Record refund')&&!button('Record refund').disabled);button('Record refund').click();
     await wait(()=>document.querySelector('#pay-amount'));await change('#pay-date','2026-11-16');await change('#pay-amount','12.00');await change('#pay-reference','Separately reviewed browser refund');
     button('Review accounting entries').click();await wait(()=>button('Confirm and record')&&!button('Confirm and record').disabled);
