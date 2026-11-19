@@ -1,0 +1,11 @@
+{
+  "scope": "Offline 2026–27 monthly Plan 2 and postgraduate reference calculation",
+  "sourceCommit": "0bcbca7271097758c98bb0f0aada3224e8826042",
+  "independentlyReviewed": true,
+  "referenceCases": 7,
+  "localTestsPassed": 137,
+  "ciRun": 44553985493,
+  "successfulSteps": 20,
+  "bothNewTestsObservedInCi": true,
+  "qualification": "Production payroll and notice verification remain outside this reference implementation."
+}
