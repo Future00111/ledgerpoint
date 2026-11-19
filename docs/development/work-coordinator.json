@@ -1,28 +1,28 @@
 {
   "version": 2,
-  "revision": 586,
+  "revision": 588,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "8a2dbc159c1f9396bfc26797fb2c49aabbf53a8b",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "payroll-accept-283b0c22-0cb5-49bf-9c17-b59c87b571cc",
     "tokenSha256": "34015eb19eb2ff13a9c04e71d0e10e5d7a685225ee3a2c9e8f21f709719c1e0e",
     "acquiredAt": 1795098548722,
     "expiresAt": 1795102148722
   },
-  "lastOwner": {
-    "runId": "accept-bank-4609e479-ac35-47a7-924e-3bb12cb17800",
-    "tokenSha256": "0fc661d9791ba201eac89ca6977fe39e2c80c65b2b617c2d3dbe0682dca9e6c8",
-    "acquiredAt": 1795098260891,
-    "expiresAt": 1795101860891
-  },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "91eefe8b7a4778baf2f0832a2cb072deab56cf8a",
+    "sha": "2be7811ed92ebb1b106de733cce22d2c6b792287",
     "evidence": [
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "2be7811ed92ebb1b106de733cce22d2c6b792287",
+        "path": "docs/development/candidates/bank-read-20261118/accepted/accepted-queue-delta.json"
+      },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
         "sha": "91eefe8b7a4778baf2f0832a2cb072deab56cf8a",
@@ -69,11 +69,11 @@
         "path": "docs/development/candidates/bank-read-20261118/recovery/stop-evidence-20261119.json"
       }
     ],
-    "runId": "accept-bank-4609e479-ac35-47a7-924e-3bb12cb17800",
-    "at": 1795098405721,
+    "runId": "payroll-accept-283b0c22-0cb5-49bf-9c17-b59c87b571cc",
+    "at": 1795098585311,
     "codeHead": "8a2dbc159c1f9396bfc26797fb2c49aabbf53a8b"
   },
-  "updatedAt": 1795098548722,
+  "updatedAt": 1795098585315,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -161,14 +161,7 @@
       "ownerApproved": true
     }
   },
-  "activeWorkers": [
-    {
-      "actor": "bank-read-author",
-      "task": "P02-04",
-      "status": "review",
-      "stopped": true
-    }
-  ],
+  "activeWorkers": [],
   "workersStopped": true,
   "discoveryRun": {
     "runId": "correction-discovery-1794927549982",
@@ -209,11 +202,11 @@
     "format": "ledgerpoint-queue-reference-v1",
     "repository": "Future00111/ledgerpoint",
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "23b135b9a11baaae1cb55401a0774922bd4caf94",
-    "path": "docs/development/candidates/bank-read-20261118/published/published-queue-delta.json",
-    "bytesSha256": "df006478ba6bbd3c75b4f811f33185759d2fd08967f948d84e8461b62ea12133",
-    "queueSha256": "e6e659b6c922ac608f0261022c28a2afee5855a438d6dffd22a664370bf6f654",
-    "revision": 968,
+    "sha": "2be7811ed92ebb1b106de733cce22d2c6b792287",
+    "path": "docs/development/candidates/bank-read-20261118/accepted/accepted-queue-delta.json",
+    "bytesSha256": "5f6e97bce5014eff8f66d1124ea5865fb1f7ffe551c85e9f27dc4990bbc9d71a",
+    "queueSha256": "07cb4ed6bdd3adca0467109a43b089dee4cfd6a54c6752e7c23861bbe70b8394",
+    "revision": 972,
     "catalogDigest": "e2062b766ab4d6c1925cec45996df85511974cc96a5873b02adbfe7392a3efbc"
   },
   "historyReference": {
@@ -383,7 +376,7 @@
   },
   "twoTrackRun": {
     "startedAt": "2026-11-18T14:36:15.627Z",
-    "activity": "Approved bank-detail permissions published for native PostgreSQL, browser and restore verification.",
+    "activity": "Payroll bank lookup outcome accepted; parent P02-04 remains pending.",
     "providerCost": null,
     "credits": null,
     "publishedCommit": "8099e0685c9b26fd77937affe21c24abb82e7036",
@@ -392,9 +385,10 @@
     "ciRun": 44360777186,
     "ciJob": 134889313211,
     "acceptedOutcomes": [
-      "personal-tax-preparation-read-20261118"
+      "personal-tax-preparation-read-20261118",
+      "payroll-bank-read-20261119"
     ],
-    "queueRevision": 955,
+    "queueRevision": 972,
     "migration": {
       "published": "7a3553913fa5318f1a3c9c2734991df651735fbb",
       "archive": "7baa16b6803002b5b1aef102da897b713b9dd49c",
