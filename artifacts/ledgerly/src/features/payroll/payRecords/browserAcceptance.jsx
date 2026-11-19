@@ -9,6 +9,7 @@ const root = createRoot(document.getElementById('root'));
 const nativeFetch = window.fetch.bind(window);
 let actor = fixture.owner;
 let loseResponse = true;
+let heldPayRead;
 const requests = [];
 window.fetch = async (url, options = {}) => {
   const target = new URL(url, location.href);
@@ -16,6 +17,12 @@ window.fetch = async (url, options = {}) => {
   const headers = new Headers(options.headers);
   headers.set('x-test-actor', actor);
   const response = await nativeFetch(target.pathname.slice('/api/companies'.length), {...options, headers});
+  if (heldPayRead && response.ok && target.pathname.includes('/payroll-pay-records/')) {
+    // Buffer a successful response before cancellation to model a transport that ignores abort.
+    const buffered = new Response(await response.text(), {status:response.status, headers:response.headers});
+    await new Promise(resolve => { heldPayRead.release = resolve; });
+    return buffered;
+  }
   if (options.method === 'POST') {
     requests.push(JSON.parse(options.body).id);
     if (loseResponse && response.ok) {
@@ -99,6 +106,26 @@ async function exercise() {
   (await ready('Look up pay record')).click();
   await wait(() => text().includes('Previous values have been cleared') && !text().includes('00123456')
     && !input('Employee UUID for bank lookup') && !button('Look up bank details'), 'bank details cleared on denial');
+  stage = 'denial';
+  mount(fixture.company, fixture.approver, 'payroll_approver');
+  fill(await wait(() => input('Pay record ID')?.value === '' && input('Employee UUID for bank lookup') && input('Pay record ID'), 'fresh approver lookup'), requests[0]);
+  (await ready('Look up pay record')).click();
+  await wait(() => text().includes('45,250.75'), 'salary before session expiry');
+  actor = '';
+  await lookupBank();
+  await wait(() => text().includes('Previous values have been cleared') && !text().includes('45,250.75')
+    && !input('Employee UUID for bank lookup') && !button('Download CSV'), 'bank session expiry clears salary');
+  mount(fixture.company, fixture.owner, 'owner');
+  fill(await wait(() => input('Employee reference') && input('Pay record ID'), 'new owner session'), requests[0]);
+  heldPayRead = {};
+  (await ready('Look up pay record')).click();
+  await wait(() => heldPayRead.release, 'held successful pay read');
+  actor = '';
+  await lookupBank();
+  await wait(() => text().includes('Previous values have been cleared') && !input('Employee UUID for bank lookup'), 'blocked pending read');
+  heldPayRead.release();
+  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  if (text().includes('Saved pay record') || text().includes('45,250.75') || button('Download CSV')) throw Error('Stale pay response');
   await nativeFetch('/pay-ui-result', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ok:true})});
 }
 exercise().catch(async () => {
