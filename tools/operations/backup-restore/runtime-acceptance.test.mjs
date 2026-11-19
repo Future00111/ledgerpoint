@@ -40,6 +40,7 @@ test('actual native acceptance bundle rejects inherited database URLs before loa
     assert.ok(Object.keys(result.metafile.inputs).includes('lib/db/src/index.ts'));
     assert.ok(Object.keys(result.metafile.inputs).includes('artifacts/api-server/src/services/documentIntake/service.ts'));
     assert.ok(Object.keys(result.metafile.inputs).includes('artifacts/api-server/src/services/documentIntake/evidence.ts'));
+    assert.ok(Object.keys(result.metafile.inputs).includes('tools/operations/backup-restore/payment-attempt-acceptance.ts'));
     for (const service of ['payments.ts', 'conditionalDiscount.ts', 'canonicalPosting.ts'])
       assert.ok(Object.keys(result.metafile.inputs).some(name => name.endsWith('/' + service)), `Missing native ${service}`);
     const run = spawnSync(process.execPath, [outfile, 'verify'], { encoding: 'utf8', cwd: root, timeout: 5000,
@@ -48,5 +49,33 @@ test('actual native acceptance bundle rejects inherited database URLs before loa
     assert.equal(run.status, 1);
     assert.match(run.stderr, /AssertionError/);
     assert.doesNotMatch(run.stderr, /ECONNREFUSED|ENOTFOUND|ERR_MODULE_NOT_FOUND|MODULE_NOT_FOUND/);
+  } finally { rmSync(directory, { recursive: true, force: true }); }
+});
+
+test('malformed payment-attempt handoff fails before any native probe or restore-side query', () => {
+  const root = fileURLToPath(new URL('../../../', import.meta.url));
+  const api = path.join(root, 'artifacts/api-server');
+  const { buildSync } = createRequire(path.join(api, 'package.json'))('esbuild');
+  const directory = mkdtempSync('/tmp/ledgerpoint-attempt-handoff-');
+  try {
+    const outfile = path.join(directory, 'handoff.cjs');
+    buildSync({ absWorkingDir: root, stdin: { resolveDir: root, contents: `
+      import assert from 'node:assert/strict';
+      import {verifyPaymentAttempts} from './tools/operations/backup-restore/payment-attempt-acceptance.ts';
+      async function main() {
+        let queries=0; const q={query(){queries++;throw Error('Unexpected restore-side query');}};
+        const malformed=[undefined,null,{}, {actor:'synthetic-witness-owner',attempts:[]},
+          {actor:'synthetic-witness-owner',attempts:['pending','no_effect','recorded'].map(status=>({status})),snapshot:{admissions:[{},{},{}],terminals:[{}]}}];
+        for(const fixture of malformed) await assert.rejects(()=>verifyPaymentAttempts(q,fixture),error=>error.code==='ERR_ASSERTION');
+        assert.equal(queries,0); console.log('MALFORMED_ATTEMPT_HANDOFF_REJECTED_BEFORE_QUERY');
+      }
+      main().catch(error=>{console.error(error);process.exitCode=1;});
+    ` }, outfile, bundle: true, platform: 'node', format: 'cjs', external: ['pg', '@clerk/express'], logLevel: 'silent' });
+    const run = spawnSync(process.execPath, [outfile], { encoding: 'utf8', cwd: root, timeout: 5000,
+      env: { PATH: process.env.PATH, NODE_ENV: 'test', NODE_PATH: path.join(api, 'node_modules'),
+        DATABASE_URL: 'postgresql://unused@127.0.0.1:1/no_database' } });
+    assert.equal(run.status, 0, run.stderr);
+    assert.match(run.stdout, /MALFORMED_ATTEMPT_HANDOFF_REJECTED_BEFORE_QUERY/);
+    assert.doesNotMatch(run.stderr, /ECONNREFUSED|ENOTFOUND/);
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });

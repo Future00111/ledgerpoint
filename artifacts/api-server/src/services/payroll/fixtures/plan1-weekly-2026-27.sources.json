@@ -1,0 +1,51 @@
+{
+  "checkedAt": "2026-11-18",
+  "captureKind": "selected_verbatim_excerpts_not_full_page_snapshots",
+  "licence": "Contains public sector information licensed under the Open Government Licence v3.0.",
+  "sources": [
+    {
+      "id": "start",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/collection-of-student-loans-manual/cslm17010",
+      "section": "Start Notices (Forms SL1 and PGL1)",
+      "excerpt": "Student and or Postgraduate Loan deductions must start from the first available pay day after the start date shown below whenever total pay exceeds the Student and or Postgraduate Loan threshold",
+      "interpretation": "AFTER the stated start date, not on that date. First available payday is an explicitly supplied synthetic fact in this pack. The same section says a start notice is not issued annually and continues until stopped."
+    },
+    {
+      "id": "stop",
+      "url": "https://www.gov.uk/hmrc-internal-manuals/collection-of-student-loans-manual/cslm17015",
+      "section": "Stop Notice (Form SL2 and PGL2)",
+      "excerpt": "You cannot stop making deductions because your employee asks you to.",
+      "interpretation": "Continue until a Stop Notice or specific HMRC instruction. Exceptional instructions are outside this bounded pack, not treated as zero."
+    },
+    {
+      "id": "availability",
+      "url": "https://www.gov.uk/guidance/special-rules-for-student-loans",
+      "publishedAt": "2014-07-15",
+      "updatedAt": "2026-04-06",
+      "section": "SL2 or PGL2 stop notice received",
+      "excerpt": "Stop making deductions from the first available payday after the deduction stop date shown on the notice. The ‘first available payday’ is the first payday on which it’s practical to apply that notice.",
+      "interpretation": "Receipt alone does not establish practical payroll availability. Cutoffs and receipt dates below are authored synthetic assumptions, not HMRC examples or verified employer facts."
+    }
+  ],
+  "arithmetic": {
+    "url": "https://www.gov.uk/government/publications/payroll-technical-specifications-student-loans/collection-of-student-loans-from-6-april-2026",
+    "sections": "3 Calculate loan deductions; 4 Parameter values",
+    "effectiveFrom": "2026-04-06",
+    "effectiveTo": "2027-04-05",
+    "pinnedTextPath": "tools/payroll-specification/sources/student-loans-2026-27.md",
+    "pinnedTextSha256": "a9ae92e1586f836ce5aa77fbb295bd33bdb5d4d8c6cc6d07e2ec1816af586243",
+    "interpretation": "Software method: GBP26900 / 52 = GBP517.307692..., truncate periodic threshold to GBP517.30; 9% of earnings above that threshold; truncate final deduction to whole pounds. Not the manual SL3 table method."
+  },
+  "officialRows": {
+    "page": "https://www.gov.uk/government/publications/software-developers-payroll-test-data-2026-to-2027",
+    "url": "https://assets.publishing.service.gov.uk/media/6968fd1f5fd54abe6531a807/2026-27-Student-Loan-Threshold-Examples-v1-0__1_.ods",
+    "version": "1.0",
+    "retrievedAt": "2026-10-31",
+    "recheckedLocallyAt": "2026-11-18",
+    "archivePath": "artifacts/api-server/src/services/payroll/contracts/fixtures/hmrc-student-loans-2026-27-v1.0.ods",
+    "archiveSha256": "e2f5bd68521c135faf7b5d43296127d378ecaa6a6b936b0c8253974dda1c7e83",
+    "referencePath": "artifacts/api-server/src/services/payroll/contracts/fixtures/hmrc-student-loans-2026-27-v1.0.json",
+    "referenceSha256": "eb1370c37654efa845e4ea82c1761381f29f1d6fdabfefa666c786f79c4413a5",
+    "transcription": "Read Plan_1 content.xml rows 11-16 directly from the pinned ODS: Amount of Pay (GBP) and Exact Method. These amounts are official; no employment, payment date, notice or cutoff is supplied by those rows."
+  }
+}
