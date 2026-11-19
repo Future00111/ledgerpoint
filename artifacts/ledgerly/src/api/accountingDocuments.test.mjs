@@ -109,3 +109,35 @@ test('explicit conditional original and current discount methods use scoped nati
  await client.reviewConditionalDiscount('co','credit',{request_id:'request'},'r');await client.commitConditionalDiscount('co','credit',{request_id:'request'},'r');await client.recoverConditionalDiscount('co','request');
  assert.deepEqual(calls.map(c=>c.url),['/api/companies/co/accounting-documents/doc/conditional-original','/api/companies/co/accounting-documents/doc/conditional-original/observe','/api/companies/co/accounting-documents/credit/conditional-discount/review','/api/companies/co/accounting-documents/credit/conditional-discount','/api/companies/co/accounting-conditional-discounts/operations/request']);
 });
+
+
+test('lost payment locator discovery is an authenticated company scoped GET with no financial payload', async () => {
+  let seen;
+  const client=createAccountingClient(async (url,init)=>{seen={url,init};return {ok:true,json:async()=>({data:{receipts:[],has_more:false}})};});
+  const signal=new AbortController().signal;
+  assert.deepEqual(await client.discoverPayments('company/id',signal),{receipts:[],has_more:false});
+  assert.equal(seen.url,'/api/companies/company%2Fid/accounting-payments/operations');
+  assert.equal(seen.init.method,'GET');assert.equal(seen.init.body,undefined);assert.equal(seen.init.signal,signal);
+});
+
+test('terminal resolution posts only exact selected binding to the protected scoped endpoint',async()=>{
+ let seen;const client=createAccountingClient(async(url,init)=>{seen={url,init};return {ok:true,json:async()=>({data:{status:'no_effect',id:'attempt/id'}})};});
+ const binding={request_hash:'sha256:'+'a'.repeat(64),review_hash:'sha256:'+'b'.repeat(64)};
+ await client.terminatePaymentAttempt('company/id','attempt/id',binding);
+ assert.equal(seen.url,'/api/companies/company%2Fid/accounting-payments/operations/attempt%2Fid/no-effect');
+ assert.equal(seen.init.method,'POST');assert.deepEqual(JSON.parse(seen.init.body),binding);
+});
+
+test('correction discovery uses a scoped abortable GET without financial body or headers',async()=>{
+ const calls=[],abort=new AbortController();const api=createAccountingClient(async(url,options)=>{calls.push({url,options});return {ok:true,status:200,json:async()=>({data:{receipts:[]}})};});
+ await api.discoverCorrections('company/a','document?b',abort.signal);
+ assert.equal(calls[0].url,'/api/companies/company%2Fa/accounting-documents/document%3Fb/corrections/operations');
+ assert.equal(calls[0].options.method,'GET');assert.equal(calls[0].options.signal,abort.signal);assert.equal(calls[0].options.body,undefined);
+ assert.ok(!calls[0].options.headers['If-Match']);
+});
+test('correction closure posts only immutable binding and admitted errors remain machine readable',async()=>{
+ let seen;const api=createAccountingClient(async(url,init)=>{seen={url,init};return {ok:false,status:409,json:async()=>({error:{code:'CORRECTION_OUTCOME_UNCONFIRMED',correction_attempt:'admitted',message:'Unresolved'}})};});
+ const body={expected_revision:'revision',request_hash:'hash',review_hash:'hash'};
+ await assert.rejects(()=>api.terminateCorrectionAttempt('c/a','d?b','r/a',body),e=>e.correctionAttemptAdmitted===true&&e.status===409);
+ assert.equal(seen.url,'/api/companies/c%2Fa/accounting-documents/d%3Fb/corrections/operations/r%2Fa/no-effect');assert.equal(seen.init.method,'POST');assert.deepEqual(JSON.parse(seen.init.body),body);
+});

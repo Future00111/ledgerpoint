@@ -65,7 +65,7 @@ export function createAccountingClient(fetcher = (...a) => fetch(...a)) {
     const json = await res.json().catch(() => null);
     if (!res.ok) {
       const e = json?.error;
-      throw Object.assign(new Error(({DISCOUNT_REQUIRES_UNPAID_BALANCE:'This document has no unpaid balance. Create a linked credit note and review any refund separately.',DISCOUNT_EXCEEDS_OUTSTANDING:'The discount exceeds the unpaid balance. Reduce it or use a linked credit note and review any refund separately.'})[e?.code] || e?.message || `Request failed (${res.status}).`), { status: res.status, code: e?.code, issues: Array.isArray(e?.issues) ? e.issues : [] });
+      throw Object.assign(new Error(({DISCOUNT_REQUIRES_UNPAID_BALANCE:'This document has no unpaid balance. Create a linked credit note and review any refund separately.',DISCOUNT_EXCEEDS_OUTSTANDING:'The discount exceeds the unpaid balance. Reduce it or use a linked credit note and review any refund separately.'})[e?.code] || e?.message || `Request failed (${res.status}).`), { status: res.status, code: e?.code, correctionAttemptAdmitted: e?.correction_attempt === 'admitted', issues: Array.isArray(e?.issues) ? e.issues : [] });
     }
     return json?.data;
   };
@@ -79,7 +79,9 @@ export function createAccountingClient(fetcher = (...a) => fetch(...a)) {
     reviewCompensation: (c, body, signal) => call(`${base(c)}/accounting-conditional-compensations/review`, { method: 'POST', body, signal }),
     commitCompensation: (c, body, signal) => call(`${base(c)}/accounting-conditional-compensations`, { method: 'POST', body, signal }),
     recoverCompensation: (c, id, signal) => call(`${base(c)}/accounting-conditional-compensations/operations/${encodeURIComponent(id)}`, { signal }),
+    discoverPayments: (c, signal) => call(`${base(c)}/accounting-payments/operations`, { signal }),
     recoverPayment: (c, id, signal) => call(`${base(c)}/accounting-payments/operations/${encodeURIComponent(id)}`, { signal }),
+    terminatePaymentAttempt: (c, id, body) => call(`${base(c)}/accounting-payments/operations/${encodeURIComponent(id)}/no-effect`, { method: 'POST', body }),
     payments: (c, signal) => call(`${base(c)}/accounting-payments`, { signal }),
     savePaymentConfiguration: (c, body) => call(`${base(c)}/accounting-payments/configuration`, { method: 'PUT', body }),
     reviewPayment: (c, body) => call(`${base(c)}/accounting-payments/review`, { method: 'POST', body }),
@@ -92,6 +94,8 @@ export function createAccountingClient(fetcher = (...a) => fetch(...a)) {
     get: (c, id, signal) => call(`${docs(c)}/${encodeURIComponent(id)}`, { signal }),
     correctionContext: (c, id, signal) => call(`${docs(c)}/${encodeURIComponent(id)}/correction-context`, { signal }),
     correctionHistory: (c, id, signal) => call(`${docs(c)}/${encodeURIComponent(id)}/corrections`, { signal }),
+    discoverCorrections: (c, id, signal) => call(`${docs(c)}/${encodeURIComponent(id)}/corrections/operations`, { signal }),
+    terminateCorrectionAttempt: (c, id, requestId, body) => call(`${docs(c)}/${encodeURIComponent(id)}/corrections/operations/${encodeURIComponent(requestId)}/no-effect`, { method: 'POST', body }),
     recoverCorrection: (c, id, requestId, signal) => call(`${docs(c)}/${encodeURIComponent(id)}/corrections/operations/${encodeURIComponent(requestId)}`, { signal }),
     reviewCorrection: (c, id, body, revision) => call(`${docs(c)}/${encodeURIComponent(id)}/corrections/review`, { method: 'POST', body, revision }),
     commitCorrection: (c, id, body, revision) => call(`${docs(c)}/${encodeURIComponent(id)}/corrections`, { method: 'POST', body, revision }),

@@ -62,10 +62,19 @@ export async function installSchema(admin,sql,{includeAmendments=false}={}) {
       if(!(await admin.query('SELECT 1 FROM pg_constraint WHERE conname=$1',[match[2]])).rowCount) await admin.query(match[0]);
     }
     await admin.query(migrationInputs['accounting-documents']);
+    await admin.query(migrationInputs['employee-pay-records']);
+    await admin.query(migrationInputs['employee-pay-create']);
+    await admin.query(migrationInputs['personal-tax-preparations']);
+    await admin.query(migrationInputs['personal-tax-create']);
+    await admin.query(migrationInputs['employee-bank-details']);
     await admin.query(migrationInputs['accounting-chart']);
     await admin.query(migrationInputs['accounting-payments']);
+    await admin.query(migrationInputs['operation-recovery']);
+    await admin.query(migrationInputs['correction-operation-recovery']);
     await admin.query(migrationInputs['credit-tracking']);
     await admin.query(migrationInputs['document-intake']);
+    await admin.query(migrationInputs['durable-jobs']);
+    await admin.query(migrationInputs['durable-job-execution']);
     await admin.query(migrationInputs['paid-credit-operations']);
     await admin.query(migrationInputs['bank-imports']);
     await admin.query(migrationInputs['bank-openings']);

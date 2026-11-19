@@ -1,0 +1,67 @@
+{
+  "id": "plan1-weekly-2026-27-independent-fixture-candidate",
+  "status": "bounded_fixture_candidate_pending_independent_review",
+  "qualified": false,
+  "notForPayroll": true,
+  "taxYear": "2026-27",
+  "plan": "plan_1",
+  "frequency": "weekly",
+  "expectedValuesMethod": "Literal ODS transcription and separately hand-worked decimal amounts; never generated from specificationTrace or calculateSyntheticPlan1.",
+  "thresholdWitness": "26900 / 52 = 517.307692...; truncate to 517.30 before computing 9% excess, then truncate deduction to whole GBP.",
+  "officialArithmeticRows": [
+    {"row": 11, "payMinor": "52841", "excessGBP": "11.11", "unroundedDeductionGBP": "0.9999", "deductionMinor": "0"},
+    {"row": 12, "payMinor": "52842", "excessGBP": "11.12", "unroundedDeductionGBP": "1.0008", "deductionMinor": "100"},
+    {"row": 13, "payMinor": "52852", "excessGBP": "11.22", "unroundedDeductionGBP": "1.0098", "deductionMinor": "100"},
+    {"row": 14, "payMinor": "66175", "excessGBP": "144.45", "unroundedDeductionGBP": "13.0005", "deductionMinor": "1300"},
+    {"row": 15, "payMinor": "178397", "excessGBP": "1266.67", "unroundedDeductionGBP": "114.0003", "deductionMinor": "11400"},
+    {"row": 16, "payMinor": "210629", "excessGBP": "1588.99", "unroundedDeductionGBP": "143.0091", "deductionMinor": "14300"}
+  ],
+  "authoredArithmeticRows": [
+    {"id": "zero", "payMinor": "0", "deductionMinor": "0", "working": "No earnings above GBP517.30."},
+    {"id": "below-threshold", "payMinor": "51729", "deductionMinor": "0", "working": "GBP517.29 < GBP517.30."},
+    {"id": "at-threshold", "payMinor": "51730", "deductionMinor": "0", "working": "GBP0 excess."},
+    {"id": "penny-above-threshold", "payMinor": "51731", "deductionMinor": "0", "working": "GBP0.01 x 9% = GBP0.0009 -> GBP0."},
+    {"id": "below-second-pound", "payMinor": "53952", "deductionMinor": "100", "working": "GBP22.22 x 9% = GBP1.9998 -> GBP1."},
+    {"id": "second-pound", "payMinor": "53953", "deductionMinor": "200", "working": "GBP22.23 x 9% = GBP2.0007 -> GBP2."}
+  ],
+  "syntheticFacts": {
+    "noticeAuthenticityQualified": false,
+    "realPayrollCutoffsQualified": false,
+    "basis": "Ordinary active employment, Class1 NI earnings, regular weekly period, no protected earnings/concurrent loan/correction/off-payroll context. All identifiers and dates are authored synthetic facts.",
+    "employmentId": "fixture-employee",
+    "notices": {
+      "start": {"id": "fixture-SL1", "type": "SL1", "plan": "plan_1", "employmentId": "fixture-employee", "effectiveDate": "2026-04-10", "receivedDate": "2026-04-08", "firstAvailablePayday": "2026-04-17", "availabilityEvidence": "Authored weekly Friday payroll: first payday strictly after 10 April is 17 April; synthetic cutoff 15 April, received 8 April."},
+      "lateStart": {"id": "fixture-late-SL1", "type": "SL1", "plan": "plan_1", "employmentId": "fixture-employee", "effectiveDate": "2026-04-10", "receivedDate": "2026-04-16", "firstAvailablePayday": "2026-04-24", "availabilityEvidence": "Authored 17 April payroll cutoff was 15 April; received 16 April. First practical payday supplied as 24 April; no arrears inferred."},
+      "stop": {"id": "fixture-SL2", "type": "SL2", "plan": "plan_1", "employmentId": "fixture-employee", "effectiveDate": "2026-05-01", "receivedDate": "2026-04-29", "firstAvailablePayday": "2026-05-08", "availabilityEvidence": "Authored weekly Friday payroll: first payday strictly after 1 May is 8 May; synthetic cutoff 6 May, received 29 April."},
+      "lateStop": {"id": "fixture-late-SL2", "type": "SL2", "plan": "plan_1", "employmentId": "fixture-employee", "effectiveDate": "2026-05-01", "receivedDate": "2026-05-07", "firstAvailablePayday": "2026-05-15", "availabilityEvidence": "Authored 8 May payroll cutoff was 6 May; received 7 May. First practical payday supplied as 15 May."},
+      "priorStart": {"id": "fixture-prior-SL1", "type": "SL1", "plan": "plan_1", "employmentId": "fixture-employee", "effectiveDate": "2025-11-07", "receivedDate": "2025-11-05", "firstAvailablePayday": "2025-11-10", "availabilityEvidence": "Authored Monday weekly schedule, 9 November cutoff and 10 November first payday; received 5 November. No subsequent stop. Current-year earnings only are calculated."}
+    }
+  },
+  "authoredNoticeRows": [
+    {"id": "no-notice", "date": "2026-04-17", "notices": [], "active": false, "deductionMinor": "0", "reason": "NO_START_INSTRUCTION", "sourceIds": ["start"]},
+    {"id": "on-start-date", "date": "2026-04-10", "notices": ["start"], "active": false, "deductionMinor": "0", "reason": "BEFORE_FIRST_AVAILABLE_START", "sourceIds": ["start"]},
+    {"id": "first-start-payday", "date": "2026-04-17", "notices": ["start"], "active": true, "deductionMinor": "100", "reason": "START_APPLIES", "sourceIds": ["start"]},
+    {"id": "missed-start-cutoff", "date": "2026-04-17", "notices": ["lateStart"], "active": false, "deductionMinor": "0", "reason": "BEFORE_FIRST_AVAILABLE_START", "sourceIds": ["start"]},
+    {"id": "late-start-applies", "date": "2026-04-24", "notices": ["lateStart"], "active": true, "deductionMinor": "100", "reason": "START_APPLIES", "sourceIds": ["start"]},
+    {"id": "on-stop-date", "date": "2026-05-01", "notices": ["start", "stop"], "active": true, "deductionMinor": "100", "reason": "START_APPLIES", "sourceIds": ["stop", "availability"]},
+    {"id": "first-stop-payday", "date": "2026-05-08", "notices": ["start", "stop"], "active": false, "deductionMinor": "0", "reason": "STOP_APPLIES", "sourceIds": ["stop", "availability"]},
+    {"id": "missed-stop-cutoff", "date": "2026-05-08", "notices": ["start", "lateStop"], "active": true, "deductionMinor": "100", "reason": "START_APPLIES", "sourceIds": ["availability"]},
+    {"id": "late-stop-applies", "date": "2026-05-15", "notices": ["start", "lateStop"], "active": false, "deductionMinor": "0", "reason": "STOP_APPLIES", "sourceIds": ["availability"]},
+    {"id": "employee-request-not-authority", "date": "2026-04-24", "notices": ["start"], "employeeStopRequest": true, "active": true, "deductionMinor": "100", "reason": "START_APPLIES", "sourceIds": ["stop"]},
+    {"id": "first-day-of-year", "date": "2026-04-06", "notices": ["priorStart"], "active": true, "deductionMinor": "100", "reason": "START_APPLIES", "sourceIds": ["start"]},
+    {"id": "last-day-of-year", "date": "2027-04-05", "notices": ["priorStart"], "active": true, "deductionMinor": "100", "reason": "START_APPLIES", "sourceIds": ["start"]}
+  ],
+  "noticeAmountWitness": "Every notice row uses GBP528.42 weekly Class1 earnings: active = GBP1 from official Plan_1 row12; inactive = GBP0 because the instruction is not active, not an official HMRC dated-notice result. Year-edge rows use an authored Monday weekly schedule.",
+  "rejectionRows": [
+    {"id": "correction", "override": {"correction": true}, "error": "NOTICE_EXCLUDED_CONTEXT"},
+    {"id": "concurrent-loan", "override": {"concurrentLoan": true}, "error": "NOTICE_EXCLUDED_CONTEXT"},
+    {"id": "protected-earnings", "override": {"protectedEarnings": true}, "error": "NOTICE_EXCLUDED_CONTEXT"},
+    {"id": "prior-year", "override": {"taxYear": "2025-26"}, "error": "NOTICE_UNSUPPORTED_CASE"},
+    {"id": "next-year", "override": {"taxYear": "2027-28"}, "error": "NOTICE_UNSUPPORTED_CASE"},
+    {"id": "before-year", "override": {"paymentDate": "2026-04-05"}, "error": "NOTICE_PAYMENT_DATE"},
+    {"id": "after-year", "override": {"paymentDate": "2027-04-06"}, "error": "NOTICE_PAYMENT_DATE"},
+    {"id": "other-plan", "override": {"plan": "plan_2"}, "error": "NOTICE_UNSUPPORTED_CASE"},
+    {"id": "other-period", "override": {"frequency": "monthly"}, "error": "NOTICE_UNSUPPORTED_CASE"},
+    {"id": "exceptional-instruction", "override": {"otherInstructions": ["unverified-HMRC-authority"]}, "error": "NOTICE_EXCLUDED_CONTEXT"}
+  ]
+}
