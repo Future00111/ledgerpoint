@@ -23,3 +23,5 @@ CREATE TRIGGER pay_run_draft_revision_immutable BEFORE UPDATE OR DELETE OR TRUNC
   ON public.pay_run_draft_revisions FOR EACH STATEMENT
   EXECUTE FUNCTION public.ledgerly_canonical_append_only_guard();
 ALTER TABLE public.pay_run_draft_revisions ENABLE ALWAYS TRIGGER pay_run_draft_revision_immutable;
+CREATE TRIGGER pay_run_draft_source_check BEFORE INSERT ON public.pay_run_draft_revisions
+  FOR EACH ROW EXECUTE FUNCTION public.check_pay_run_draft_sources();
