@@ -1,28 +1,28 @@
 {
   "version": 2,
-  "revision": 589,
+  "revision": 591,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
-  "codeHead": "8a2dbc159c1f9396bfc26797fb2c49aabbf53a8b",
+  "codeHead": "d6acebe742d13b3718599bc924917b1de110e9e6",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "leased",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "payments-5973470c-cde2-4bdf-9921-9455f7e6680a",
     "tokenSha256": "26dd4cb3522d1de7e3ff4bcda3c5e1ef024af9ef56a9cb9837329b2d0ad5fc5a",
     "acquiredAt": 1795098770807,
     "expiresAt": 1795102370807
   },
-  "lastOwner": {
-    "runId": "payroll-accept-283b0c22-0cb5-49bf-9c17-b59c87b571cc",
-    "tokenSha256": "34015eb19eb2ff13a9c04e71d0e10e5d7a685225ee3a2c9e8f21f709719c1e0e",
-    "acquiredAt": 1795098548722,
-    "expiresAt": 1795102148722
-  },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "2be7811ed92ebb1b106de733cce22d2c6b792287",
+    "sha": "2efdf1b99696f00f031451c4379f02f338f29617",
     "evidence": [
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "2efdf1b99696f00f031451c4379f02f338f29617",
+        "path": "docs/development/candidates/payment-history-readiness/accepted/integration.json"
+      },
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
         "sha": "2be7811ed92ebb1b106de733cce22d2c6b792287",
@@ -74,11 +74,11 @@
         "path": "docs/development/candidates/bank-read-20261118/recovery/stop-evidence-20261119.json"
       }
     ],
-    "runId": "payroll-accept-283b0c22-0cb5-49bf-9c17-b59c87b571cc",
-    "at": 1795098585311,
-    "codeHead": "8a2dbc159c1f9396bfc26797fb2c49aabbf53a8b"
+    "runId": "payments-5973470c-cde2-4bdf-9921-9455f7e6680a",
+    "at": 1795099120843,
+    "codeHead": "d6acebe742d13b3718599bc924917b1de110e9e6"
   },
-  "updatedAt": 1795098770807,
+  "updatedAt": 1795099120847,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -226,8 +226,8 @@
         "artifacts/ledgerly/src/pages/Payments.jsx",
         "artifacts/ledgerly/src/features/paymentRecovery/PaymentControls.jsx"
       ],
-      "status": "Unfixed; future appropriate file lease and loading-state regression required.",
-      "constraint": "Current fixture waits for loaded readiness; financial safeguards remain fail-closed."
+      "status": "Integrated and verified in draft PR #29, run 44545239031.",
+      "constraint": "Customer and supplier browser checks explicitly hold and release ledger readiness."
     }
   ],
   "worktreesClean": true,
