@@ -1,0 +1,21 @@
+{
+  "sourceCommit": "d6acebe742d13b3718599bc924917b1de110e9e6",
+  "pullRequest": 29,
+  "verifiedFiles": [
+    {
+      "path": "artifacts/api-server/src/services/accountingDocuments/conditionalDiscount.integration.test.ts",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "2f968704e073771c98a822d98d1edf333985d7b9"
+    },
+    {
+      "path": "artifacts/ledgerly/src/pages/Payments.jsx",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "858799001247f8e7b077018f9d48788364240e8f"
+    }
+  ],
+  "workflowRun": 44545239031,
+  "successfulSteps": 20,
+  "scenario": "Payment history actions wait for ledger readiness. Both customer and supplier browser journeys exercise the subsequent refund."
+}
