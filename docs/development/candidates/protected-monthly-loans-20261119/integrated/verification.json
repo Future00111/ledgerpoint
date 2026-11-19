@@ -1,0 +1,11 @@
+{
+  "scope": "Offline monthly Plan 2 and postgraduate loan restriction after a priority order",
+  "sourceCommit": "e870797c25dd1fe975c045e9ee214ba11e14ddc8",
+  "independentlyReviewed": true,
+  "allocationExamples": 11,
+  "localTestsPassed": 139,
+  "ciRun": 44555409815,
+  "successfulSteps": 20,
+  "bothNewTestsObservedInCi": true,
+  "qualification": "Caller supplies post-order attachable earnings and protected level. Production payroll and order determination remain outside this reference."
+}
