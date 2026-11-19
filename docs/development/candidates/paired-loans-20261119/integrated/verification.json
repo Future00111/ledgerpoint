@@ -1,0 +1,10 @@
+{
+  "sourceCommit": "99b003ff54a363bda96f7ff9b7003f9e17cf56bf",
+  "task": "P04-03",
+  "scope": "Synthetic monthly Plan 2 and postgraduate reference pairs, assuming both deductions active without protected earnings or corrections.",
+  "independentlyCheckedCases": 7,
+  "focusedTestsPassed": 135,
+  "successfulCiSteps": 20,
+  "workflowRun": 44552399512,
+  "qualification": "Reference only; concurrent instructions still rejected by the single-loan specification."
+}
