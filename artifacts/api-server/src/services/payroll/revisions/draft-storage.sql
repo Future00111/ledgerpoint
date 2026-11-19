@@ -11,6 +11,8 @@ CREATE TABLE public.pay_run_draft_revisions (
   rules_version text NOT NULL CHECK (length(trim(rules_version)) > 0),
   prepared_by text NOT NULL CHECK (length(trim(prepared_by)) > 0),
   prepared_at timestamptz NOT NULL DEFAULT transaction_timestamp(),
+  employee_lines jsonb NOT NULL DEFAULT '[]'::jsonb,
+  review_breakdown jsonb GENERATED ALWAYS AS (public.pay_run_draft_breakdown(employee_lines)) STORED,
   PRIMARY KEY (company_id, run_id, revision_number),
   UNIQUE (company_id, revision_id)
 );

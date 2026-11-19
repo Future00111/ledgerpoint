@@ -18,21 +18,38 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
       [{db:database,actor:'ledgerly_api',addr:null}]);
     const company=randomUUID(), other=randomUUID(), run=randomUUID(), first=randomUUID(), second=randomUUID(), actor='revision-reviewer';
     await admin.query("INSERT INTO companies(id,name) VALUES ($1,'Revision A'),($2,'Revision B')",[company,other]);
-    for (const id of [company,other]) await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES ($1,$2,$3,'payroll_reader',true)",[randomUUID(),id,actor]);
+    for (const id of [company,other]) await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES ($1,$2,$3,'payroll_approver',true)",[randomUUID(),id,actor]);
+    await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES ($1,$2,'header-reader','payroll_reader',true)",[randomUUID(),company]);
+    const breakdownSql = readFileSync('artifacts/api-server/src/services/payroll/revisions/draft-breakdown.sql','utf8');
+    await admin.query(breakdownSql);
     await admin.query(readFileSync('artifacts/api-server/src/services/payroll/revisions/draft-storage.sql','utf8'));
-    const insert = (id:string,revision:number,version:string) => admin.query(
-      `INSERT INTO pay_run_draft_revisions(company_id,run_id,revision_number,revision_id,period_start,period_end,payday,currency,rules_version,prepared_by)
-       VALUES ($1,$2,$3,$4,'2026-10-01','2026-10-31','2026-10-30','GBP',$5,'synthetic-preparer')`,[company,run,revision,id,version]);
+    const line = {line_id:randomUUID(),employee_id:randomUUID(),input_revision_id:randomUUID(),
+      gross:'9007199254740993',net:'9007199254740890',deductions:{paye:'100'},adjustments:{rounding:'-3'}};
+    const another = {...line,line_id:randomUUID(),employee_id:randomUUID(),input_revision_id:randomUUID(),
+      gross:'200',net:'180',deductions:{paye:'20'},adjustments:{}};
+    const insert = (id:string,revision:number,version:string,lines:unknown[] = []) => admin.query(
+      `INSERT INTO pay_run_draft_revisions(company_id,run_id,revision_number,revision_id,period_start,period_end,payday,currency,rules_version,prepared_by,employee_lines)
+       VALUES ($1,$2,$3,$4,'2026-10-01','2026-10-31','2026-10-30','GBP',$5,'synthetic-preparer',$6::jsonb)`,[company,run,revision,id,version,JSON.stringify(lines)]);
     await insert(first,1,'synthetic-v1');
     const snapshot = await readDraftRevision(company,actor,first);
     assert.deepEqual(snapshot,{run_id:run,revision_id:first,revision_number:1,period_start:'2026-10-01',
       period_end:'2026-10-31',payday:'2026-10-30',currency:'GBP',rules_version:'synthetic-v1'});
-    await insert(second,2,'synthetic-v2');
+    await insert(second,2,'synthetic-v2',[line,another]);
+    for (const invalid of [[{...line,net:'1'}],[line,line],[line,{...another,line_id:line.employee_id}],[{...line,input_revision_id:null}],
+      [{...line,adjustments:{other:'-3'}}],[{...line,net:12}],[{...line,bank_account:'invalid'}]]) {
+      await assert.rejects(insert(randomUUID(),3,'invalid',invalid),{code:'23514'});
+    }
     await assert.rejects(insert(randomUUID(),2,'duplicate'),{code:'23505'});
     const verify = async () => {
       assert.deepEqual(await readDraftRevision(company,actor,first),snapshot);
-      assert.equal((await readDraftRevision(company,actor,second)).revision_number,2);
-      await assert.rejects(readDraftRevision(other,actor,first),{code:'SENSITIVE_ACCESS_DENIED'});
+      const detailed = await readDraftRevision(company,actor,second,true);
+      assert.equal(detailed.revision_number,2);
+      assert.deepEqual(detailed.review_breakdown,{
+        lines:[line,another].map(({employee_id,input_revision_id,...visible}) => visible),
+        totals:{line_count:2,gross:'9007199254741193',net:'9007199254741070',deductions:{paye:'120'},adjustments:{rounding:'-3'}}
+      });
+      await assert.rejects(readDraftRevision(company,'header-reader',second,true),{code:'SENSITIVE_ACCESS_DENIED'});
+      await assert.rejects(readDraftRevision(other,actor,second,true),{code:'SENSITIVE_ACCESS_DENIED'});
       await assert.rejects(readDraftRevision(company,'unrelated-user',first),{code:'SENSITIVE_ACCESS_DENIED'});
       for (const sql of ["UPDATE pay_run_draft_revisions SET currency='GBP'",'DELETE FROM pay_run_draft_revisions','TRUNCATE pay_run_draft_revisions']) {
         await assert.rejects(admin.query(sql),{code:'P0001'});
@@ -46,6 +63,8 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
     const args=['-h',socket,'-p','55441','-U','w03_bootstrap','-d',database];
     const archive=execFileSync('pg_dump',[...args,'--format=custom','--table=public.pay_run_draft_revisions']);
     await admin.query('DROP TABLE public.pay_run_draft_revisions');
+    await admin.query('DROP FUNCTION public.pay_run_draft_breakdown(jsonb)');
+    await admin.query(breakdownSql);
     execFileSync('pg_restore',[...args,'--exit-on-error'],{input:archive});
     assert.deepEqual((await rawHeaders()).rows,beforeRestore);
     await verify();
