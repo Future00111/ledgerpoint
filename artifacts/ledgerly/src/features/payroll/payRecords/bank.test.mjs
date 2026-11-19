@@ -93,3 +93,28 @@ test('denied/foreign lookup clears the employee and result; malformed injected s
   let requests = 0; const denied = createBankLookup({ companyId: company, role: 'payroll_reader', client: { async read() { requests++; } } });
   denied.changeEmployee(employee); await denied.lookup(); assert.equal(requests, 0);
 });
+test('clearing a pending bank lookup discards a late response and allows a fresh lookup', async () => {
+  const old = deferred();
+  let calls = 0, signal;
+  const lookup = createBankLookup({companyId:company, role:'owner', client:{
+    read(companyId, employeeId, role, requestSignal) {
+      calls++;
+      signal = requestSignal;
+      return calls === 1 ? old.promise : Promise.resolve({account_number:'00123456'});
+    },
+  }});
+  lookup.changeEmployee(employee);
+  const pending = lookup.lookup();
+  lookup.changeEmployee('');
+  assert.equal(signal.aborted,true);
+  old.resolve({account_number:'87654321'});
+  await pending;
+  const cleared = {employeeId:'', status:'idle', result:null};
+  assert.deepEqual(lookup.getSnapshot(),cleared);
+  lookup.changeEmployee(employee);
+  await lookup.lookup();
+  assert.equal(lookup.getSnapshot().result.account_number,'00123456');
+  lookup.changeEmployee('');
+  assert.deepEqual(lookup.getSnapshot(),cleared);
+  assert.equal(calls,2);
+});

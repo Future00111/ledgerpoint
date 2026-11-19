@@ -11,6 +11,7 @@ export function BankDetailsLookup(props) {
 }
 
 function ScopedBankDetails({ companyId, role, client = bankDetailsClient }) {
+  const employeeInput = useRef(null);
   const controller = useRef(null);
   if (!controller.current) controller.current = createBankLookup({ companyId, role, client });
   const lookup = controller.current;
@@ -20,8 +21,12 @@ function ScopedBankDetails({ companyId, role, client = bankDetailsClient }) {
     <h2 id="bank-lookup-heading" className="text-lg font-semibold">Employee bank details</h2>
     <p className="text-sm text-muted-foreground">Look up an employee using this company’s internal UUID. {bankProjection(role) === 'full' ? 'Your role can view the account number.' : 'Your role can view only the last four digits.'} Each successful lookup is recorded in the audit trail.</p>
     <form autoComplete="off" className="space-y-3" onSubmit={event => { event.preventDefault(); void lookup.lookup(); }}>
-      <label className="block space-y-1 text-sm">Employee UUID for bank lookup<Input value={state.employeeId} onChange={event => lookup.changeEmployee(event.target.value)} maxLength={36} spellCheck={false} autoComplete="off" /></label>
+      <label className="block space-y-1 text-sm">Employee UUID for bank lookup<Input ref={employeeInput} value={state.employeeId} onChange={event => lookup.changeEmployee(event.target.value)} maxLength={36} spellCheck={false} autoComplete="off" /></label>
       <Button type="submit" variant="outline" disabled={state.status === 'loading'}>Look up bank details</Button>
+      {state.employeeId && <Button type="button" variant="ghost" onClick={() => {
+        lookup.changeEmployee('');
+        employeeInput.current?.focus();
+      }}>Clear bank lookup</Button>}
     </form>
     <BankLookupResult state={state} role={role} />
   </section>;

@@ -73,6 +73,12 @@ async function exercise() {
   await lookupBank();
   await wait(() => text().includes('Account number ending') && text().includes('3456'), 'masked account');
   if (text().includes('00123456')) throw Error('Approver projection');
+  (await ready('Clear bank lookup')).click();
+  await wait(() => !text().includes('Account number ending') && !text().includes('••••3456')
+    && input('Employee UUID for bank lookup')?.value === '' && !button('Clear bank lookup')
+    && document.activeElement === input('Employee UUID for bank lookup'), 'clear bank lookup');
+  await lookupBank();
+  await wait(() => text().includes('••••3456'), 'masked account restored before role change');
   stage = 'reader';
   mount(fixture.company, fixture.reader, 'payroll_reader');
   await wait(() => !input('Employee UUID for bank lookup') && !text().includes('Account number ending') && !button('Save pay record') && !text().includes('45,250.75'), 'reader scope reset');
