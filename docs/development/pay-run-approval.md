@@ -23,11 +23,13 @@ The review screen identifies the run, revision, period and payday. The approval 
 | Approve | Active company member with payroll.approve. The requested revision is the current, reviewable head. | Insert one immutable approval for that revision, recording company, run, revision, actor and server time. |
 | Revise after approval | Same preparation and expected-head checks. | Preserve the prior snapshot and approval. The new head requires its own approval. |
 
-Owners and payroll approvers use the existing approval capability. Preparers and owners use the preparation capability. Ordinary bookkeeping roles have neither. The role matrix assigns owners both capabilities. Whether an owner may approve a revision they personally prepared is an open product decision before enabling the approval action. Revision storage and readback can proceed independently. Approval records a local decision only. Payments, ledger posting and external filings require separate workflows.
+Owners and payroll approvers use the existing approval capability. Preparers and owners use the preparation capability. Ordinary bookkeeping roles have neither. The role matrix assigns owners both capabilities. An active company owner may approve a qualified current revision they personally prepared. Record the owner as both preparer and approver, preserving the separate timestamps for the two decisions. Approval records a local decision only. Payments, ledger posting and external filings require separate workflows.
 
 Use the existing payroll access boundary to lock the company and reload membership. Then lock the scoped run head, check the requested revision and perform the transition within that same transaction. Scope every lookup and foreign key by company. Record the protected audit event before commit, linked to the immutable revision through a stable revision resource UUID. Keep figures and employee references out of the audit payload. A rejected audit insert rolls back the transition.
 
 Enforce uniqueness for both revision number within a run and approval per revision. An authorised retry for the same still-current approved revision returns the original receipt, including its original actor and time. A second approver cannot replace it. Treat a missing or foreign run or revision as unavailable without disclosing its existence. Only a revision belonging to the authorised run can produce a stale-head conflict. If the head has advanced, return a stale-revision conflict and require the reviewer to reload. Perform authorisation before returning a prior receipt. An access audit for a retry is distinct from the single durable approval.
+
+Owner self-approval is a LedgerPoint access policy. HMRC allows employers to run their own payroll. The employer generally reports pay and deductions in a Full Payment Submission on or before payday, subject to the published exceptions. Local approval and the HMRC filing receipt represent separate events. [HMRC payroll options](https://www.gov.uk/paye-for-employers/choose-payroll) and [reporting guidance](https://www.gov.uk/running-payroll/reporting-to-hmrc).
 
 ## Acceptance examples for implementation
 
@@ -36,5 +38,6 @@ Enforce uniqueness for both revision number within a run and approval per revisi
 3. Two authorised approvals of the same current revision produce one decision. Both callers can retrieve the same committed receipt. Audit failure publishes neither a new decision nor a successful response.
 4. A reviewer who loses membership before the transaction acquires the company lock cannot approve or retrieve a receipt by retrying. Foreign-company IDs never expose the snapshot or receipt.
 5. A synthetic unqualified line or a mismatch between line totals and the summary prevents approval. A later salary edit cannot change what an existing approval attests to.
+6. An owner prepares and reviews the same qualified revision, then approves it. The preparation and approval records identify the same actor. A preparer who lacks payroll.approve cannot perform the same transition.
 
 The next implementation slice is immutable revision storage and company-scoped readback in the disposable database. Verify snapshot stability, tenant isolation and restore before wiring an approval control to it.
