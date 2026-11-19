@@ -1,0 +1,14 @@
+{
+  "priorRunId": "bank-read-dedcd894-2441-493c-aa78-de8c08d5ede5",
+  "checkpoint": "ff30d9d241a7875c274f5c6a3d3c1b71f1e9a701",
+  "coordinatorStopEvidence": "On 19 November 2026 the project owner confirmed no chats were still running after being asked to verify the original coordinator session.",
+  "workersStopped": true,
+  "workers": [
+    {
+      "actor": "bank-read-author",
+      "task": "P02-04",
+      "status": "review",
+      "stopped": true
+    }
+  ]
+}
