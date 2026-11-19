@@ -1,27 +1,22 @@
 {
   "version": 2,
-  "revision": 581,
+  "revision": 582,
   "repository": "Future00111/ledgerpoint",
   "codeBranch": "codex/whole-product-first-sprint",
   "codeHead": "8099e0685c9b26fd77937affe21c24abb82e7036",
   "catalogPath": "docs/development/work-backlog.json",
   "statePath": "docs/development/work-state.json",
-  "status": "quarantined",
-  "lease": {
+  "status": "idle",
+  "lease": null,
+  "lastOwner": {
     "runId": "bank-read-dedcd894-2441-493c-aa78-de8c08d5ede5",
     "tokenSha256": "1d4fb86987e1c3653ad101d6ced2113ffa8949f37d06f577dfc702d914717a13",
     "acquiredAt": 1795030020430,
     "expiresAt": 1795033620430
   },
-  "lastOwner": {
-    "runId": "pay-export-4fdc63b4-79e2-4cf2-942f-70c19be39345",
-    "tokenSha256": "0d6ffe1f72893e224562ff39e1518dd01af22412f20f2b6200da5f7dab8f1a7e",
-    "acquiredAt": 1795027594210,
-    "expiresAt": 1795031194210
-  },
   "checkpoint": {
     "ref": "refs/heads/codex/ledgerly-work-queue-state",
-    "sha": "23b135b9a11baaae1cb55401a0774922bd4caf94",
+    "sha": "f4ecc71bf0d2b97ed996756647d4cecc9715ea69",
     "evidence": [
       {
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
@@ -57,13 +52,18 @@
         "ref": "refs/heads/codex/ledgerly-work-queue-state",
         "sha": "23b135b9a11baaae1cb55401a0774922bd4caf94",
         "path": "docs/development/candidates/bank-read-20261118/published/restore-unit.log"
+      },
+      {
+        "ref": "refs/heads/codex/ledgerly-work-queue-state",
+        "sha": "f4ecc71bf0d2b97ed996756647d4cecc9715ea69",
+        "path": "docs/development/candidates/bank-read-20261118/recovery/stop-evidence-20261119.json"
       }
     ],
     "runId": "bank-read-dedcd894-2441-493c-aa78-de8c08d5ede5",
-    "at": 1795030466451,
+    "at": 1795098119282,
     "codeHead": "8099e0685c9b26fd77937affe21c24abb82e7036"
   },
-  "updatedAt": 1795097583072,
+  "updatedAt": 1795098119282,
   "integrationPullRequest": 29,
   "standingDevelopmentApproval": {
     "approvedAt": "2026-11-17T13:32:29.938Z",
@@ -391,5 +391,14 @@
       "reviewer": "root",
       "catalogDigest": "e2062b766ab4d6c1925cec45996df85511974cc96a5873b02adbfe7392a3efbc"
     }
+  },
+  "recovery": {
+    "priorRunId": "bank-read-dedcd894-2441-493c-aa78-de8c08d5ede5",
+    "stoppedEvidence": {
+      "ref": "refs/heads/codex/ledgerly-work-queue-state",
+      "sha": "f4ecc71bf0d2b97ed996756647d4cecc9715ea69",
+      "path": "docs/development/candidates/bank-read-20261118/recovery/stop-evidence-20261119.json"
+    },
+    "at": 1795098119282
   }
 }
