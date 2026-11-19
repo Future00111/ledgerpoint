@@ -10,12 +10,14 @@ const nativeFetch = window.fetch.bind(window);
 let actor = fixture.preparer;
 let loseResponse = true;
 const requests = [];
+const exportStatuses = [];
 window.fetch = async (url, options = {}) => {
   const target = new URL(url, location.href);
   if (target.origin !== location.origin || !target.pathname.startsWith('/api/companies/')) throw Error('Unexpected browser request');
   const headers = new Headers(options.headers);
   headers.set('x-test-actor', actor);
   const response = await nativeFetch(target.pathname.slice('/api/companies'.length), {...options, headers});
+  if (target.pathname.endsWith('/export.csv')) exportStatuses.push(response.status);
   if (options.method === 'POST') {
     requests.push(JSON.parse(options.body).id);
     if (loseResponse && response.ok) {
@@ -71,6 +73,26 @@ async function exercise() {
   stage = 'company-change';
   mount(fixture.other, fixture.submitter, 'personal_tax_submitter');
   await wait(() => !text().includes('45,250.75') && button('Look up tax input')?.form?.querySelector('input')?.value === '', 'company scope reset');
+  stage = 'denial';
+  const click = HTMLAnchorElement.prototype.click;
+  let downloadAttempts = 0;
+  HTMLAnchorElement.prototype.click = function () { downloadAttempts++; };
+  try {
+    for (const [requestActor, expectedStatus] of [['', 401], [fixture.submitter, 403]]) {
+      mount(fixture.company, fixture.preparer, 'personal_tax_preparer');
+      fill(await wait(() => input('Taxpayer reference') && input('Tax input ID'), 'preparer lookup'), requests[0]);
+      (await ready('Look up tax input')).click();
+      await wait(() => text().includes('45,250.75') && text().includes(fixture.taxpayer), 'preparer readback');
+      actor = requestActor;
+      (await ready('Download CSV')).click();
+      await wait(() => text().includes('Previous values have been cleared'), 'denied export clears tax input');
+      if (exportStatuses.at(-1) !== expectedStatus || downloadAttempts || text().includes('45,250.75')
+        || text().includes(fixture.taxpayer) || input('Taxpayer reference') || button('Download CSV')
+        || input('Tax input ID')?.value !== '') throw Error('Denied export retained tax details or requested a download');
+      mount(fixture.other, fixture.submitter, 'personal_tax_submitter');
+      await wait(() => !text().includes('Previous values have been cleared'), 'leave blocked workspace');
+    }
+  } finally { HTMLAnchorElement.prototype.click = click; }
   await nativeFetch('/pay-ui-result', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ok:true})});
 }
 exercise().catch(async () => {
