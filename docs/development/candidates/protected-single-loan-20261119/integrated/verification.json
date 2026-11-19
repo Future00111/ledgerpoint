@@ -1,0 +1,11 @@
+{
+  "scope": "Offline 2026–27 single student or postgraduate loan deductions under protected earnings",
+  "sourceCommit": "f70cd6ce05e88c309810fb9c0d9b5b35eaad04c9",
+  "pinnedOrdinaryExamples": 130,
+  "independentlyReviewedMonthlyExamples": 25,
+  "localTestsPassed": 155,
+  "ciRun": 44564981041,
+  "successfulSteps": 20,
+  "newTestsObservedInCi": 3,
+  "qualification": "Reference only. Caller supplies protected level and after-order net attachable earnings."
+}
