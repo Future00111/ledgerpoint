@@ -4,8 +4,10 @@ import type { AddressInfo } from 'node:net';
 import { createCompaniesRouter } from '../../../routes/companies';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {execFileSync} from 'node:child_process';
-import {readFileSync} from 'node:fs';
+import {promisify} from 'node:util';
+import path from 'node:path';
+import {execFile,execFileSync} from 'node:child_process';
+import {mkdtempSync,rmSync,readFileSync} from 'node:fs';
 import pg from 'pg';
 import {pool} from '@workspace/db';
 import {readDraftRevision} from './readDraftRevision';
@@ -147,8 +149,10 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
     } finally { await admin.query('ROLLBACK'); await contender.end(); }
     await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES ($1,$2,'revision-owner','owner',true)",[randomUUID(),company]);
     const app = express();
+    const browserCookie = randomUUID();
+    await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES ($1,$2,'browser-reviewer','payroll_approver',true)",[randomUUID(),company]);
     app.use('/api/companies',createCompaniesRouter((req,res,next) => {
-      const identity = req.get('x-test-actor');
+      const identity = req.get('cookie') === 'revision_fixture='+browserCookie ? 'browser-reviewer' : req.get('x-test-actor');
       if (!identity) { res.sendStatus(401); return; }
       Object.assign(req,{userId:identity});
       next();
@@ -185,6 +189,26 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
       assert.equal((await review(company,second,'')).status,401);
       assert.equal((await review(company,second,actor,'HEAD')).status,405);
       assert.equal((await review(company,second,actor,'GET','?role=owner')).status,400);
+      const dir = mkdtempSync(path.join(path.dirname(socket),'revision-browser-'));
+      try {
+        const frontend = path.resolve('artifacts/ledgerly/src');
+        const bundle = path.join(dir,'revision.js');
+        execFileSync('pnpm',['--filter','@workspace/api-server','exec','esbuild',
+          path.join(frontend,'features/payroll/payRecords/revisionBrowserAcceptance.jsx'),'--bundle','--platform=browser',
+          '--format=iife','--jsx=automatic','--alias:@='+frontend,'--define:import.meta.env.BASE_URL="/"','--outfile='+bundle]);
+        app.get('/revision-browser.js',(_req,res)=>res.type('js').send(readFileSync(bundle,'utf8')));
+        app.get('/revision-browser',(_req,res)=>{
+          res.cookie('revision_fixture',browserCookie,{httpOnly:true,sameSite:'strict'});
+          res.type('html').send('<!doctype html><meta charset="utf-8"><div id="root"></div><script>window.revisionFixture='+
+            JSON.stringify({company,revision:second,lineIds:[line.line_id,another.line_id]})+'</script><script src="/revision-browser.js"></script>');
+        });
+        const {stdout} = await promisify(execFile)('chromium',['--headless','--no-first-run','--disable-gpu',
+          '--disable-background-networking','--user-data-dir='+path.join(dir,'profile'),'--dump-dom',
+          '--virtual-time-budget=15000',origin+'/revision-browser'],{timeout:45000,killSignal:'SIGKILL'});
+        assert.match(stdout,/data-revision-review="passed"/);
+        const audited = await admin.query("SELECT company_id,target_id FROM accounting_audit_events WHERE actor_id='browser-reviewer' AND capability='payroll.read'");
+        assert.deepEqual(audited.rows,[{company_id:company,target_id:second}]);
+      } finally { rmSync(dir,{recursive:true,force:true,maxRetries:6,retryDelay:100}); }
     } finally { await new Promise<void>(resolve => server.close(()=>resolve())); }
     const ownerReceipts = await admin.query("SELECT company_id,target_id FROM accounting_audit_events WHERE actor_id='revision-owner' AND capability='payroll.read'");
     assert.deepEqual(ownerReceipts.rows,[{company_id:company,target_id:second}]);
