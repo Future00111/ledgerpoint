@@ -11,10 +11,24 @@ let actor = fixture.owner;
 let loseResponse = true;
 let heldPayRead;
 const requests = [];
+// Synthetic UI projection; the native route and audit are covered in the revision database suite.
+const reviewId = crypto.randomUUID();
+const reviewRun = crypto.randomUUID();
+let releaseReview;
+let reviewReads = 0;
 const exportStatuses = [];
 window.fetch = async (url, options = {}) => {
   const target = new URL(url, location.href);
   if (target.origin !== location.origin || !target.pathname.startsWith('/api/companies/')) throw Error('Unexpected browser request');
+  if (target.pathname.endsWith('/payroll-run-revisions/'+reviewId)) {
+    reviewReads++;
+    if (actor !== fixture.owner || !target.pathname.startsWith('/api/companies/'+fixture.company+'/')) throw Error('Review scope');
+    const amounts = {gross:'9007199254740993',net:'9007199254740989',deductions:{paye:'3'},adjustments:{rounding:'-1'}};
+    if (reviewReads === 2) await new Promise(resolve => { releaseReview = resolve; });
+    return Response.json({run_id:reviewRun,revision_id:reviewId,revision_number:2,period_start:'2026-10-01',
+      period_end:'2026-10-31',payday:'2026-10-30',currency:'GBP',rules_version:'synthetic',is_current_revision:false,
+      review_breakdown:{lines:[{line_id:crypto.randomUUID(),...amounts}],totals:{line_count:1,...amounts}}});
+  }
   const headers = new Headers(options.headers);
   headers.set('x-test-actor', actor);
   const response = await nativeFetch(target.pathname.slice('/api/companies'.length), {...options, headers});
@@ -59,6 +73,23 @@ const text = () => document.body.innerText;
 let stage = 'entry';
 async function exercise() {
   mount(fixture.company, fixture.owner, 'owner');
+  const revisionInput = await wait(() => input('Pay-run revision ID'),'revision lookup');
+  if (reviewReads !== 0) throw Error('Unexpected automatic review');
+  fill(revisionInput,reviewId);
+  (await ready('Load draft revision')).click();
+  await wait(() => text().includes('Superseded') && text().includes('£90,071,992,547,409.89')
+    && text().includes('-£0.01') && text().includes('Total (1 line'), 'draft review');
+  (await ready('Clear revision')).click();
+  await wait(() => !text().includes('Superseded') && revisionInput.value === '', 'cleared draft review');
+  if (reviewReads !== 1) throw Error('Unexpected review request count');
+  fill(revisionInput,reviewId);
+  (await ready('Load draft revision')).click();
+  await wait(() => releaseReview,'pending review response');
+  (await ready('Clear revision')).click();
+  await wait(() => revisionInput.value === '', 'pending review cleared');
+  releaseReview();
+  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  if (text().includes('Superseded') || text().includes(reviewRun)) throw Error('Stale draft review');
   fill(await wait(() => input('Employee reference'), 'employee input'), fixture.employee);
   fill(await wait(() => input('Effective from'), 'date input'), '2026-04-06');
   fill(await wait(() => input('Annual salary'), 'amount input'), '45250.75');
@@ -103,7 +134,7 @@ async function exercise() {
   fill(await wait(() => input('Pay record ID'), 'lookup input'), requests[0]);
   (await ready('Look up pay record')).click();
   await wait(() => text().includes('45,250.75'), 'reader native readback');
-  if (button('Look up bank details') || text().includes('Account number ending') || button('Download CSV') || text().includes(fixture.employee) || input('Employee reference')) throw Error('Reader projection');
+  if (button('Load draft revision') || button('Look up bank details') || text().includes('Account number ending') || button('Download CSV') || text().includes(fixture.employee) || input('Employee reference')) throw Error('Reader projection');
   stage = 'company-change';
   mount(fixture.other, fixture.reader, 'payroll_reader');
   await wait(() => !text().includes('45,250.75') && input('Pay record ID')?.value === '', 'company scope reset');
