@@ -151,3 +151,49 @@ for (const includeAmendments of [false, true]) test(`installed history matches e
     assert.throws(() => validateInstalledMigrationHistory(altered, expected), { code: 'MIGRATION_HISTORY_INCOMPATIBLE' });
   }
 });
+
+test('payment admission and terminal history are pinned append-only observations with restricted runtime grants',()=>{
+ const sql=loadMigrationInputs(root)['operation-recovery'];
+ for(const trigger of ['admission_immutable','admission_no_truncate','terminal_immutable','terminal_no_truncate'])
+  assert.ok(sql.includes('ENABLE ALWAYS TRIGGER payment_attempt_'+trigger));
+ assert.match(sql,/PRIMARY KEY\(company_id,request_id\)/);
+ assert.match(sql,/REVOKE ALL ON public.payment_attempt_admissions,public.payment_attempt_no_effect FROM PUBLIC,ledgerly_api/);
+ assert.match(sql,/GRANT SELECT,INSERT ON public.payment_attempt_admissions,public.payment_attempt_no_effect TO ledgerly_api/);
+ assert.doesNotMatch(sql,/INSERT INTO.*(?:accounting_payment_events|canonical_journal)/);
+});
+test('correction admission and terminal binding are immutable, pinned and installed in both modes',()=>{
+ const sql=loadMigrationInputs(root)['correction-operation-recovery'];
+ for(const trigger of ['admission_immutable','admission_no_truncate','terminal_immutable','terminal_no_truncate'])assert.ok(sql.includes('ENABLE ALWAYS TRIGGER correction_attempt_'+trigger));
+ assert.match(sql,/FOREIGN KEY\(company_id,request_id,document_id,actor_id,expected_revision,request_hash,review_hash\)/);
+ assert.match(sql,/GRANT SELECT,INSERT ON public.correction_attempt_admissions,public.correction_attempt_no_effect TO ledgerly_api/);
+ assert.doesNotMatch(sql,/INSERT INTO.*(?:accounting_document_amendments|canonical_journal)/);
+ assert.ok(read('tools/accounting-flow/schema.mjs').toString().includes("await admin.query(migrationInputs['correction-operation-recovery']);"));
+});
+
+test('durable queued/cancelled identities, lifecycle and outbox are pinned and installed in both modes',()=>{
+ const sql=loadMigrationInputs(root)['durable-jobs'];
+ assert.ok(read('artifacts/api-server/src/services/durableJobs/schema.ts').toString().includes(registry().migrations.find(m=>m.id==='durable-jobs').sha256));
+ for(const table of ['durable_jobs','durable_job_events','durable_outbox']){
+  assert.ok(sql.includes(`CREATE TABLE public.${table}`));
+  assert.ok(sql.includes(`ALTER TABLE public.${table} ENABLE ALWAYS TRIGGER ${table}_immutable`));
+  assert.ok(sql.includes(`ALTER TABLE public.${table} ENABLE ALWAYS TRIGGER ${table}_no_truncate`));
+  assert.ok(sql.includes(`ALTER TABLE public.${table} OWNER TO ledgerly_canonical_owner`));
+  assert.ok(sql.includes(`GRANT SELECT,INSERT ON public.${table} TO ledgerly_api`));
+ }
+ for(const includeAmendments of [false,true])assert.deepEqual(expectedMigrationHistory(loadMigrationInputs(root),{includeAmendments}).find(r=>r.id==='durable-jobs').dependencies,['document-intake']);
+ assert.ok(read('tools/accounting-flow/schema.mjs').toString().includes("await admin.query(migrationInputs['durable-jobs']);"));
+ assert.equal(sql.includes('CREATE TABLE public.durable_job_attempts'),false);
+});
+
+test('durable execution adds independently pinned immutable event/outbox history after the existing queue',()=>{
+ const inputs=loadMigrationInputs(root),sql=inputs['durable-job-execution'];
+ assert.ok(read('artifacts/api-server/src/services/durableJobs/executionSchema.ts').toString().includes(registry().migrations.find(m=>m.id==='durable-job-execution').sha256));
+ for(const table of['durable_job_execution_events','durable_job_execution_outbox']){
+  assert.ok(sql.includes(`CREATE TABLE public.${table}`));
+  assert.ok(sql.includes(`ALTER TABLE public.${table} ENABLE ALWAYS TRIGGER ${table}_immutable`));
+  assert.ok(sql.includes(`REVOKE ALL ON public.${table} FROM PUBLIC,ledgerly_api`));
+ }
+ for(const includeAmendments of[false,true])assert.deepEqual(expectedMigrationHistory(inputs,{includeAmendments}).find(r=>r.id==='durable-job-execution').dependencies,['durable-jobs']);
+ assert.ok(read('tools/accounting-flow/schema.mjs').toString().includes("await admin.query(migrationInputs['durable-job-execution']);"));
+ assert.equal(/ALTER TABLE public\.(durable_jobs|durable_job_events|durable_outbox)\b/.test(sql),false);
+});

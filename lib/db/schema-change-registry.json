@@ -96,13 +96,35 @@
       "path": "lib/db/migrations/conditional-discount-compensations.review.sql",
       "sha256": "d1f05ddcc8dd98b560038a12dec41463e47bb7fca23856c4b49ecd432f54ac52",
       "status": "review_sql_only",
-      "tables": ["conditional_discount_compensations"]
+      "tables": [
+        "conditional_discount_compensations"
+      ]
     },
     {
       "path": "lib/db/migrations/conditional-discount-cash-reversal.review.sql",
       "sha256": "80ae6ef09b65592793a5c829fe6d97550aa64147f589caf27ffd608e62569431",
       "status": "review_sql_only",
-      "tables": ["conditional_discount_compensations"]
+      "tables": [
+        "conditional_discount_compensations"
+      ]
+    },
+    {
+      "path": "lib/db/migrations/correction-operation-recovery.review.sql",
+      "sha256": "342bf8a65111167516fa56cc8899abefef5ddd594f577344082990acfaa855a0",
+      "status": "review_sql_only",
+      "tables": [
+        "correction_attempt_admissions",
+        "correction_attempt_no_effect"
+      ]
+    },
+    {
+      "path": "lib/db/migrations/durable-job-execution.review.sql",
+      "sha256": "4d40f0c36ca3de578c1abc1a904b57967dd5de84180f4f558491ebf40f6a4d88",
+      "status": "review_sql_only",
+      "tables": [
+        "durable_job_execution_events",
+        "durable_job_execution_outbox"
+      ]
     }
   ],
   "reservedChanges": [
@@ -110,20 +132,25 @@
       "task": "P03-01",
       "migration": "lib/db/migrations/operation-recovery.review.sql",
       "tables": [
-        "operation_commands",
-        "operation_outcomes"
+        "payment_attempt_admissions",
+        "payment_attempt_no_effect"
       ],
-      "status": "contract_only"
+      "status": "ordinary_payment_review_sql_only",
+      "sha256": "7d4ab4c43a80d667a68254e7de90732a1c7fc336c19f81d4c499eb6a220b93d3"
     },
     {
       "task": "P03-02",
       "migration": "lib/db/migrations/durable-jobs.review.sql",
       "tables": [
         "durable_jobs",
-        "durable_job_attempts",
+        "durable_job_events",
         "durable_outbox"
       ],
-      "status": "contract_only"
+      "status": "queued_cancelled_disposable_implementation_pending_exact_source_ci",
+      "reservedTables": [
+        "durable_job_attempts"
+      ],
+      "limits": "Pre-execution lifecycle only; no worker leases, execution, provider connection, scheduler or delivery settlement."
     },
     {
       "task": "P03-03",

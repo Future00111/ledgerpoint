@@ -1,4 +1,5 @@
 /** Pure qualification boundary. No financial result, filing authority or IO. */
+import { validateScopeRegister } from './scopeRegistry.mjs';
 export const selectorFields = Object.freeze(['domain', 'entity', 'scheme', 'income', 'employment', 'taxYear']);
 const plain = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const validSelector = value => plain(value) && Object.keys(value).length === selectorFields.length
@@ -123,6 +124,7 @@ export function validateCaseRegistry(registry) {
     ids.add(row.id); selectors.add(signature(row.selector));
   }
   if (!validPayrollPrerequisites(registry)) throw new Error('INVALID_PAYROLL_PREREQUISITES');
+  validateScopeRegister(registry);
   return registry;
 }
 export function resolveQualifiedCase(registry, selector) {

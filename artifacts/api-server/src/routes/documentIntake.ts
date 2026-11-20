@@ -1,3 +1,4 @@
+import { enqueueIntakeJob, recoverIntakeJob, cancelIntakeJob } from '../services/durableJobs/service';
 import { Router, type ErrorRequestHandler, type Request, type RequestHandler } from 'express';
 import { requireAuth } from '../middlewares/requireAuth';
 import { DraftError, fail, uuid } from '../services/financialDrafts/contract';
@@ -51,6 +52,17 @@ export function createDocumentIntakeRouter(auth: RequestHandler = requireAuth, a
     });
     res.send(content);
   });
+  router.post('/:id/extraction-jobs', async (req,res) => {
+    const {company,actor,id}=ids(req); const data=await enqueueIntakeJob(company,actor,id,req.body);
+    res.status(data.duplicate?200:201).json({data});
+  });
+  router.get('/:id/extraction-jobs/:requestId', async (req,res) => {
+    if(Object.keys(req.query).length)fail(400,'INVALID_REQUEST_SHAPE');
+    const {company,actor,id}=ids(req);res.json({data:await recoverIntakeJob(company,actor,id,String(req.params.requestId))});
+  });
+  router.post('/:id/extraction-jobs/:requestId/cancel', async (req,res) => {
+    const {company,actor,id}=ids(req);res.json({data:await cancelIntakeJob(company,actor,id,String(req.params.requestId),req.body)});
+  });
   router.post('/:id/review', async (req, res) => {
     const { company, actor, id } = ids(req);
     const data = await reviewIntakeSource(company, actor, id, req.body);
@@ -66,6 +78,10 @@ export function createDocumentIntakeRouter(auth: RequestHandler = requireAuth, a
   });
   router.use(((error, _req, res, _next) => {
     const guidance: Record<string, string> = {
+      DURABLE_JOB_SCHEMA_UNAVAILABLE: 'Document processing queue is unavailable in this environment.',
+      DURABLE_JOB_EVIDENCE_MISMATCH: 'The saved job could not be verified. No processing was started.',
+      DURABLE_JOB_REQUEST_CONFLICT: 'This request belongs to different source or processing settings.',
+      EXTRACTION_SOURCE_JOB_EXISTS: 'This source already has queued work. Recover or cancel that job first.',
       SOURCE_SIZE_INVALID: 'Choose a PDF, JPEG or PNG of at most 5 MiB.',
       SOURCE_ENCODING_INVALID: 'The upload could not be read. Select the original file again.',
       SOURCE_MEDIA_INVALID: 'Choose a PDF, JPEG or PNG with matching file content.',

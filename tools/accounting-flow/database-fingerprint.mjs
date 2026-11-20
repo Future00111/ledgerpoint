@@ -32,11 +32,17 @@ export async function fingerprintDatabase(client) {
     const { rows: columnGrants } = await client.query(`SELECT table_name,column_name,grantee,privilege_type,is_grantable FROM information_schema.column_privileges
       WHERE table_schema='public' ORDER BY table_name,column_name,grantee,privilege_type,is_grantable`);
     await client.query('COMMIT');
-    return { tables: fingerprints, controls: digest({ guards, constraints, indexes, functions, schemas, owners, tableGrants, columnGrants }) };
+    const sections = { guards, constraints, indexes, functions, schemas, owners, tableGrants, columnGrants };
+    const controlDigests = Object.fromEntries(Object.entries(sections).map(([key, rows]) => [key, digest(rows)]));
+    return { tables: fingerprints, controls: digest(sections), controlDigests };
   } catch (error) { await client.query('ROLLBACK'); throw error; }
 }
 
 export function assertSameFingerprint(before, after) {
-  if (JSON.stringify(before) !== JSON.stringify(after)) throw new Error('Restored evidence, schema controls or permissions do not match.');
+  if (JSON.stringify(before) === JSON.stringify(after)) return;
+  // Report only verification categories. Rows, SQL and privilege details stay private.
+  const changed = Object.keys(before.controlDigests ?? {}).filter(key => before.controlDigests[key] !== after.controlDigests?.[key]);
+  if (JSON.stringify(before.tables) !== JSON.stringify(after.tables)) changed.push('table data');
+  throw new Error('Restored evidence, schema controls or permissions do not match. Changed: ' + (changed.join(', ') || 'controls'));
 }
 
