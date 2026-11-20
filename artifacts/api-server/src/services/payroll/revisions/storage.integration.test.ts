@@ -127,6 +127,7 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
     await verify();
     // Competing drafts based on revision 2: one wins, the other must reload.
     const otherCompanyRevision = randomUUID(), otherRunRevision = randomUUID();
+    const latest = randomUUID();
     const contender = new pg.Client({host:socket,port:55441,database,user:'w03_bootstrap',ssl:false});
     await contender.connect();
     try {
@@ -141,7 +142,7 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
       assert.equal(await outcome,'23505');
       const head = await admin.query('SELECT revision_id FROM pay_run_draft_revisions WHERE company_id=$1 AND run_id=$2 ORDER BY revision_number DESC LIMIT 1',[company,run]);
       assert.equal(head.rows[0].revision_id,winner);
-      await insert(randomUUID(),4,'after-reload');
+      await insert(latest,4,'after-reload');
       await insert(otherCompanyRevision,1,'same-run-different-company',[],admin,other);
       assert.equal((await readDraftRevision(other,actor,otherCompanyRevision,true)).is_current_revision,true);
       await insert(otherRunRevision,1,'different-run',[],admin,company,randomUUID());
@@ -173,7 +174,7 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
         assert.equal(response.headers.get('etag'),null);
         const body = await response.json();
         assert.deepEqual(body,{...snapshot,revision_number:2,revision_id:second,rules_version:'synthetic-v2',
-          is_current_revision:false,review_breakdown:{
+          is_current_revision:false,current_revision_id:latest,review_breakdown:{
             lines:[line,another].map(({employee_id,input_revision_id,...visible}) => visible),
             totals:{line_count:2,gross:'9007199254741193',net:'9007199254741070',deductions:{paye:'120'},adjustments:{rounding:'-3'}}
           }});
@@ -200,14 +201,15 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
         app.get('/revision-browser',(_req,res)=>{
           res.cookie('revision_fixture',browserCookie,{httpOnly:true,sameSite:'strict'});
           res.type('html').send('<!doctype html><meta charset="utf-8"><div id="root"></div><script>window.revisionFixture='+
-            JSON.stringify({company,revision:second,lineIds:[line.line_id,another.line_id]})+'</script><script src="/revision-browser.js"></script>');
+            JSON.stringify({company,revision:second,latest,lineIds:[line.line_id,another.line_id]})+'</script><script src="/revision-browser.js"></script>');
         });
         const {stdout} = await promisify(execFile)('chromium',['--headless','--no-first-run','--disable-gpu',
           '--disable-background-networking','--user-data-dir='+path.join(dir,'profile'),'--dump-dom',
           '--virtual-time-budget=15000',origin+'/revision-browser'],{timeout:45000,killSignal:'SIGKILL'});
         assert.match(stdout,/data-revision-review="passed"/);
         const audited = await admin.query("SELECT company_id,target_id FROM accounting_audit_events WHERE actor_id='browser-reviewer' AND capability='payroll.read'");
-        assert.deepEqual(audited.rows,[{company_id:company,target_id:second}]);
+        assert.deepEqual(audited.rows.map(row=>row.target_id).sort(),[second,latest].sort());
+        assert.ok(audited.rows.every(row=>row.company_id===company));
       } finally { rmSync(dir,{recursive:true,force:true,maxRetries:6,retryDelay:100}); }
     } finally { await new Promise<void>(resolve => server.close(()=>resolve())); }
     const ownerReceipts = await admin.query("SELECT company_id,target_id FROM accounting_audit_events WHERE actor_id='revision-owner' AND capability='payroll.read'");

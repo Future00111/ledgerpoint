@@ -19,14 +19,13 @@ export function RevisionReview({companyId,onSessionExpired}) {
   function change(value) {
     scope.current.cancel(); setId(value); setResult(null); setMessage(''); setBusy(false);
   }
-  async function read(event) {
-    event.preventDefault();
+  async function read(target,expectedRun) {
     if (busy) return;
     const token = scope.current.begin();
     setResult(null); setMessage('');
     let revision;
-    try { revision = recordId(id); } catch { setMessage('Enter a valid revision ID.'); return; }
-    setBusy(true);
+    try { revision = recordId(target); } catch { setMessage('Enter a valid revision ID.'); return; }
+    setId(revision); setBusy(true);
     try {
       const response = await fetch('/api/companies/'+recordId(companyId)+'/payroll-run-revisions/'+revision,
         {credentials:'include',cache:'no-store',redirect:'error',signal:token.signal});
@@ -34,13 +33,14 @@ export function RevisionReview({companyId,onSessionExpired}) {
       if (response.status === 401) { onSessionExpired(); return; }
       if (response.status !== 200) throw Error();
       const value = validatedReview(await response.json(),revision);
+      if (expectedRun && value.run_id !== expectedRun) throw Error();
       if (token.isCurrent()) setResult(value);
     } catch { if (token.isCurrent()) setMessage('The draft could not be loaded. Check the revision ID and your company access.'); }
     finally { if (token.isCurrent()) setBusy(false); }
   }
   return <section className="workspace-card space-y-4 p-4 sm:p-6" aria-labelledby="revision-title" aria-busy={busy}>
     <h2 id="revision-title" className="text-lg font-semibold">Review a draft pay run</h2>
-    <form onSubmit={read} autoComplete="off" className="space-y-3">
+    <form onSubmit={event=>{event.preventDefault(); void read(id);}} autoComplete="off" className="space-y-3">
       <label className="block space-y-1 text-sm">Pay-run revision ID<Input value={id} onChange={e=>change(e.target.value)} spellCheck={false}/></label>
       <Button type="submit" disabled={busy} variant="outline">Load draft revision</Button>
       {id && <Button type="button" variant="ghost" onClick={()=>change('')}>Clear revision</Button>}
@@ -48,6 +48,7 @@ export function RevisionReview({companyId,onSessionExpired}) {
     {message && <p role="alert">{message}</p>}
     {result && <div className="space-y-3">
       <h3 className="font-semibold">Revision {result.revision_number} · {result.is_current_revision ? 'Current at lookup' : 'Superseded'}</h3>
+      {!result.is_current_revision && <Button variant="outline" onClick={()=>read(result.current_revision_id,result.run_id)}>Open current revision</Button>}
       <p>Period {result.period_start} to {result.period_end} · Payday {result.payday}</p>
       <p>Run {result.run_id} · Rules {result.rules_version}</p>
       <div className="overflow-x-auto"><table className="w-full text-left text-sm">

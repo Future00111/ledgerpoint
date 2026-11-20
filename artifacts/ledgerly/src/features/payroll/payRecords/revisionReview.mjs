@@ -10,8 +10,9 @@ const money = row => amount(row.gross) && amount(row.net) && components(row.dedu
 const uuid = value => typeof value === 'string' && /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(value);
 
 export function validatedReview(row,requested) {
-  const fields = ['run_id','revision_id','revision_number','period_start','period_end','payday','currency','rules_version','is_current_revision','review_breakdown'];
-  if (!exact(row,fields) || row.revision_id !== recordId(requested) || !uuid(row.run_id) ||
+  const fields = ['run_id','revision_id','revision_number','period_start','period_end','payday','currency','rules_version','is_current_revision','current_revision_id','review_breakdown'];
+  if (!exact(row,fields) || row.revision_id !== recordId(requested) || recordId(row.current_revision_id) !== row.current_revision_id ||
+    row.is_current_revision !== (row.revision_id === row.current_revision_id) || !uuid(row.run_id) ||
     !Number.isSafeInteger(row.revision_number) || row.revision_number < 1 || typeof row.is_current_revision !== 'boolean' ||
     row.currency !== 'GBP' || typeof row.rules_version !== 'string' || !row.rules_version.trim() ||
     ![row.period_start,row.period_end,row.payday].every(date => effectiveDate(date) === date) || row.period_end < row.period_start)
