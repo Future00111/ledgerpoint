@@ -91,6 +91,8 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
       assert.deepEqual(await readDraftRevision(company,actor,first),snapshot);
       const detailed = await readDraftRevision(company,actor,second,true);
       assert.equal(detailed.revision_number,2);
+      assert.equal(detailed.is_current_revision,true);
+      assert.equal((await readDraftRevision(company,actor,first,true)).is_current_revision,false);
       assert.deepEqual(detailed.review_breakdown,{
         lines:[line,another].map(({employee_id,input_revision_id,...visible}) => visible),
         totals:{line_count:2,gross:'9007199254741193',net:'9007199254741070',deductions:{paye:'120'},adjustments:{rounding:'-3'}}
@@ -119,6 +121,7 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
     assert.deepEqual((await rawHeaders()).rows,beforeRestore);
     await verify();
     // Competing drafts based on revision 2: one wins, the other must reload.
+    const otherCompanyRevision = randomUUID(), otherRunRevision = randomUUID();
     const contender = new pg.Client({host:socket,port:55441,database,user:'w03_bootstrap',ssl:false});
     await contender.connect();
     try {
@@ -134,11 +137,14 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
       const head = await admin.query('SELECT revision_id FROM pay_run_draft_revisions WHERE company_id=$1 AND run_id=$2 ORDER BY revision_number DESC LIMIT 1',[company,run]);
       assert.equal(head.rows[0].revision_id,winner);
       await insert(randomUUID(),4,'after-reload');
-      await insert(randomUUID(),1,'same-run-different-company',[],admin,other);
-      await insert(randomUUID(),1,'different-run',[],admin,company,randomUUID());
+      await insert(otherCompanyRevision,1,'same-run-different-company',[],admin,other);
+      assert.equal((await readDraftRevision(other,actor,otherCompanyRevision,true)).is_current_revision,true);
+      await insert(otherRunRevision,1,'different-run',[],admin,company,randomUUID());
+      assert.equal((await readDraftRevision(company,actor,otherRunRevision,true)).is_current_revision,true);
     } finally { await admin.query('ROLLBACK'); await contender.end(); }
     const receipts = await admin.query("SELECT company_id,actor_id,target_id FROM accounting_audit_events WHERE actor_id=$1 AND capability='payroll.read'",[actor]);
-    assert.equal(receipts.rowCount,5);
-    assert.ok(receipts.rows.every(row => row.company_id === company && row.actor_id === actor && [first,second].includes(row.target_id)));
+    assert.equal(receipts.rowCount,9);
+    assert.ok(receipts.rows.every(row => row.actor_id === actor && (row.company_id === company
+      ? [first,second,otherRunRevision].includes(row.target_id) : row.company_id === other && row.target_id === otherCompanyRevision)));
   } finally { await admin.end(); await pool.end(); }
 });
