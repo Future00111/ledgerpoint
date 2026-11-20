@@ -18,6 +18,9 @@ export function useSensitiveEntry({ companyId, role, client, canPrepare, blankFo
   if (!scope.current) scope.current = requestScope();
   useEffect(() => () => { scope.current.cancel(); }, []);
   const block = () => {
+    scope.current.cancel();
+    inFlight.current = false;
+    setBusy(false);
     setPhase('blocked'); setRecord(null); setAttempt(null); setForm(blankForm()); setLookupId(''); setId(''); setMessage(''); setValidation('');
   };
   const runRead = async (target, token) => {
