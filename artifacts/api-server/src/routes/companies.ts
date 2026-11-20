@@ -9,6 +9,7 @@
  * GET    /api/companies/:id/specialist-access-history — bounded audited owner-only history
  * GET    /api/companies/:id/payroll-pay-records/:recordId — audited pay fields by payroll role
  * GET    /api/companies/:id/payroll-pay-records/:recordId/export.csv — audited single-pay export
+ * GET    /api/companies/:id/payroll-run-revisions/:revisionId — audited draft review for owners and approvers
  * GET    /api/companies/:id/payroll-bank-details/:employeeId — audited role-projected bank account
  * GET    /api/companies/:id/personal-tax-preparations/:recordId — audited annual draft input by tax role
  * GET    /api/companies/:id/personal-tax-preparations/:recordId/export.csv — audited single-input export
@@ -34,6 +35,7 @@ import { auditSpecializedMembershipChange, auditSpecializedMembershipChanges } f
 import { SensitiveAccessError } from "../services/payroll/access/boundary";
 import { readSpecialistAccessHistory } from "../services/payroll/access/membershipHistory";
 import { readPayRecord, createPayRecord, exportPayRecord } from "../services/payroll/access/payRecord";
+import { readDraftRevision } from "../services/payroll/revisions/readDraftRevision";
 import { readEmployeeBankDetails } from "../services/payroll/access/bankDetails";
 import { readPersonalTaxPreparation, createPersonalTaxPreparation, exportPersonalTaxPreparation } from "../services/tax/access/preparationRecord";
 
@@ -90,11 +92,23 @@ const clerkIdentityLookup: CompanyIdentityLookup = {
 export function createCompaniesRouter(auth: RequestHandler = requireAuth, identities: CompanyIdentityLookup = clerkIdentityLookup) {
 const router = Router();
 // Apply before authentication so denied/unauthenticated responses also cannot be cached.
-router.use(["/:id/specialist-access-history", "/:id/payroll-pay-records", "/:id/personal-tax-preparations", "/:id/payroll-bank-details"], (_req, res, next) => {
+router.use(["/:id/specialist-access-history", "/:id/payroll-pay-records", "/:id/personal-tax-preparations", "/:id/payroll-bank-details", "/:id/payroll-run-revisions"], (_req, res, next) => {
   res.set("Cache-Control", "no-store");
   next();
 });
 router.use(auth);
+
+router.get("/:id/payroll-run-revisions/:revisionId", async (req: Request, res: Response) => {
+  if (req.method !== "GET") { res.set("Allow", "GET").status(405).end(); return; }
+  try {
+    if (Object.keys(req.query).length) throw new SensitiveAccessError("SENSITIVE_REQUEST_INVALID");
+    const { userId } = req as AuthenticatedRequest;
+    const revision = await readDraftRevision(req.params["id"] as string, userId, req.params["revisionId"] as string, true);
+    res.status(200).type("application/json").end(JSON.stringify(revision));
+  } catch (error) {
+    companyError(req, res, error, "pay-run revision review error");
+  }
+});
 
 router.get("/:id/payroll-bank-details/:employeeId", async (req: Request, res: Response) => {
   if (req.method !== 'GET') { res.set('Allow', 'GET').status(405).end(); return; }

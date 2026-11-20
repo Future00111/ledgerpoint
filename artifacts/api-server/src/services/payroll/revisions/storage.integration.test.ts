@@ -1,4 +1,7 @@
 import test from 'node:test';
+import express from 'express';
+import type { AddressInfo } from 'node:net';
+import { createCompaniesRouter } from '../../../routes/companies';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
@@ -142,8 +145,49 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
       await insert(otherRunRevision,1,'different-run',[],admin,company,randomUUID());
       assert.equal((await readDraftRevision(company,actor,otherRunRevision,true)).is_current_revision,true);
     } finally { await admin.query('ROLLBACK'); await contender.end(); }
+    await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES ($1,$2,'revision-owner','owner',true)",[randomUUID(),company]);
+    const app = express();
+    app.use('/api/companies',createCompaniesRouter((req,res,next) => {
+      const identity = req.get('x-test-actor');
+      if (!identity) { res.sendStatus(401); return; }
+      Object.assign(req,{userId:identity});
+      next();
+    }));
+    const server = app.listen(0,'127.0.0.1');
+    try {
+      await new Promise<void>(resolve => server.once('listening',resolve));
+      const origin = 'http://127.0.0.1:' + (server.address() as AddressInfo).port;
+      const review = async (tenant:string,id:string,identity:string,method='GET',query='') => {
+        const response = await fetch(origin+'/api/companies/'+tenant+'/payroll-run-revisions/'+id+query,{
+          method,headers:{'x-test-actor':identity,'If-None-Match':'*'}});
+        assert.equal(response.headers.get('cache-control'),'no-store');
+        return response;
+      };
+      for (const identity of [actor,'revision-owner']) {
+        const response = await review(company,second,identity);
+        assert.equal(response.status,200);
+        assert.equal(response.headers.get('etag'),null);
+        const body = await response.json();
+        assert.equal(body.is_current_revision,false);
+        assert.equal(body.review_breakdown.totals.line_count,2);
+        assert.equal(body.revision_id,second);
+        for (const id of [line.employee_id,line.input_revision_id,another.employee_id,another.input_revision_id])
+          assert.ok(!JSON.stringify(body).includes(id));
+      }
+      const foreign = await review(other,second,actor);
+      const missing = await review(company,randomUUID(),actor);
+      assert.equal(foreign.status,403);
+      assert.equal(missing.status,403);
+      assert.deepEqual(await foreign.json(),await missing.json());
+      assert.equal((await review(company,second,'header-reader')).status,403);
+      assert.equal((await review(company,second,'')).status,401);
+      assert.equal((await review(company,second,actor,'HEAD')).status,405);
+      assert.equal((await review(company,second,actor,'GET','?role=owner')).status,400);
+    } finally { await new Promise<void>(resolve => server.close(()=>resolve())); }
+    const ownerReceipts = await admin.query("SELECT company_id,target_id FROM accounting_audit_events WHERE actor_id='revision-owner' AND capability='payroll.read'");
+    assert.deepEqual(ownerReceipts.rows,[{company_id:company,target_id:second}]);
     const receipts = await admin.query("SELECT company_id,actor_id,target_id FROM accounting_audit_events WHERE actor_id=$1 AND capability='payroll.read'",[actor]);
-    assert.equal(receipts.rowCount,9);
+    assert.equal(receipts.rowCount,10);
     assert.ok(receipts.rows.every(row => row.actor_id === actor && (row.company_id === company
       ? [first,second,otherRunRevision].includes(row.target_id) : row.company_id === other && row.target_id === otherCompanyRevision)));
   } finally { await admin.end(); await pool.end(); }
