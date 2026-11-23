@@ -36,8 +36,8 @@ export function calculateWeeklyEmployeeDraft(grossHistory, taxCodes, niCategory 
 }
 
 function calculateEmployeeDraft(grossHistory, taxCodes, niCategory, periods) {
-  if (!Array.isArray(grossHistory) || grossHistory.length < 1 || grossHistory.length > periods) {
-    throw new RangeError('Expected consecutive gross payments within the ordinary tax year');
+  if (!Array.isArray(grossHistory) || grossHistory.length < 1 || grossHistory.length > (periods === 52n ? 53n : periods)) {
+    throw new RangeError('Expected consecutive gross payments within the tax year');
   }
   const hasCodeHistory = Array.isArray(taxCodes);
   if (hasCodeHistory && taxCodes.length !== grossHistory.length) {
@@ -50,7 +50,8 @@ function calculateEmployeeDraft(grossHistory, taxCodes, niCategory, periods) {
     if (index > 0 && gross === 0n) throw new RangeError('Expected a payment after the first period');
     grossToDate += gross;
     const taxCode = hasCodeHistory ? taxCodes[index] : taxCodes;
-    const due = taxForPayday(gross, grossToDate, taxPaid, taxCode, BigInt(index + 1), periods);
+    const previousCode = hasCodeHistory ? taxCodes[index - 1] : taxCode;
+    const due = taxForPayday(gross, grossToDate, taxPaid, taxCode, BigInt(index + 1), periods, previousCode);
     const deduction = cappedDeduction(due, gross);
     if (index === grossHistory.length - 1) return payslip(gross, deduction, niCategory, periods === 52n ? weeklyThresholds : monthlyThresholds);
     taxPaid += deduction;
@@ -72,9 +73,23 @@ function readGross(grossMinor) {
   return gross;
 }
 
-function taxForPayday(gross, grossToDate, taxPaid, taxCode, period, periods = 12n) {
+function taxForPayday(gross, grossToDate, taxPaid, taxCode, period, periods = 12n, previousCode) {
   if (typeof taxCode === 'string' && taxCode.endsWith(periods === 52n ? ' W1' : ' M1')) {
     return cumulativeTax(gross, taxCode.slice(0, -3), 1n, periods);
+  }
+  if (periods === 52n && period === 53n) {
+    if (typeof taxCode !== 'string') throw new RangeError('Expected a week 53 tax code');
+    const code = taxCode.replace(/^[SC]/, '');
+    // Regulation 31(2) retains cumulative treatment for the basic-rate code.
+    if (code !== 'BR') {
+      // CWG2 §1.13: a cumulative suffix code can still have unused week 52 free pay.
+      if (code === '0T' || /^[1-9][0-9]{0,3}L$/.test(code)) {
+        if (previousCode.endsWith(' W1')) throw new RangeError('Week 52 cumulative allowance unavailable after W1');
+        const prior = previousCode.replace(/^[SC]/, '');
+        if (/^[1-9][0-9]{0,3}L$/.test(prior) && grossToDate <= freePay(prior, periods) * 52n) return 0n;
+      }
+      return cumulativeTax(gross, taxCode, 1n, periods);
+    }
   }
   return cumulativeTax(grossToDate, taxCode, period, periods) - taxPaid;
 }
@@ -86,17 +101,7 @@ const scottishBands = [
 ];
 const restOfUkBands = [[37700n, 20n], [125140n, 40n], [null, 45n]];
 
-function cumulativeTax(grossToDate, suppliedCode, period, periods) {
-  if (suppliedCode === 'NT') return 0n;
-  const scottish = typeof suppliedCode === 'string' && suppliedCode.startsWith('S');
-  const welsh = typeof suppliedCode === 'string' && suppliedCode.startsWith('C');
-  const taxCode = scottish || welsh ? suppliedCode.slice(1) : suppliedCode;
-  const wholePounds = grossToDate / 100n;
-  if (taxCode === 'BR') return wholePounds * 20n;
-  if (taxCode === 'D0') return wholePounds * (scottish ? 21n : 40n);
-  if (taxCode === 'D1') return wholePounds * (scottish ? 42n : 45n);
-  if (scottish && taxCode === 'D2') return wholePounds * 45n;
-  if (scottish && taxCode === 'D3') return wholePounds * 48n;
+function freePay(taxCode, periods) {
   let periodFreePay = 0n;
   if (taxCode !== '0T') {
     if (typeof taxCode !== 'string' || !/^(?:K[1-9][0-9]{0,3}|[1-9][0-9]{0,3}L)$/.test(taxCode)) {
@@ -111,6 +116,21 @@ function cumulativeTax(grossToDate, suppliedCode, period, periods) {
     const adjustment = blocks * (periods === 52n ? 9616n : 41667n) + periodRemainder;
     periodFreePay = isKCode ? -adjustment : adjustment;
   }
+  return periodFreePay;
+}
+
+function cumulativeTax(grossToDate, suppliedCode, period, periods) {
+  if (suppliedCode === 'NT') return 0n;
+  const scottish = typeof suppliedCode === 'string' && suppliedCode.startsWith('S');
+  const welsh = typeof suppliedCode === 'string' && suppliedCode.startsWith('C');
+  const taxCode = scottish || welsh ? suppliedCode.slice(1) : suppliedCode;
+  const wholePounds = grossToDate / 100n;
+  if (taxCode === 'BR') return wholePounds * 20n;
+  if (taxCode === 'D0') return wholePounds * (scottish ? 21n : 40n);
+  if (taxCode === 'D1') return wholePounds * (scottish ? 42n : 45n);
+  if (scottish && taxCode === 'D2') return wholePounds * 45n;
+  if (scottish && taxCode === 'D3') return wholePounds * 48n;
+  const periodFreePay = freePay(taxCode, periods);
   const taxablePence = earningsAbove(grossToDate, periodFreePay * period);
   const taxableWholePounds = taxablePence / 100n;
   // HMRC PAYE routines v24: select the rate before truncating taxable pounds.

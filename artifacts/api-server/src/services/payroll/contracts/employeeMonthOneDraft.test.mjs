@@ -354,6 +354,29 @@ test('weekly payslips reconcile every HMRC weekly PAYE case with weekly category
     assert.equal(BigInt(result.netMinor), BigInt(input.grossPayMinor) - BigInt(expected.taxDueMinor) - BigInt(ni.employeeNiMinor), id);
     histories.set(id, { gross, codes, paid });
   }
-  assert.throws(() => calculateWeeklyEmployeeDraft(Array(53).fill('100'), 'BR'), RangeError);
+  assert.throws(() => calculateWeeklyEmployeeDraft(Array(54).fill('100'), 'BR'), RangeError);
   assert.throws(() => calculateWeeklyEmployeeDraft(['100'], '1257L M1'), RangeError);
+});
+
+test('extra weekly payday applies week-one tables only after the week-52 allowance is used', () => {
+  const lowPay = Array(52).fill('10000');
+  assert.equal(calculateWeeklyEmployeeDraft([...lowPay, '50000'], '1257L').payeMinor, '0');
+  assert.equal(calculateWeeklyEmployeeDraft([...lowPay, '50000'], '1257L W1').payeMinor, '5160');
+  assert.equal(calculateWeeklyEmployeeDraft([...lowPay, '50000'], [...Array(52).fill('0T'), '1257L']).payeMinor, '5160');
+  assert.throws(() => calculateWeeklyEmployeeDraft([...lowPay, '50000'], [...Array(52).fill('1257L W1'), '1257L']), RangeError);
+  for (const code of ['0T', 'C0T', 'S0T']) {
+    assert.equal(calculateWeeklyEmployeeDraft([...lowPay, '50000'], [...Array(52).fill('1257L'), code]).payeMinor, '0');
+  }
+  const ordinary = calculateWeeklyEmployeeDraft([...Array(52).fill('50000'), '50000'], '1257L');
+  assert.deepEqual(ordinary, { grossMinor: '50000', payeMinor: '5160', employeeNiMinor: '2064',
+    employerNiMinor: '6060', netMinor: '42776' });
+  assert.equal(calculateWeeklyEmployeeDraft([...lowPay, '101'], 'K585').payeMinor, '50');
+});
+
+test('week 53 preserves the cumulative BR exception and applies week-one treatment to other flat-rate codes', () => {
+  const gross = [...Array(52).fill('101'), '199'];
+  assert.equal(calculateWeeklyEmployeeDraft(gross, 'BR').payeMinor, '40');
+  assert.equal(calculateWeeklyEmployeeDraft(gross, 'BR W1').payeMinor, '20');
+  assert.equal(calculateWeeklyEmployeeDraft(gross, 'D0').payeMinor, '40');
+  assert.equal(calculateWeeklyEmployeeDraft(gross, [...Array(52).fill('D0'), 'NT']).payeMinor, '0');
 });
