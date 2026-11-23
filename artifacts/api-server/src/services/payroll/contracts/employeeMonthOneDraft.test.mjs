@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { calculatePeriodNiDraft, calculateWeeklyEmployeeDraft, calculateWeeklyNiDraft, calculateApril999LDraft, calculateAprilEmployeeDraft, calculateMayEmployeeDraft, calculateMonthlyEmployeeDraft } from './employeeMonthOneDraft.mjs';
+import { calculateFortnightlyEmployeeDraft, calculateFourWeeklyEmployeeDraft, calculatePeriodNiDraft, calculateWeeklyEmployeeDraft, calculateWeeklyNiDraft, calculateApril999LDraft, calculateAprilEmployeeDraft, calculateMayEmployeeDraft, calculateMonthlyEmployeeDraft } from './employeeMonthOneDraft.mjs';
 
 test('April draft reproduces every reviewed payslip amount from gross alone', () => {
   const fixture = JSON.parse(readFileSync(new URL('./fixtures/employee-month-one-2026-27.json', import.meta.url)));
@@ -392,4 +392,29 @@ test('fortnightly and four-weekly NI matches the eligible HMRC examples', () => 
     }
   }
   assert.throws(() => calculatePeriodNiDraft('10000', 'biweekly'), RangeError);
+});
+
+test('two- and four-week payslips use their PAYE weeks and NI earnings periods', () => {
+  for (const [calculate, grossMinor, payeMinor, employeeNiMinor, employerNiMinor, netMinor] of [
+    [calculateFortnightlyEmployeeDraft, '100000', '10320', '4128', '12105', '85552'],
+    [calculateFourWeeklyEmployeeDraft, '200000', '20640', '8264', '24225', '171096'],
+  ]) {
+    assert.deepEqual(calculate([grossMinor], '1257L'), { grossMinor, payeMinor, employeeNiMinor, employerNiMinor, netMinor });
+    assert.equal(calculate(['100', grossMinor], '1257L W1').payeMinor, payeMinor);
+    assert.equal(calculate(['100', grossMinor], '1257L').payeMinor,
+      calculate === calculateFortnightlyEmployeeDraft ? '660' : '1300');
+  }
+});
+
+test('extra fortnightly and four-weekly paydays apply the extra-period rules', () => {
+  for (const [calculate, normal, gross, extraTax, basicRateTax] of [
+    [calculateFortnightlyEmployeeDraft, 26, '100000', '10320', '20000'],
+    [calculateFourWeeklyEmployeeDraft, 13, '200000', '20640', '40000'],
+  ]) {
+    const payments = Array(normal + 1).fill(gross);
+    assert.equal(calculate(payments, '1257L').payeMinor, extraTax);
+    assert.equal(calculate(payments, 'BR').payeMinor, basicRateTax);
+    assert.equal(calculate([...Array(normal).fill('100'), '200000'], '1257L').payeMinor, '0');
+    assert.throws(() => calculate([...payments, '100'], '1257L'), RangeError);
+  }
 });

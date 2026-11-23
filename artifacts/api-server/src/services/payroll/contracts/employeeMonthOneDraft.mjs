@@ -28,15 +28,26 @@ export function calculateMayEmployeeDraft(aprilGrossMinor, mayGrossMinor, taxCod
 // Supply one code throughout, or the code in force on each payday. A trailing ' M1' selects month-one treatment.
 // Gross and code histories start in April.
 export function calculateMonthlyEmployeeDraft(grossHistory, taxCodes, niCategory = 'A') {
-  return calculateEmployeeDraft(grossHistory, taxCodes, niCategory, 12n);
+  return calculateEmployeeDraft(grossHistory, taxCodes, niCategory, 'monthly');
 }
 
 export function calculateWeeklyEmployeeDraft(grossHistory, taxCodes, niCategory = 'A') {
-  return calculateEmployeeDraft(grossHistory, taxCodes, niCategory, 52n);
+  return calculateEmployeeDraft(grossHistory, taxCodes, niCategory, 'weekly');
 }
 
-function calculateEmployeeDraft(grossHistory, taxCodes, niCategory, periods) {
-  if (!Array.isArray(grossHistory) || grossHistory.length < 1 || grossHistory.length > (periods === 52n ? 53n : periods)) {
+export function calculateFortnightlyEmployeeDraft(grossHistory, taxCodes, niCategory = 'A') {
+  return calculateEmployeeDraft(grossHistory, taxCodes, niCategory, 'fortnightly');
+}
+
+export function calculateFourWeeklyEmployeeDraft(grossHistory, taxCodes, niCategory = 'A') {
+  return calculateEmployeeDraft(grossHistory, taxCodes, niCategory, 'four_weekly');
+}
+
+function calculateEmployeeDraft(grossHistory, taxCodes, niCategory, frequency) {
+  const periods = frequency === 'monthly' ? 12n : 52n;
+  const interval = frequency === 'fortnightly' ? 2n : frequency === 'four_weekly' ? 4n : 1n;
+  const maxPayments = periods / interval + (frequency === 'monthly' ? 0n : 1n);
+  if (!Array.isArray(grossHistory) || grossHistory.length < 1 || grossHistory.length > maxPayments) {
     throw new RangeError('Expected consecutive gross payments within the tax year');
   }
   const hasCodeHistory = Array.isArray(taxCodes);
@@ -51,9 +62,9 @@ function calculateEmployeeDraft(grossHistory, taxCodes, niCategory, periods) {
     grossToDate += gross;
     const taxCode = hasCodeHistory ? taxCodes[index] : taxCodes;
     const previousCode = hasCodeHistory ? taxCodes[index - 1] : taxCode;
-    const due = taxForPayday(gross, grossToDate, taxPaid, taxCode, BigInt(index + 1), periods, previousCode);
+    const due = taxForPayday(gross, grossToDate, taxPaid, taxCode, BigInt(index + 1) * interval, periods, previousCode, interval);
     const deduction = cappedDeduction(due, gross);
-    if (index === grossHistory.length - 1) return payslip(gross, deduction, niCategory, periods === 52n ? weeklyThresholds : monthlyThresholds);
+    if (index === grossHistory.length - 1) return payslip(gross, deduction, niCategory, niThresholdsByFrequency.get(frequency));
     taxPaid += deduction;
   }
 }
@@ -73,11 +84,11 @@ function readGross(grossMinor) {
   return gross;
 }
 
-function taxForPayday(gross, grossToDate, taxPaid, taxCode, period, periods = 12n, previousCode) {
+function taxForPayday(gross, grossToDate, taxPaid, taxCode, period, periods = 12n, previousCode, interval = 1n) {
   if (typeof taxCode === 'string' && taxCode.endsWith(periods === 52n ? ' W1' : ' M1')) {
-    return cumulativeTax(gross, taxCode.slice(0, -3), 1n, periods);
+    return cumulativeTax(gross, taxCode.slice(0, -3), interval, periods);
   }
-  if (periods === 52n && period === 53n) {
+  if (periods === 52n && period > 52n) {
     if (typeof taxCode !== 'string') throw new RangeError('Expected a week 53 tax code');
     const code = taxCode.replace(/^[SC]/, '');
     // Regulation 31(2) retains cumulative treatment for the basic-rate code.
@@ -88,7 +99,7 @@ function taxForPayday(gross, grossToDate, taxPaid, taxCode, period, periods = 12
         const prior = previousCode.replace(/^[SC]/, '');
         if (/^[1-9][0-9]{0,3}L$/.test(prior) && grossToDate <= freePay(prior, periods) * 52n) return 0n;
       }
-      return cumulativeTax(gross, taxCode, 1n, periods);
+      return cumulativeTax(gross, taxCode, interval, periods);
     }
   }
   return cumulativeTax(grossToDate, taxCode, period, periods) - taxPaid;
