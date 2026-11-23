@@ -276,3 +276,23 @@ test('K-code adjustment affects only PAYE and caps April tax at half the actual 
     assert.throws(() => calculateAprilEmployeeDraft('101', code), RangeError);
   }
 });
+
+test('every monthly rest-of-UK workbook row matches period and year-to-date PAYE', () => {
+  const pack = JSON.parse(readFileSync(new URL('./fixtures/hmrc-paye-2026-27-v1.1.json', import.meta.url)));
+  const rows = pack.cases.filter(({ input }) => input.region === 'rest_of_uk' && input.frequency === 'monthly');
+  assert.equal(rows.length, 33);
+  const histories = new Map();
+  for (const row of rows) {
+    const { input, expected } = row;
+    const prior = input.period === 1 ? { gross: [], codes: [], paid: 0n } : histories.get(row.previousExampleId);
+    assert.ok(prior, row.id);
+    const gross = [...prior.gross, input.grossPayMinor];
+    const codes = [...prior.codes, input.week1Month1 === 'WM1' ? input.taxCode + ' M1' : input.taxCode];
+    assert.equal(gross.length, input.period, row.id);
+    const { payeMinor } = calculateMonthlyEmployeeDraft(gross, codes);
+    const paid = prior.paid + BigInt(payeMinor);
+    assert.equal(payeMinor, expected.taxDueMinor, row.id);
+    assert.equal(String(paid), expected.taxDueToDateMinor, row.id);
+    histories.set(row.id, { gross, codes, paid });
+  }
+});

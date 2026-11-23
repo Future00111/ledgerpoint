@@ -78,24 +78,19 @@ function cumulativeTax(grossToDate, taxCode, month) {
   if (taxCode === 'BR') return wholePounds * 20n;
   if (taxCode === 'D0') return wholePounds * 40n;
   if (taxCode === 'D1') return wholePounds * 45n;
-  // HMRC Table A for suffix codes. Cumulative 0T has no free pay.
-  let monthOneFreePay;
-  switch (taxCode) {
-    case '45L': monthOneFreePay = 3825n; break;
-    case '999L': monthOneFreePay = 41667n + 41659n; break;
-    case '1257L': monthOneFreePay = 2n * 41667n + 21492n; break;
-    case '0T': monthOneFreePay = 0n; break;
-    default: {
-      if (typeof taxCode !== 'string' || !/^K[1-9][0-9]{0,3}$/.test(taxCode)) {
-        throw new RangeError('Unsupported England tax code');
-      }
-      // HMRC v24 §4.3.1: K adds the Table A adjustment to taxable pay.
-      const number = BigInt(taxCode.slice(1));
-      const blocks = (number - 1n) / 500n;
-      const remainder = number - blocks * 500n;
-      const remainderMonthly = (remainder * 1000n + 900n + 11n) / 12n;
-      monthOneFreePay = -(blocks * 41667n + remainderMonthly);
+  let monthOneFreePay = 0n;
+  if (taxCode !== '0T') {
+    if (typeof taxCode !== 'string' || !/^(?:K[1-9][0-9]{0,3}|[1-9][0-9]{0,3}L)$/.test(taxCode)) {
+      throw new RangeError('Unsupported England tax code');
     }
+    // HMRC v24 §4.3.1: both code families use Table A, with opposite signs.
+    const isKCode = taxCode.startsWith('K');
+    const number = BigInt(isKCode ? taxCode.slice(1) : taxCode.slice(0, -1));
+    const blocks = (number - 1n) / 500n;
+    const remainder = number - blocks * 500n;
+    const remainderMonthly = (remainder * 1000n + 900n + 11n) / 12n;
+    const adjustment = blocks * 41667n + remainderMonthly;
+    monthOneFreePay = isKCode ? -adjustment : adjustment;
   }
   const taxablePence = earningsAbove(grossToDate, monthOneFreePay * month);
   const taxableWholePounds = taxablePence / 100n;
