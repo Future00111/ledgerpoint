@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { calculateWeeklyNiDraft, calculateApril999LDraft, calculateAprilEmployeeDraft, calculateMayEmployeeDraft, calculateMonthlyEmployeeDraft } from './employeeMonthOneDraft.mjs';
+import { calculateWeeklyEmployeeDraft, calculateWeeklyNiDraft, calculateApril999LDraft, calculateAprilEmployeeDraft, calculateMayEmployeeDraft, calculateMonthlyEmployeeDraft } from './employeeMonthOneDraft.mjs';
 
 test('April draft reproduces every reviewed payslip amount from gross alone', () => {
   const fixture = JSON.parse(readFileSync(new URL('./fixtures/employee-month-one-2026-27.json', import.meta.url)));
@@ -331,4 +331,29 @@ test('weekly NI matches all 224 HMRC rows across sixteen categories', () => {
     assert.deepEqual(calculateWeeklyNiDraft(input.grossPayMinor, input.category), expected, id);
   }
   assert.throws(() => calculateWeeklyNiDraft('9999', 'X'), RangeError);
+});
+
+test('weekly payslips reconcile every HMRC weekly PAYE case with weekly category A contributions', () => {
+  const pack = JSON.parse(readFileSync(new URL('./fixtures/hmrc-paye-2026-27-v1.1.json', import.meta.url)));
+  const rows = pack.cases.filter(row => row.input.frequency === 'weekly');
+  assert.equal(rows.length, 81);
+  const histories = new Map();
+  for (const { id, previousExampleId, input, expected } of rows) {
+    const prior = input.period === 1 ? { gross: [], codes: [], paid: 0n } : histories.get(previousExampleId);
+    assert.ok(prior, id);
+    const gross = [...prior.gross, input.grossPayMinor];
+    const codes = [...prior.codes, input.taxCode + (input.week1Month1 === 'WM1' ? ' W1' : '')];
+    assert.equal(gross.length, input.period, id);
+    const result = calculateWeeklyEmployeeDraft(gross, codes);
+    const ni = calculateWeeklyNiDraft(input.grossPayMinor);
+    const paid = prior.paid + BigInt(result.payeMinor);
+    assert.equal(result.payeMinor, expected.taxDueMinor, id);
+    assert.equal(String(paid), expected.taxDueToDateMinor, id);
+    assert.equal(result.employeeNiMinor, ni.employeeNiMinor, id);
+    assert.equal(result.employerNiMinor, ni.employerNiMinor, id);
+    assert.equal(BigInt(result.netMinor), BigInt(input.grossPayMinor) - BigInt(expected.taxDueMinor) - BigInt(ni.employeeNiMinor), id);
+    histories.set(id, { gross, codes, paid });
+  }
+  assert.throws(() => calculateWeeklyEmployeeDraft(Array(53).fill('100'), 'BR'), RangeError);
+  assert.throws(() => calculateWeeklyEmployeeDraft(['100'], '1257L M1'), RangeError);
 });

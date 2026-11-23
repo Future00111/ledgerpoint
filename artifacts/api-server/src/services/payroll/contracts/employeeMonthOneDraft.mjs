@@ -1,5 +1,5 @@
-// Offline 2026–27 scenario: UK, monthly PAYE, zero opening balances,
-// ordinary monthly cash earnings, supplied NI category, no other deductions or adjustments.
+// Offline 2026–27 scenario: UK, weekly or monthly PAYE, zero opening balances,
+// ordinary cash earnings, supplied NI category, no other deductions or adjustments.
 function earningsAbove(gross, threshold) {
   return gross > threshold ? gross - threshold : 0n;
 }
@@ -28,8 +28,16 @@ export function calculateMayEmployeeDraft(aprilGrossMinor, mayGrossMinor, taxCod
 // Supply one code throughout, or the code in force on each payday. A trailing ' M1' selects month-one treatment.
 // Gross and code histories start in April.
 export function calculateMonthlyEmployeeDraft(grossHistory, taxCodes, niCategory = 'A') {
-  if (!Array.isArray(grossHistory) || grossHistory.length < 1 || grossHistory.length > 12) {
-    throw new RangeError('Expected one to twelve consecutive monthly gross amounts');
+  return calculateEmployeeDraft(grossHistory, taxCodes, niCategory, 12n);
+}
+
+export function calculateWeeklyEmployeeDraft(grossHistory, taxCodes, niCategory = 'A') {
+  return calculateEmployeeDraft(grossHistory, taxCodes, niCategory, 52n);
+}
+
+function calculateEmployeeDraft(grossHistory, taxCodes, niCategory, periods) {
+  if (!Array.isArray(grossHistory) || grossHistory.length < 1 || grossHistory.length > periods) {
+    throw new RangeError('Expected consecutive gross payments within the ordinary tax year');
   }
   const hasCodeHistory = Array.isArray(taxCodes);
   if (hasCodeHistory && taxCodes.length !== grossHistory.length) {
@@ -39,12 +47,12 @@ export function calculateMonthlyEmployeeDraft(grossHistory, taxCodes, niCategory
   let taxPaid = 0n;
   for (const [index, amount] of grossHistory.entries()) {
     const gross = readGross(amount);
-    if (index > 0 && gross === 0n) throw new RangeError('Expected a payment after April');
+    if (index > 0 && gross === 0n) throw new RangeError('Expected a payment after the first period');
     grossToDate += gross;
     const taxCode = hasCodeHistory ? taxCodes[index] : taxCodes;
-    const due = taxForPayday(gross, grossToDate, taxPaid, taxCode, BigInt(index + 1));
+    const due = taxForPayday(gross, grossToDate, taxPaid, taxCode, BigInt(index + 1), periods);
     const deduction = cappedDeduction(due, gross);
-    if (index === grossHistory.length - 1) return payslip(gross, deduction, niCategory);
+    if (index === grossHistory.length - 1) return payslip(gross, deduction, niCategory, periods === 52n ? weeklyThresholds : monthlyThresholds);
     taxPaid += deduction;
   }
 }
@@ -64,11 +72,11 @@ function readGross(grossMinor) {
   return gross;
 }
 
-function taxForPayday(gross, grossToDate, taxPaid, taxCode, month) {
-  if (typeof taxCode === 'string' && taxCode.endsWith(' M1')) {
-    return cumulativeTax(gross, taxCode.slice(0, -3), 1n);
+function taxForPayday(gross, grossToDate, taxPaid, taxCode, period, periods = 12n) {
+  if (typeof taxCode === 'string' && taxCode.endsWith(periods === 52n ? ' W1' : ' M1')) {
+    return cumulativeTax(gross, taxCode.slice(0, -3), 1n, periods);
   }
-  return cumulativeTax(grossToDate, taxCode, month) - taxPaid;
+  return cumulativeTax(grossToDate, taxCode, period, periods) - taxPaid;
 }
 
 // 2026–27 annual upper limits in taxable pounds and marginal rates in percent.
@@ -78,7 +86,7 @@ const scottishBands = [
 ];
 const restOfUkBands = [[37700n, 20n], [125140n, 40n], [null, 45n]];
 
-function cumulativeTax(grossToDate, suppliedCode, month) {
+function cumulativeTax(grossToDate, suppliedCode, period, periods) {
   if (suppliedCode === 'NT') return 0n;
   const scottish = typeof suppliedCode === 'string' && suppliedCode.startsWith('S');
   const welsh = typeof suppliedCode === 'string' && suppliedCode.startsWith('C');
@@ -89,7 +97,7 @@ function cumulativeTax(grossToDate, suppliedCode, month) {
   if (taxCode === 'D1') return wholePounds * (scottish ? 42n : 45n);
   if (scottish && taxCode === 'D2') return wholePounds * 45n;
   if (scottish && taxCode === 'D3') return wholePounds * 48n;
-  let monthOneFreePay = 0n;
+  let periodFreePay = 0n;
   if (taxCode !== '0T') {
     if (typeof taxCode !== 'string' || !/^(?:K[1-9][0-9]{0,3}|[1-9][0-9]{0,3}L)$/.test(taxCode)) {
       throw new RangeError('Unsupported payroll tax code');
@@ -99,20 +107,20 @@ function cumulativeTax(grossToDate, suppliedCode, month) {
     const number = BigInt(isKCode ? taxCode.slice(1) : taxCode.slice(0, -1));
     const blocks = (number - 1n) / 500n;
     const remainder = number - blocks * 500n;
-    const remainderMonthly = (remainder * 1000n + 900n + 11n) / 12n;
-    const adjustment = blocks * 41667n + remainderMonthly;
-    monthOneFreePay = isKCode ? -adjustment : adjustment;
+    const periodRemainder = (remainder * 1000n + 900n + periods - 1n) / periods;
+    const adjustment = blocks * (periods === 52n ? 9616n : 41667n) + periodRemainder;
+    periodFreePay = isKCode ? -adjustment : adjustment;
   }
-  const taxablePence = earningsAbove(grossToDate, monthOneFreePay * month);
+  const taxablePence = earningsAbove(grossToDate, periodFreePay * period);
   const taxableWholePounds = taxablePence / 100n;
   // HMRC PAYE routines v24: select the rate before truncating taxable pounds.
   let lowerLimit = 0n;
   let annualTaxPence = 0n;
   for (const [upperLimit, rate] of scottish ? scottishBands : restOfUkBands) {
-    if (upperLimit === null || taxablePence <= ((upperLimit * month + 11n) / 12n) * 100n) {
+    if (upperLimit === null || taxablePence <= ((upperLimit * period + periods - 1n) / periods) * 100n) {
       // Both period thresholds are truncated separately to £0.0001.
-      const threshold = lowerLimit * 10000n * month / 12n;
-      const taxAtThreshold = annualTaxPence * 100n * month / 12n;
+      const threshold = lowerLimit * 10000n * period / periods;
+      const taxAtThreshold = annualTaxPence * 100n * period / periods;
       return (taxAtThreshold + (taxableWholePounds * 10000n - threshold) * rate / 100n) / 100n;
     }
     annualTaxPence += (upperLimit - lowerLimit) * rate;
@@ -148,8 +156,8 @@ export function calculateWeeklyNiDraft(grossMinor, niCategory = 'A') {
     totalNiMinor: String(employeeNi + employerNi) };
 }
 
-function payslip(gross, paye, niCategory) {
-  const { employeeNi, employerNi } = contributions(gross, niCategory, monthlyThresholds);
+function payslip(gross, paye, niCategory, thresholds = monthlyThresholds) {
+  const { employeeNi, employerNi } = contributions(gross, niCategory, thresholds);
   return {
     grossMinor: String(gross),
     payeMinor: String(paye),
