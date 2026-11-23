@@ -1,5 +1,5 @@
 // Offline 2026–27 scenario: UK, monthly PAYE, zero opening balances,
-// ordinary monthly cash earnings, category A, no other deductions or adjustments.
+// ordinary monthly cash earnings, supplied NI category, no other deductions or adjustments.
 function earningsAbove(gross, threshold) {
   return gross > threshold ? gross - threshold : 0n;
 }
@@ -10,24 +10,24 @@ function roundedNi(hundredthsOfPenny) {
   return hundredthsOfPenny % 100n >= 60n ? pennies + 1n : pennies;
 }
 
-export function calculateApril999LDraft(grossMinor) {
-  return calculateAprilEmployeeDraft(grossMinor, '999L');
+export function calculateApril999LDraft(grossMinor, niCategory = 'A') {
+  return calculateAprilEmployeeDraft(grossMinor, '999L', niCategory);
 }
 
-export function calculateAprilEmployeeDraft(grossMinor, taxCode) {
+export function calculateAprilEmployeeDraft(grossMinor, taxCode, niCategory = 'A') {
   const gross = readGross(grossMinor);
   const due = taxForPayday(gross, gross, 0n, taxCode, 1n);
-  return payslip(gross, cappedDeduction(due, gross));
+  return payslip(gross, cappedDeduction(due, gross), niCategory);
 }
 
 // Consecutive ordinary paydays with the same code and no previous employment.
-export function calculateMayEmployeeDraft(aprilGrossMinor, mayGrossMinor, taxCode) {
-  return calculateMonthlyEmployeeDraft([aprilGrossMinor, mayGrossMinor], taxCode);
+export function calculateMayEmployeeDraft(aprilGrossMinor, mayGrossMinor, taxCode, niCategory = 'A') {
+  return calculateMonthlyEmployeeDraft([aprilGrossMinor, mayGrossMinor], taxCode, niCategory);
 }
 
 // Supply one code throughout, or the code in force on each payday. A trailing ' M1' selects month-one treatment.
 // Gross and code histories start in April.
-export function calculateMonthlyEmployeeDraft(grossHistory, taxCodes) {
+export function calculateMonthlyEmployeeDraft(grossHistory, taxCodes, niCategory = 'A') {
   if (!Array.isArray(grossHistory) || grossHistory.length < 1 || grossHistory.length > 12) {
     throw new RangeError('Expected one to twelve consecutive monthly gross amounts');
   }
@@ -44,7 +44,7 @@ export function calculateMonthlyEmployeeDraft(grossHistory, taxCodes) {
     const taxCode = hasCodeHistory ? taxCodes[index] : taxCodes;
     const due = taxForPayday(gross, grossToDate, taxPaid, taxCode, BigInt(index + 1));
     const deduction = cappedDeduction(due, gross);
-    if (index === grossHistory.length - 1) return payslip(gross, deduction);
+    if (index === grossHistory.length - 1) return payslip(gross, deduction, niCategory);
     taxPaid += deduction;
   }
 }
@@ -120,11 +120,22 @@ function cumulativeTax(grossToDate, suppliedCode, month) {
   }
 }
 
-function payslip(gross, paye) {
+// Current payday only. Main employee rates are in basis points; thresholds are in pence.
+const niCategories = new Map([
+  ['A', [800n, 41700n]], ['B', [185n, 41700n]], ['C', [0n, 41700n]], ['J', [200n, 41700n]],
+  ['F', [800n, 208300n]], ['I', [185n, 208300n]], ['S', [0n, 208300n]], ['L', [200n, 208300n]],
+  ['N', [800n, 208300n]], ['E', [185n, 208300n]], ['K', [0n, 208300n]], ['D', [200n, 208300n]],
+  ['H', [800n, 418900n]], ['M', [800n, 418900n]], ['V', [800n, 418900n]], ['Z', [200n, 418900n]],
+]);
+
+function payslip(gross, paye, niCategory) {
+  const terms = niCategories.get(niCategory);
+  if (!terms) throw new RangeError('Unsupported employee NI category');
+  const [mainRate, employerThreshold] = terms;
   const aboveUpperLimit = earningsAbove(gross, 418900n);
   const mainBandEarnings = earningsAbove(gross, 104800n) - aboveUpperLimit;
-  const employeeNi = roundedNi(mainBandEarnings * 8n + aboveUpperLimit * 2n);
-  const employerNi = roundedNi(earningsAbove(gross, 41700n) * 15n);
+  const employeeNi = mainRate === 0n ? 0n : roundedNi(mainBandEarnings * mainRate / 100n + aboveUpperLimit * 2n);
+  const employerNi = roundedNi(earningsAbove(gross, employerThreshold) * 15n);
   return {
     grossMinor: String(gross),
     payeMinor: String(paye),

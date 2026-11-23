@@ -307,3 +307,17 @@ test('Welsh K and zero-allowance codes use the supplied prefix; NT is unprefixed
     assert.throws(() => calculateAprilEmployeeDraft('95000', code), RangeError);
   }
 });
+
+test('all 224 monthly NI workbook examples reconcile employee, employer and total contributions', () => {
+  const pack = JSON.parse(readFileSync(new URL('./fixtures/hmrc-ni-2026-27-v1.0.json', import.meta.url)));
+  const rows = pack.cases.filter(({ input }) => input.frequency === 'monthly');
+  assert.equal(rows.length, 224);
+  for (const { id, input, expected } of rows) {
+    const result = calculateMonthlyEmployeeDraft([input.grossPayMinor], 'NT', input.category);
+    assert.equal(result.employeeNiMinor, expected.employeeNiMinor, id);
+    assert.equal(result.employerNiMinor, expected.employerNiMinor, id);
+    assert.equal(BigInt(result.employeeNiMinor) + BigInt(result.employerNiMinor), BigInt(expected.totalNiMinor), id);
+    assert.equal(BigInt(result.netMinor), BigInt(input.grossPayMinor) - BigInt(expected.employeeNiMinor), id);
+  }
+  assert.throws(() => calculateAprilEmployeeDraft('250000', 'NT', 'X'), RangeError);
+});
