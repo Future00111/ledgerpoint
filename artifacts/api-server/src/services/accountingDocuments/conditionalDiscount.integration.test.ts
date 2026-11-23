@@ -52,7 +52,7 @@ async function financialSnapshot(company:string) {
  }
  return snapshot;
 }
-async function fixture(){
+async function fixture(reference='Synthetic witness cash'){
  const company=randomUUID(),customer=randomUUID();
  await admin.query(`INSERT INTO companies(id,name,country,base_currency,vat_registered,vat_scheme,vat_accounting_basis,status)
  VALUES($1,'Synthetic witness','GB','GBP',false,'standard','invoice','active')`,[company]);
@@ -66,10 +66,16 @@ async function fixture(){
  await saveConfiguration(company,actor,{revision:null,mappings,business_accounting_basis:'accrual'});
  await addPeriod(company,actor,{start_date:'2026-01-01',end_date:'2026-12-31',financial_year_label:'Synthetic 2026'});
  await savePaymentConfiguration(company,actor,{revision:null,mappings:payment});
- const body={id:randomUUID(),kind:'payment',party_type:'customer',party_id:customer,payment_id:null,date:'2026-11-03',reference:'Synthetic witness cash',amount_minor:'100',allocations:[]};
+ const body={id:randomUUID(),kind:'payment',party_type:'customer',party_id:customer,payment_id:null,date:'2026-11-03',reference,amount_minor:'100',allocations:[]};
  const review=await previewPayment(company,actor,body);
  return {company,body:{...body,review_token:review.review_token}};
 }
+// This company is reserved for the later backup/restore rehearsal.
+test('prepare the isolated payment witness for the restore rehearsal', async () => {
+ const f = await fixture('Synthetic restore rehearsal seed');
+ await postPayment(f.company, actor, f.body);
+ assert.equal((await captureCommittedPaymentWitness(f.company, actor, f.body.id)).status, 'recorded');
+});
 async function insertWitness(q:any,f:any,overrides:{hash?:string,actor?:string,journal?:string}={}){
  return q.query(`INSERT INTO public.conditional_discount_commit_witnesses(company_id,event_id,journal_id,event_source_hash,actor_id)
  SELECT e.company_id,e.id,COALESCE($5::uuid,e.journal_id),COALESCE($4::text,j.source_revision),$3 FROM public.accounting_payment_events e

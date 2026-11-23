@@ -106,17 +106,15 @@ async function main() {
     if (phase === 'prepare') {
       // Reuse the dedicated fixture's valid configuration and single owner.
       // Create this event through the native transaction before the dump baseline.
-      const fixture = (await pool.query(`SELECT e.company_id,e.id,e.source,e.actor_id
+      const seeds = (await pool.query(`SELECT e.company_id,e.id,e.source,e.actor_id
         FROM accounting_payment_events e JOIN conditional_discount_commit_witnesses w ON w.event_id=e.id AND w.company_id=e.company_id
         WHERE e.actor_id='synthetic-witness-owner' AND e.kind='payment' AND e.party_type='customer'
-        -- The prepare phase posts £1. Do not contaminate another restore
-        -- acceptance fixture's expected historical or unapplied balances.
-        AND NOT EXISTS(SELECT 1 FROM conditional_discount_compensations c WHERE c.company_id=e.company_id)
-        AND NOT EXISTS(SELECT 1 FROM conditional_discount_replacement_observations o WHERE o.company_id=e.company_id)
+        AND e.source->'intent'->>'reference'='Synthetic restore rehearsal seed'
         AND (SELECT count(*) FROM company_users u WHERE u.company_id=e.company_id AND u.user_id=e.actor_id)=1
         AND EXISTS(SELECT 1 FROM company_users u WHERE u.company_id=e.company_id AND u.user_id=e.actor_id AND u.is_active AND u.role='owner')
-        ORDER BY e.id LIMIT 1`)).rows[0];
-      assert.ok(fixture, 'Populated native witness fixture is required before restore.');
+        `)).rows;
+      assert.equal(seeds.length, 1, 'Expected one isolated native payment witness for restore.');
+      const [fixture] = seeds;
       // Reuse the capture permission fixture; no source or membership mutation.
       const source = (await pool.query(`SELECT s.*,inactive.user_id inactive_actor,reader.user_id reader_actor
         FROM document_intake_sources s
