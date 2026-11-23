@@ -1,4 +1,4 @@
-// Offline April 2026 scenario: England, cumulative 999L or 1257L, zero opening balances,
+// Offline April–May 2026 scenario: England, cumulative 999L or 1257L, zero opening balances,
 // ordinary monthly cash earnings, category A, no other deductions or adjustments.
 function earningsAbove(gross, threshold) {
   return gross > threshold ? gross - threshold : 0n;
@@ -15,9 +15,21 @@ export function calculateApril999LDraft(grossMinor) {
 }
 
 export function calculateAprilEmployeeDraft(grossMinor, taxCode) {
-  if (taxCode !== '999L' && taxCode !== '1257L') {
-    throw new RangeError('Expected cumulative England tax code 999L or 1257L');
-  }
+  const gross = readGross(grossMinor);
+  return payslip(gross, cumulativeTax(gross, taxCode, 1n));
+}
+
+// Consecutive ordinary paydays with the same code and no previous employment.
+export function calculateMayEmployeeDraft(aprilGrossMinor, mayGrossMinor, taxCode) {
+  const april = readGross(aprilGrossMinor);
+  const may = readGross(mayGrossMinor);
+  if (may === 0n) throw new RangeError('Expected a May payment');
+  const aprilTax = cumulativeTax(april, taxCode, 1n);
+  const mayTax = cumulativeTax(april + may, taxCode, 2n) - aprilTax;
+  return payslip(may, mayTax);
+}
+
+function readGross(grossMinor) {
   if (typeof grossMinor !== 'string' || !/^(?:0|[1-9][0-9]{0,6})$/.test(grossMinor)) {
     throw new RangeError('Expected gross from £0 through £10,000 in pence');
   }
@@ -25,23 +37,34 @@ export function calculateAprilEmployeeDraft(grossMinor, taxCode) {
   if (gross > 1000000n) {
     throw new RangeError('Expected gross from £0 through £10,000 in pence');
   }
+  return gross;
+}
+
+function cumulativeTax(grossToDate, taxCode, month) {
+  if (taxCode !== '999L' && taxCode !== '1257L') {
+    throw new RangeError('Expected cumulative England tax code 999L or 1257L');
+  }
   // HMRC Table A: blocks of 500 plus the month-one value for code 499 or 257.
   const monthOneFreePay = taxCode === '999L' ? 41667n + 41659n : 2n * 41667n + 21492n;
-  const taxablePence = earningsAbove(gross, monthOneFreePay);
+  const taxablePence = earningsAbove(grossToDate, monthOneFreePay * month);
   const taxableWholePounds = taxablePence / 100n;
   // HMRC PAYE routines v24, definitions 9–11 and England tax formula 3.
   // Test the band before discarding pence. Band and band tax are in £0.0001.
-  const monthOneBand = 37700n * 10000n / 12n;
-  const monthOneBandTax = 7540n * 10000n / 12n;
-  const paye = taxablePence <= 314200n
+  const band = 37700n * 10000n * month / 12n;
+  const bandTax = 7540n * 10000n * month / 12n;
+  const ceilingPence = ((band + 9999n) / 10000n) * 100n;
+  return taxablePence <= ceilingPence
     ? taxableWholePounds * 20n
-    : (monthOneBandTax + (taxableWholePounds * 10000n - monthOneBand) * 40n / 100n) / 100n;
+    : (bandTax + (taxableWholePounds * 10000n - band) * 40n / 100n) / 100n;
+}
+
+function payslip(gross, paye) {
   const aboveUpperLimit = earningsAbove(gross, 418900n);
   const mainBandEarnings = earningsAbove(gross, 104800n) - aboveUpperLimit;
   const employeeNi = roundedNi(mainBandEarnings * 8n + aboveUpperLimit * 2n);
   const employerNi = roundedNi(earningsAbove(gross, 41700n) * 15n);
   return {
-    grossMinor,
+    grossMinor: String(gross),
     payeMinor: String(paye),
     employeeNiMinor: String(employeeNi),
     employerNiMinor: String(employerNi),

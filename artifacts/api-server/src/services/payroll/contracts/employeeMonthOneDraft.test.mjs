@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { calculateApril999LDraft, calculateAprilEmployeeDraft } from './employeeMonthOneDraft.mjs';
+import { calculateApril999LDraft, calculateAprilEmployeeDraft, calculateMayEmployeeDraft } from './employeeMonthOneDraft.mjs';
 
 test('April draft reproduces every reviewed payslip amount from gross alone', () => {
   const fixture = JSON.parse(readFileSync(new URL('./fixtures/employee-month-one-2026-27.json', import.meta.url)));
@@ -90,4 +90,26 @@ test('1257L first taxable pound and explicit code selection', () => {
   for (const code of [undefined, 'S1257L', '1257L M1', 'BR']) {
     assert.throws(() => calculateAprilEmployeeDraft('115625', code), RangeError);
   }
+});
+
+test('May rolls forward the linked HMRC April example and calculates NI on May earnings', () => {
+  const pack = JSON.parse(readFileSync(new URL('./fixtures/hmrc-paye-2026-27-v1.1.json', import.meta.url)));
+  const may = pack.cases.find(item => item.id === 'hmrc-paye-2026-27-rest_of_uk-Gen_cumul-mthly-row-7');
+  const april = pack.cases.find(item => item.id === may.previousExampleId);
+  const result = calculateMayEmployeeDraft(april.input.grossPayMinor, may.input.grossPayMinor, may.input.taxCode);
+  assert.deepEqual(result, { grossMinor: '115626', payeMinor: may.expected.taxDueMinor,
+    employeeNiMinor: '866', employerNiMinor: '11089', netMinor: '112600' });
+  assert.equal(BigInt(april.expected.taxDueMinor) + BigInt(result.payeMinor), BigInt(may.expected.taxDueToDateMinor));
+});
+
+test('lower May earnings refund April PAYE without refunding April NI', () => {
+  assert.deepEqual(calculateMayEmployeeDraft('115625', '10000', '1257L'), {
+    grossMinor: '10000', payeMinor: '-2140', employeeNiMinor: '0', employerNiMinor: '0', netMinor: '12140',
+  });
+  assert.throws(() => calculateMayEmployeeDraft('115625', '0', '1257L'), RangeError);
+});
+
+test('May uses the cumulative two-month higher-rate threshold', () => {
+  assert.equal(calculateMayEmployeeDraft('250000', '545052', '999L').payeMinor, '92360');
+  assert.equal(calculateMayEmployeeDraft('250000', '545053', '999L').payeMinor, '92373');
 });
