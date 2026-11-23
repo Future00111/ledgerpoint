@@ -44,11 +44,11 @@ export function calculateMonthlyEmployeeDraft(grossHistory, taxCode) {
 
 function readGross(grossMinor) {
   if (typeof grossMinor !== 'string' || !/^(?:0|[1-9][0-9]{0,6})$/.test(grossMinor)) {
-    throw new RangeError('Expected gross from £0 through £10,000 in pence');
+    throw new RangeError('Expected gross from £0 through £60,000 in pence');
   }
   const gross = BigInt(grossMinor);
-  if (gross > 1000000n) {
-    throw new RangeError('Expected gross from £0 through £10,000 in pence');
+  if (gross > 6000000n) {
+    throw new RangeError('Expected gross from £0 through £60,000 in pence');
   }
   return gross;
 }
@@ -61,14 +61,21 @@ function cumulativeTax(grossToDate, taxCode, month) {
   const monthOneFreePay = taxCode === '999L' ? 41667n + 41659n : 2n * 41667n + 21492n;
   const taxablePence = earningsAbove(grossToDate, monthOneFreePay * month);
   const taxableWholePounds = taxablePence / 100n;
-  // HMRC PAYE routines v24, definitions 9–11 and England tax formula 3.
-  // Test the band before discarding pence. Band and band tax are in £0.0001.
-  const band = 37700n * 10000n * month / 12n;
-  const bandTax = 7540n * 10000n * month / 12n;
-  const ceilingPence = ((band + 9999n) / 10000n) * 100n;
-  return taxablePence <= ceilingPence
-    ? taxableWholePounds * 20n
-    : (bandTax + (taxableWholePounds * 10000n - band) * 40n / 100n) / 100n;
+  // HMRC PAYE routines v24: select the rate before truncating taxable pounds.
+  const basicLimit = 37700n;
+  const higherLimit = 125140n;
+  const periodBandCeiling = limit => ((limit * month + 11n) / 12n) * 100n;
+  if (taxablePence <= periodBandCeiling(basicLimit)) return taxableWholePounds * 20n;
+  const basicBandTax = basicLimit * 20n / 100n;
+  const higherBandTax = basicBandTax + (higherLimit - basicLimit) * 40n / 100n;
+  const additionalRate = taxablePence > periodBandCeiling(higherLimit);
+  const limit = additionalRate ? higherLimit : basicLimit;
+  const annualTaxAtLimit = additionalRate ? higherBandTax : basicBandTax;
+  const rate = additionalRate ? 45n : 40n;
+  // Threshold and threshold tax are truncated separately to £0.0001.
+  const band = limit * 10000n * month / 12n;
+  const bandTax = annualTaxAtLimit * 10000n * month / 12n;
+  return (bandTax + (taxableWholePounds * 10000n - band) * rate / 100n) / 100n;
 }
 
 function payslip(gross, paye) {

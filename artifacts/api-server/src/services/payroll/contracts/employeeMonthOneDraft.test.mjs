@@ -19,7 +19,7 @@ test('draft calculates a second gross at the employee NI threshold', () => {
 });
 
 test('draft rejects gross outside its supported range and precision', () => {
-  for (const gross of ['-1', '00', '', '1000001', '250000.1', 250000, '0250000']) {
+  for (const gross of ['-1', '00', '', '6000001', '250000.1', 250000, '0250000']) {
     assert.throws(() => calculateApril999LDraft(gross), RangeError);
   }
 });
@@ -27,7 +27,7 @@ test('draft rejects gross outside its supported range and precision', () => {
 test('NI matches all in-range category A monthly rows in the HMRC workbook', () => {
   const pack = JSON.parse(readFileSync(new URL('./fixtures/hmrc-ni-2026-27-v1.0.json', import.meta.url)));
   const rows = pack.cases.filter(({ input }) => input.category === 'A' && input.frequency === 'monthly'
-    && BigInt(input.grossPayMinor) >= 0n && BigInt(input.grossPayMinor) <= 1000000n);
+    && BigInt(input.grossPayMinor) >= 0n && BigInt(input.grossPayMinor) <= 6000000n);
   assert.equal(rows.length, 14);
   for (const { input, expected, id } of rows) {
     const result = calculateApril999LDraft(input.grossPayMinor);
@@ -134,4 +134,26 @@ test('history must start in April and fit one tax year of regular paydays', () =
   for (const history of [[], null, Array(13).fill('10000'), ['10', '0', '10'], Array(3)]) {
     assert.throws(() => calculateMonthlyEmployeeDraft(history, '1257L'), RangeError);
   }
+});
+
+test('replays every consecutive 1257L payment before the HMRC example changes code', () => {
+  const pack = JSON.parse(readFileSync(new URL('./fixtures/hmrc-paye-2026-27-v1.1.json', import.meta.url)));
+  const rows = pack.cases.filter(row => row.sequenceId === 'rest_of_uk/Gen_cumul-mthly' && row.input.taxCode === '1257L');
+  assert.equal(rows.length, 8);
+  const history = [];
+  let taxPaid = 0n;
+  for (const [index, row] of rows.entries()) {
+    assert.equal(row.input.period, index + 1);
+    history.push(row.input.grossPayMinor);
+    const result = calculateMonthlyEmployeeDraft(history, row.input.taxCode);
+    assert.equal(result.payeMinor, row.expected.taxDueMinor, row.id);
+    taxPaid += BigInt(result.payeMinor);
+    assert.equal(String(taxPaid), row.expected.taxDueToDateMinor, row.id);
+  }
+});
+
+test('April 1257L selects the additional rate a penny above its period threshold', () => {
+  assert.equal(calculateAprilEmployeeDraft('1147726', '1257L').payeMinor, '354326');
+  assert.equal(calculateAprilEmployeeDraft('1147727', '1257L').payeMinor, '354330');
+  assert.equal(calculateAprilEmployeeDraft('6000000', '1257L').grossMinor, '6000000');
 });
