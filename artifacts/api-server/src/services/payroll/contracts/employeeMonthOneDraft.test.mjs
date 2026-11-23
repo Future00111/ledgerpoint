@@ -87,7 +87,7 @@ test('1257L April payslip matches the pinned cumulative PAYE example', () => {
 test('1257L first taxable pound and explicit code selection', () => {
   assert.equal(calculateAprilEmployeeDraft('104925', '1257L').payeMinor, '0');
   assert.equal(calculateAprilEmployeeDraft('104926', '1257L').payeMinor, '20');
-  for (const code of [undefined, 'S1257L', '1257L W1', 'BR M1 M1']) {
+  for (const code of [undefined, 'SS1257L', '1257L W1', 'BR M1 M1']) {
     assert.throws(() => calculateAprilEmployeeDraft('115625', code), RangeError);
   }
 });
@@ -246,7 +246,7 @@ test('cumulative D codes carry fractional pounds and use actual prior deductions
   const gross = ['100000', '100000', '100000'];
   assert.equal(calculateMonthlyEmployeeDraft(gross.slice(0, 2), ['BR', 'D1']).payeMinor, '50000');
   assert.equal(calculateMonthlyEmployeeDraft(gross, ['BR', 'D1', 'D0']).payeMinor, '50000');
-  assert.throws(() => calculateAprilEmployeeDraft('9999', 'SD0'), RangeError);
+  assert.throws(() => calculateAprilEmployeeDraft('9999', 'SD4'), RangeError);
 });
 
 test('England K codes reproduce the six monthly HMRC K examples', () => {
@@ -272,12 +272,12 @@ test('K-code adjustment affects only PAYE and caps April tax at half the actual 
     assert.equal(result.employerNiMinor, '0');
     assert.deepEqual(result, calculateMonthlyEmployeeDraft(['101'], code));
   }
-  for (const code of ['K0', 'K01', 'SK585', 'CCK585', 'K10000']) {
+  for (const code of ['K0', 'K01', 'SSK585', 'CCK585', 'K10000']) {
     assert.throws(() => calculateAprilEmployeeDraft('101', code), RangeError);
   }
 });
 
-for (const [region, count] of [['rest_of_uk', 33], ['wales', 21]]) {
+for (const [region, count] of [['rest_of_uk', 33], ['wales', 21], ['scotland', 33]]) {
   test('every monthly workbook row matches period and year-to-date PAYE for ' + region, () => {
     const pack = JSON.parse(readFileSync(new URL('./fixtures/hmrc-paye-2026-27-v1.1.json', import.meta.url)));
     const rows = pack.cases.filter(({ input }) => input.region === region && input.frequency === 'monthly');

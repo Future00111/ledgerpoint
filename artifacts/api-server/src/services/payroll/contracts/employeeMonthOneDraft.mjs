@@ -1,4 +1,4 @@
-// Offline 2026–27 scenario: England and Wales, monthly PAYE, zero opening balances,
+// Offline 2026–27 scenario: UK, monthly PAYE, zero opening balances,
 // ordinary monthly cash earnings, category A, no other deductions or adjustments.
 function earningsAbove(gross, threshold) {
   return gross > threshold ? gross - threshold : 0n;
@@ -71,16 +71,24 @@ function taxForPayday(gross, grossToDate, taxPaid, taxCode, month) {
   return cumulativeTax(grossToDate, taxCode, month) - taxPaid;
 }
 
+// 2026–27 annual upper limits in taxable pounds and marginal rates in percent.
+const scottishBands = [
+  [3967n, 19n], [16956n, 20n], [31092n, 21n],
+  [62430n, 42n], [125140n, 45n], [null, 48n],
+];
+const restOfUkBands = [[37700n, 20n], [125140n, 40n], [null, 45n]];
+
 function cumulativeTax(grossToDate, suppliedCode, month) {
   if (suppliedCode === 'NT') return 0n;
-  // For 2026–27 Wales uses the same rates and bands. NT has no regional prefix.
-  const taxCode = typeof suppliedCode === 'string' && suppliedCode.startsWith('C')
-    ? suppliedCode.slice(1) : suppliedCode;
-  // HMRC PAYE routines v24 §§5–6: flat-rate codes tax whole pounds of pay.
+  const scottish = typeof suppliedCode === 'string' && suppliedCode.startsWith('S');
+  const welsh = typeof suppliedCode === 'string' && suppliedCode.startsWith('C');
+  const taxCode = scottish || welsh ? suppliedCode.slice(1) : suppliedCode;
   const wholePounds = grossToDate / 100n;
   if (taxCode === 'BR') return wholePounds * 20n;
-  if (taxCode === 'D0') return wholePounds * 40n;
-  if (taxCode === 'D1') return wholePounds * 45n;
+  if (taxCode === 'D0') return wholePounds * (scottish ? 21n : 40n);
+  if (taxCode === 'D1') return wholePounds * (scottish ? 42n : 45n);
+  if (scottish && taxCode === 'D2') return wholePounds * 45n;
+  if (scottish && taxCode === 'D3') return wholePounds * 48n;
   let monthOneFreePay = 0n;
   if (taxCode !== '0T') {
     if (typeof taxCode !== 'string' || !/^(?:K[1-9][0-9]{0,3}|[1-9][0-9]{0,3}L)$/.test(taxCode)) {
@@ -98,20 +106,18 @@ function cumulativeTax(grossToDate, suppliedCode, month) {
   const taxablePence = earningsAbove(grossToDate, monthOneFreePay * month);
   const taxableWholePounds = taxablePence / 100n;
   // HMRC PAYE routines v24: select the rate before truncating taxable pounds.
-  const basicLimit = 37700n;
-  const higherLimit = 125140n;
-  const periodBandCeiling = limit => ((limit * month + 11n) / 12n) * 100n;
-  if (taxablePence <= periodBandCeiling(basicLimit)) return taxableWholePounds * 20n;
-  const basicBandTax = basicLimit * 20n / 100n;
-  const higherBandTax = basicBandTax + (higherLimit - basicLimit) * 40n / 100n;
-  const additionalRate = taxablePence > periodBandCeiling(higherLimit);
-  const limit = additionalRate ? higherLimit : basicLimit;
-  const annualTaxAtLimit = additionalRate ? higherBandTax : basicBandTax;
-  const rate = additionalRate ? 45n : 40n;
-  // Threshold and threshold tax are truncated separately to £0.0001.
-  const band = limit * 10000n * month / 12n;
-  const bandTax = annualTaxAtLimit * 10000n * month / 12n;
-  return (bandTax + (taxableWholePounds * 10000n - band) * rate / 100n) / 100n;
+  let lowerLimit = 0n;
+  let annualTaxPence = 0n;
+  for (const [upperLimit, rate] of scottish ? scottishBands : restOfUkBands) {
+    if (upperLimit === null || taxablePence <= ((upperLimit * month + 11n) / 12n) * 100n) {
+      // Both period thresholds are truncated separately to £0.0001.
+      const threshold = lowerLimit * 10000n * month / 12n;
+      const taxAtThreshold = annualTaxPence * 100n * month / 12n;
+      return (taxAtThreshold + (taxableWholePounds * 10000n - threshold) * rate / 100n) / 100n;
+    }
+    annualTaxPence += (upperLimit - lowerLimit) * rate;
+    lowerLimit = upperLimit;
+  }
 }
 
 function payslip(gross, paye) {
