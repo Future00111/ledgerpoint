@@ -1,4 +1,4 @@
-// Offline 2026–27 scenario: England, cumulative 999L, 1257L or BR, zero opening balances,
+// Offline 2026–27 scenario: England, cumulative 999L, 1257L, BR or NT, zero opening balances,
 // ordinary monthly cash earnings, category A, no other deductions or adjustments.
 function earningsAbove(gross, threshold) {
   return gross > threshold ? gross - threshold : 0n;
@@ -60,10 +60,11 @@ function readGross(grossMinor) {
 }
 
 function cumulativeTax(grossToDate, taxCode, month) {
+  if (taxCode === 'NT') return 0n;
   // HMRC PAYE routines v24 §5.4: tax all whole pounds of cumulative pay at basic rate.
   if (taxCode === 'BR') return (grossToDate / 100n) * 20n;
   if (taxCode !== '999L' && taxCode !== '1257L') {
-    throw new RangeError('Expected cumulative England tax code 999L, 1257L or BR');
+    throw new RangeError('Expected cumulative England tax code 999L, 1257L, BR or NT');
   }
   // HMRC Table A: blocks of 500 plus the month-one value for code 499 or 257.
   const monthOneFreePay = taxCode === '999L' ? 41667n + 41659n : 2n * 41667n + 21492n;

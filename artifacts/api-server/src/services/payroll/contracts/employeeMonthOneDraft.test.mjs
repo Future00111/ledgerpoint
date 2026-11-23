@@ -170,7 +170,7 @@ test('December BR uses the earlier payslips to reproduce the HMRC cumulative ref
 });
 
 test('code histories require one supported cumulative code for each payday', () => {
-  for (const codes of [[], ['BR'], ['BR', 'NT'], ['BR M1', 'BR'], Array(2)]) {
+  for (const codes of [[], ['BR'], ['BR', 'NT M1'], ['BR M1', 'BR'], Array(2)]) {
     assert.throws(() => calculateMonthlyEmployeeDraft(['100', '100'], codes), RangeError);
   }
   assert.equal(calculateMonthlyEmployeeDraft(['199', '199'], 'BR').payeMinor, '40');
@@ -179,4 +179,21 @@ test('code histories require one supported cumulative code for each payday', () 
 test('BR catch-up carries forward the tax actually withheld after a capped payday', () => {
   assert.equal(calculateMonthlyEmployeeDraft(['100000', '10000'], ['1257L', 'BR']).payeMinor, '5000');
   assert.equal(calculateMonthlyEmployeeDraft(['100000', '10000', '100000'], ['1257L', 'BR', 'BR']).payeMinor, '37000');
+});
+
+test('January cumulative NT refunds the remaining PAYE and still charges category A NI', () => {
+  const pack = JSON.parse(readFileSync(new URL('./fixtures/hmrc-paye-2026-27-v1.1.json', import.meta.url)));
+  const rows = pack.cases.filter(row => row.sequenceId === 'rest_of_uk/Gen_cumul-mthly');
+  const gross = rows.map(row => row.input.grossPayMinor);
+  const codes = rows.map(row => row.input.taxCode);
+  const january = rows.at(-1);
+  assert.equal(january.input.period, 10);
+  assert.equal(january.input.taxCode, 'NT');
+  assert.equal(january.input.week1Month1, null);
+  const result = calculateMonthlyEmployeeDraft(gross, codes);
+  assert.deepEqual(result, { grossMinor: '1124505', payeMinor: january.expected.taxDueMinor,
+    employeeNiMinor: '39240', employerNiMinor: '162421', netMinor: '4928725' });
+  assert.equal(BigInt(rows.at(-2).expected.taxDueToDateMinor) + BigInt(result.payeMinor),
+    BigInt(january.expected.taxDueToDateMinor));
+  assert.equal(calculateMonthlyEmployeeDraft([...gross, '100000'], [...codes, 'NT']).payeMinor, '0');
 });
