@@ -1,4 +1,4 @@
-// Offline 2026–27 scenario: England, cumulative 999L, 1257L, 0T, BR or NT, zero opening balances,
+// Offline 2026–27 scenario: England, monthly PAYE, zero opening balances,
 // ordinary monthly cash earnings, category A, no other deductions or adjustments.
 function earningsAbove(gross, threshold) {
   return gross > threshold ? gross - threshold : 0n;
@@ -16,7 +16,7 @@ export function calculateApril999LDraft(grossMinor) {
 
 export function calculateAprilEmployeeDraft(grossMinor, taxCode) {
   const gross = readGross(grossMinor);
-  return payslip(gross, cumulativeTax(gross, taxCode, 1n));
+  return payslip(gross, taxForPayday(gross, gross, 0n, taxCode, 1n));
 }
 
 // Consecutive ordinary paydays with the same code and no previous employment.
@@ -24,7 +24,7 @@ export function calculateMayEmployeeDraft(aprilGrossMinor, mayGrossMinor, taxCod
   return calculateMonthlyEmployeeDraft([aprilGrossMinor, mayGrossMinor], taxCode);
 }
 
-// Supply one cumulative code throughout, or the code in force on each payday.
+// Supply one code throughout, or the code in force on each payday. A trailing ' M1' selects month-one treatment.
 // Gross and code histories start in April.
 export function calculateMonthlyEmployeeDraft(grossHistory, taxCodes) {
   if (!Array.isArray(grossHistory) || grossHistory.length < 1 || grossHistory.length > 12) {
@@ -41,7 +41,7 @@ export function calculateMonthlyEmployeeDraft(grossHistory, taxCodes) {
     if (index > 0 && gross === 0n) throw new RangeError('Expected a payment after April');
     grossToDate += gross;
     const taxCode = hasCodeHistory ? taxCodes[index] : taxCodes;
-    const due = cumulativeTax(grossToDate, taxCode, BigInt(index + 1)) - taxPaid;
+    const due = taxForPayday(gross, grossToDate, taxPaid, taxCode, BigInt(index + 1));
     const deduction = due > gross / 2n ? gross / 2n : due;
     if (index === grossHistory.length - 1) return payslip(gross, deduction);
     taxPaid += deduction;
@@ -59,6 +59,13 @@ function readGross(grossMinor) {
   return gross;
 }
 
+function taxForPayday(gross, grossToDate, taxPaid, taxCode, month) {
+  if (typeof taxCode === 'string' && taxCode.endsWith(' M1')) {
+    return cumulativeTax(gross, taxCode.slice(0, -3), 1n);
+  }
+  return cumulativeTax(grossToDate, taxCode, month) - taxPaid;
+}
+
 function cumulativeTax(grossToDate, taxCode, month) {
   if (taxCode === 'NT') return 0n;
   // HMRC PAYE routines v24 §5.4: tax all whole pounds of cumulative pay at basic rate.
@@ -66,10 +73,11 @@ function cumulativeTax(grossToDate, taxCode, month) {
   // HMRC Table A for suffix codes. Cumulative 0T has no free pay.
   let monthOneFreePay;
   switch (taxCode) {
+    case '45L': monthOneFreePay = 3825n; break;
     case '999L': monthOneFreePay = 41667n + 41659n; break;
     case '1257L': monthOneFreePay = 2n * 41667n + 21492n; break;
     case '0T': monthOneFreePay = 0n; break;
-    default: throw new RangeError('Expected cumulative England tax code 999L, 1257L, 0T, BR or NT');
+    default: throw new RangeError('Expected England tax code 45L, 999L, 1257L, 0T, BR or NT');
   }
   const taxablePence = earningsAbove(grossToDate, monthOneFreePay * month);
   const taxableWholePounds = taxablePence / 100n;

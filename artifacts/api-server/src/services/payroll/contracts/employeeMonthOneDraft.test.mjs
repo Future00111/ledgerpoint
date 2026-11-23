@@ -87,7 +87,7 @@ test('1257L April payslip matches the pinned cumulative PAYE example', () => {
 test('1257L first taxable pound and explicit code selection', () => {
   assert.equal(calculateAprilEmployeeDraft('104925', '1257L').payeMinor, '0');
   assert.equal(calculateAprilEmployeeDraft('104926', '1257L').payeMinor, '20');
-  for (const code of [undefined, 'S1257L', '1257L M1', 'BR M1']) {
+  for (const code of [undefined, 'S1257L', '1257L W1', 'BR M1 M1']) {
     assert.throws(() => calculateAprilEmployeeDraft('115625', code), RangeError);
   }
 });
@@ -170,7 +170,7 @@ test('December BR uses the earlier payslips to reproduce the HMRC cumulative ref
 });
 
 test('code histories require one supported cumulative code for each payday', () => {
-  for (const codes of [[], ['BR'], ['BR', 'NT M1'], ['BR M1', 'BR'], Array(2)]) {
+  for (const codes of [[], ['BR'], ['BR', 'NT W1'], ['BR m1', 'BR'], Array(2)]) {
     assert.throws(() => calculateMonthlyEmployeeDraft(['100', '100'], codes), RangeError);
   }
   assert.equal(calculateMonthlyEmployeeDraft(['199', '199'], 'BR').payeMinor, '40');
@@ -207,5 +207,24 @@ test('cumulative 0T applies all three England bands without free pay', () => {
   }
   // £4,000 cumulative taxable earnings at 20%, less £190.20 already deducted in April.
   assert.equal(calculateMonthlyEmployeeDraft(['200000', '200000'], ['1257L', '0T']).payeMinor, '60980');
-  assert.throws(() => calculateAprilEmployeeDraft('100000', '0T M1'), RangeError);
+  assert.throws(() => calculateAprilEmployeeDraft('100000', '0T W1'), RangeError);
+});
+
+test('month-one PAYE matches all eight England 45L monthly HMRC examples even after earlier pay', () => {
+  const pack = JSON.parse(readFileSync(new URL('./fixtures/hmrc-paye-2026-27-v1.1.json', import.meta.url)));
+  const rows = pack.cases.filter(({ input }) => input.region === 'rest_of_uk' && input.taxCode === '45L'
+    && input.frequency === 'monthly' && input.week1Month1 === 'WM1');
+  assert.equal(rows.length, 8);
+  for (const { id, input, expected } of rows) {
+    assert.equal(calculateAprilEmployeeDraft(input.grossPayMinor, '45L M1').payeMinor, expected.taxDueMinor, id);
+    assert.equal(calculateMayEmployeeDraft('500000', input.grossPayMinor, ['1257L', '45L M1']).payeMinor, expected.taxDueMinor, id);
+  }
+});
+
+test('NT M1 skips a refund on that payday and cumulative NT later refunds the actual tax paid', () => {
+  const gross = ['200000', '200000', '200000'];
+  const codes = ['BR', 'NT M1', 'NT'];
+  assert.equal(calculateMonthlyEmployeeDraft(gross.slice(0, 2), codes.slice(0, 2)).payeMinor, '0');
+  assert.equal(calculateMonthlyEmployeeDraft(gross, codes).payeMinor, '-40000');
+  assert.equal(calculateMonthlyEmployeeDraft(gross, ['BR', 'BR M1', 'NT']).payeMinor, '-80000');
 });
