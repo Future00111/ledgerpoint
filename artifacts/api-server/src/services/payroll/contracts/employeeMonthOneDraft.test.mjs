@@ -197,3 +197,15 @@ test('January cumulative NT refunds the remaining PAYE and still charges categor
     BigInt(january.expected.taxDueToDateMinor));
   assert.equal(calculateMonthlyEmployeeDraft([...gross, '100000'], [...codes, 'NT']).payeMinor, '0');
 });
+
+test('cumulative 0T applies all three England bands without free pay', () => {
+  for (const [gross, paye] of [
+    ['99', '0'], ['100', '20'], ['314200', '62840'], ['314201', '62846'],
+    ['1042900', '354326'], ['1042901', '354330'],
+  ]) {
+    assert.equal(calculateAprilEmployeeDraft(gross, '0T').payeMinor, paye);
+  }
+  // £4,000 cumulative taxable earnings at 20%, less £190.20 already deducted in April.
+  assert.equal(calculateMonthlyEmployeeDraft(['200000', '200000'], ['1257L', '0T']).payeMinor, '60980');
+  assert.throws(() => calculateAprilEmployeeDraft('100000', '0T M1'), RangeError);
+});
