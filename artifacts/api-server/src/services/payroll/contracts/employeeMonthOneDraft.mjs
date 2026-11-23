@@ -44,6 +44,19 @@ export function calculateFourWeeklyEmployeeDraft(grossHistory, taxCodes, niCateg
 }
 
 function calculateEmployeeDraft(grossHistory, taxCodes, niCategory, frequency, week52FreePayMinor) {
+  const paye = calculatePaydayPaye(grossHistory, taxCodes, frequency, week52FreePayMinor);
+  return payslip(BigInt(grossHistory.at(-1)), paye, niCategory, niThresholdsByFrequency.get(frequency));
+}
+
+// One regular payment per tax week from week 1. NI uses only payments since appointment.
+export function calculateWeeklyDirectorPayslipDraft(grossHistory, taxCodes, category, appointmentWeek, week52FreePayMinor) {
+  const paye = calculatePaydayPaye(grossHistory, taxCodes, 'weekly', week52FreePayMinor);
+  const directorHistory = grossHistory.slice(appointmentWeek - 1);
+  const ni = calculateDirectorNiDraft(directorHistory, category, appointmentWeek);
+  return formatPayslip(BigInt(grossHistory.at(-1)), paye, BigInt(ni.employeeNiMinor), BigInt(ni.employerNiMinor));
+}
+
+function calculatePaydayPaye(grossHistory, taxCodes, frequency, week52FreePayMinor) {
   const periods = frequency === 'monthly' ? 12n : 52n;
   const interval = frequency === 'fortnightly' ? 2n : frequency === 'four_weekly' ? 4n : 1n;
   const maxPayments = periods / interval + (frequency === 'monthly' ? 0n : 1n);
@@ -64,7 +77,7 @@ function calculateEmployeeDraft(grossHistory, taxCodes, niCategory, frequency, w
     const previousCode = hasCodeHistory ? taxCodes[index - 1] : taxCode;
     const due = taxForPayday(gross, grossToDate, taxPaid, taxCode, BigInt(index + 1) * interval, periods, previousCode, interval, week52FreePayMinor);
     const deduction = cappedDeduction(due, gross);
-    if (index === grossHistory.length - 1) return payslip(gross, deduction, niCategory, niThresholdsByFrequency.get(frequency));
+    if (index === grossHistory.length - 1) return deduction;
     taxPaid += deduction;
   }
 }
@@ -210,6 +223,10 @@ export function calculatePeriodNiDraft(grossMinor, frequency, niCategory = 'A') 
 
 function payslip(gross, paye, niCategory, thresholds = monthlyThresholds) {
   const { employeeNi, employerNi } = contributions(gross, niCategory, thresholds);
+  return formatPayslip(gross, paye, employeeNi, employerNi);
+}
+
+function formatPayslip(gross, paye, employeeNi, employerNi) {
   return {
     grossMinor: String(gross),
     payeMinor: String(paye),
@@ -217,4 +234,57 @@ function payslip(gross, paye, niCategory, thresholds = monthlyThresholds) {
     employerNiMinor: String(employerNi),
     netMinor: String(gross - paye - employeeNi),
   };
+}
+
+// Standard annual method, 2026–27. Director in post at the start of the tax year,
+// category A throughout, with all NI-able payments supplied in chronological order.
+export function calculateFullYearCategoryADirectorNiDraft(grossHistory) {
+  return calculateDirectorNiDraft(grossHistory, 'A', 1);
+}
+
+// Supply NI-able earnings since appointment and one unchanged category throughout.
+export function calculateDirectorNiDraft(grossHistory, category, appointmentWeek) {
+  const thresholds = directorThresholds(category, appointmentWeek);
+  if (!Array.isArray(grossHistory) || grossHistory.length === 0) {
+    throw new RangeError('Expected director payments starting with the first payday');
+  }
+  const currentGross = readGross(grossHistory.at(-1));
+  let previousGross = 0n;
+  for (const gross of grossHistory.slice(0, -1)) previousGross += readGross(gross);
+  const previous = contributions(previousGross, category, thresholds);
+  const current = contributions(previousGross + currentGross, category, thresholds);
+  return directorNiBalance(current, previous);
+}
+
+// Last payday under the alternative method. Recorded totals exclude this payday.
+export function reconcileDirectorNiDraft(grossHistory, category, appointmentWeek, paid) {
+  const thresholds = directorThresholds(category, appointmentWeek);
+  if (!Array.isArray(grossHistory) || grossHistory.length === 0) throw new RangeError('Expected director pay history');
+  let grossToDate = 0n;
+  for (const amount of grossHistory) grossToDate += readGross(amount);
+  const readPaid = amount => {
+    if (typeof amount !== 'string' || !/^(0|[1-9][0-9]*)$/.test(amount)) throw new RangeError('Expected NI paid in whole pence');
+    return BigInt(amount);
+  };
+  return directorNiBalance(contributions(grossToDate, category, thresholds), {
+    employeeNi: readPaid(paid?.employeeNiMinor), employerNi: readPaid(paid?.employerNiMinor),
+  });
+}
+
+function directorThresholds(category, appointmentWeek) {
+  if (category !== 'A' && category !== 'M') throw new RangeError('Expected director NI category A or M');
+  if (!Number.isInteger(appointmentWeek) || appointmentWeek < 1 || appointmentWeek > 53) {
+    throw new RangeError('Expected appointment week from 1 through 53');
+  }
+  // CA44 sections 24–25: count the appointment week, then round each threshold up in pounds.
+  const weeks = BigInt(Math.max(1, 53 - appointmentWeek));
+  const threshold = annualPounds => ((annualPounds * weeks + 51n) / 52n) * 100n;
+  return { primary: threshold(12570n), standard: threshold(5000n), upper: threshold(50270n) };
+}
+
+function directorNiBalance(current, previous) {
+  const employee = current.employeeNi - previous.employeeNi;
+  const employer = current.employerNi - previous.employerNi;
+  return { employeeNiMinor: String(employee), employerNiMinor: String(employer),
+    totalNiMinor: String(employee + employer) };
 }

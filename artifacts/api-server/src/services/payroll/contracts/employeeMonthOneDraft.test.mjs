@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { calculateFortnightlyEmployeeDraft, calculateFourWeeklyEmployeeDraft, calculatePeriodNiDraft, calculateWeeklyEmployeeDraft, calculateWeeklyNiDraft, calculateApril999LDraft, calculateAprilEmployeeDraft, calculateMayEmployeeDraft, calculateMonthlyEmployeeDraft } from './employeeMonthOneDraft.mjs';
+import { calculateWeeklyDirectorPayslipDraft, reconcileDirectorNiDraft, calculateDirectorNiDraft, calculateFullYearCategoryADirectorNiDraft, calculateFortnightlyEmployeeDraft, calculateFourWeeklyEmployeeDraft, calculatePeriodNiDraft, calculateWeeklyEmployeeDraft, calculateWeeklyNiDraft, calculateApril999LDraft, calculateAprilEmployeeDraft, calculateMayEmployeeDraft, calculateMonthlyEmployeeDraft } from './employeeMonthOneDraft.mjs';
 
 test('April draft reproduces every reviewed payslip amount from gross alone', () => {
   const fixture = JSON.parse(readFileSync(new URL('./fixtures/employee-month-one-2026-27.json', import.meta.url)));
@@ -450,4 +450,60 @@ test('M, N and T suffixes use the issued allowance number throughout the pay his
     }
   }
   assert.throws(() => calculateAprilEmployeeDraft('360000', '1131MT'), RangeError);
+});
+
+test('full-year category A director annual NI matches the £52,000 HMRC example across pay schedules', () => {
+  const annual = calculateFullYearCategoryADirectorNiDraft(['5200000']);
+  assert.deepEqual(annual, { employeeNiMinor: '305060', employerNiMinor: '705000', totalNiMinor: '1010060' });
+  let employee = 0n, employer = 0n;
+  for (let week = 1; week <= 52; week++) {
+    const payment = calculateFullYearCategoryADirectorNiDraft(Array(week).fill('100000'));
+    employee += BigInt(payment.employeeNiMinor);
+    employer += BigInt(payment.employerNiMinor);
+    if (week === 6) assert.equal(payment.employerNiMinor, '15000');
+    if (week === 13) assert.equal(payment.employeeNiMinor, '3440');
+  }
+  assert.equal(String(employee), annual.employeeNiMinor);
+  assert.equal(String(employer), annual.employerNiMinor);
+  for (const history of [[], ['100000', '-1'], Array(2)]) {
+    assert.throws(() => calculateFullYearCategoryADirectorNiDraft(history), RangeError);
+  }
+});
+
+test('director appointment week sets annual NI thresholds for the remaining tax year', () => {
+  assert.deepEqual(calculateDirectorNiDraft(['4800000'], 'M', 5),
+    { employeeNiMinor: '281592', employerNiMinor: '23940', totalNiMinor: '305532' });
+  for (const week of [52, 53]) {
+    assert.deepEqual(calculateDirectorNiDraft(['96700', '10000'], 'M', week),
+      { employeeNiMinor: '200', employerNiMinor: '1500', totalNiMinor: '1700' });
+  }
+  for (const week of [0, 54, 1.5, '5']) assert.throws(() => calculateDirectorNiDraft(['100'], 'M', week), RangeError);
+  assert.throws(() => calculateDirectorNiDraft(['100'], 'X', 5), RangeError);
+});
+
+test('alternative director NI reconciles recorded weekly deductions on the final payday', () => {
+  for (const [category, week, count, employee, employer] of [
+    ['A', 1, 52, '5894', '13440'], ['M', 5, 48, '5890', '675'],
+  ]) {
+    const weekly = calculateWeeklyNiDraft('100000', category);
+    const prior = BigInt(count - 1);
+    const paid = { employeeNiMinor: String(BigInt(weekly.employeeNiMinor) * prior),
+      employerNiMinor: String(BigInt(weekly.employerNiMinor) * prior) };
+    assert.deepEqual(reconcileDirectorNiDraft(Array(count).fill('100000'), category, week, paid),
+      { employeeNiMinor: employee, employerNiMinor: employer, totalNiMinor: String(BigInt(employee) + BigInt(employer)) });
+  }
+  assert.deepEqual(reconcileDirectorNiDraft(['10000'], 'A', 1, { employeeNiMinor: '10', employerNiMinor: '20' }),
+    { employeeNiMinor: '-10', employerNiMinor: '-20', totalNiMinor: '-30' });
+  assert.throws(() => reconcileDirectorNiDraft(['10000'], 'A', 1, {}), RangeError);
+});
+
+test('weekly standard-method director payslip separates PAYE history from director NI earnings', () => {
+  const earnings = [...Array(4).fill('1000000'), '2000000'];
+  const paye = calculateWeeklyEmployeeDraft(earnings, '1257L').payeMinor;
+  const slip = calculateWeeklyDirectorPayslipDraft(earnings, '1257L', 'M', 5);
+  assert.deepEqual(slip, { grossMinor: '2000000', payeMinor: paye, employeeNiMinor: '67168',
+    employerNiMinor: '0', netMinor: String(2000000n - BigInt(paye) - 67168n) });
+  assert.deepEqual(calculateWeeklyDirectorPayslipDraft(['1500000'], 'BR', 'A', 1),
+    { grossMinor: '1500000', payeMinor: '300000', employeeNiMinor: '19440', employerNiMinor: '150000', netMinor: '1180560' });
+  assert.throws(() => calculateWeeklyDirectorPayslipDraft(['100000'], 'BR', 'M', 2), RangeError);
 });
