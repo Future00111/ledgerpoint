@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { calculateApril999LDraft } from './employeeMonthOneDraft.mjs';
+import { calculateApril999LDraft, calculateAprilEmployeeDraft } from './employeeMonthOneDraft.mjs';
 
 test('April draft reproduces every reviewed payslip amount from gross alone', () => {
   const fixture = JSON.parse(readFileSync(new URL('./fixtures/employee-month-one-2026-27.json', import.meta.url)));
@@ -71,4 +71,23 @@ test('above the NI upper limit the employee pays 2% on the excess', () => {
     employerNiMinor: '68745', netMinor: '369444',
   });
   assert.equal(calculateApril999LDraft('1000000').grossMinor, '1000000');
+});
+
+test('1257L April payslip matches the pinned cumulative PAYE example', () => {
+  const pack = JSON.parse(readFileSync(new URL('./fixtures/hmrc-paye-2026-27-v1.1.json', import.meta.url)));
+  const row = pack.cases.find(item => item.id === 'hmrc-paye-2026-27-rest_of_uk-Gen_cumul-mthly-row-6');
+  assert.equal(row.input.taxCode, '1257L');
+  const result = calculateAprilEmployeeDraft(row.input.grossPayMinor, row.input.taxCode);
+  assert.deepEqual(result, {
+    grossMinor: '115625', payeMinor: row.expected.taxDueMinor, employeeNiMinor: '866',
+    employerNiMinor: '11089', netMinor: '112619',
+  });
+});
+
+test('1257L first taxable pound and explicit code selection', () => {
+  assert.equal(calculateAprilEmployeeDraft('104925', '1257L').payeMinor, '0');
+  assert.equal(calculateAprilEmployeeDraft('104926', '1257L').payeMinor, '20');
+  for (const code of [undefined, 'S1257L', '1257L M1', 'BR']) {
+    assert.throws(() => calculateAprilEmployeeDraft('115625', code), RangeError);
+  }
 });

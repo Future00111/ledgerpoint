@@ -1,4 +1,4 @@
-// Offline April 2026 scenario: England, cumulative 999L, zero opening balances,
+// Offline April 2026 scenario: England, cumulative 999L or 1257L, zero opening balances,
 // ordinary monthly cash earnings, category A, no other deductions or adjustments.
 function earningsAbove(gross, threshold) {
   return gross > threshold ? gross - threshold : 0n;
@@ -11,6 +11,13 @@ function roundedNi(hundredthsOfPenny) {
 }
 
 export function calculateApril999LDraft(grossMinor) {
+  return calculateAprilEmployeeDraft(grossMinor, '999L');
+}
+
+export function calculateAprilEmployeeDraft(grossMinor, taxCode) {
+  if (taxCode !== '999L' && taxCode !== '1257L') {
+    throw new RangeError('Expected cumulative England tax code 999L or 1257L');
+  }
   if (typeof grossMinor !== 'string' || !/^(?:0|[1-9][0-9]{0,6})$/.test(grossMinor)) {
     throw new RangeError('Expected gross from £0 through £10,000 in pence');
   }
@@ -18,8 +25,8 @@ export function calculateApril999LDraft(grossMinor) {
   if (gross > 1000000n) {
     throw new RangeError('Expected gross from £0 through £10,000 in pence');
   }
-  // HMRC Table A, month one: one block of 500 (£416.67) plus code 499 (£416.59).
-  const monthOneFreePay = 41667n + 41659n;
+  // HMRC Table A: blocks of 500 plus the month-one value for code 499 or 257.
+  const monthOneFreePay = taxCode === '999L' ? 41667n + 41659n : 2n * 41667n + 21492n;
   const taxablePence = earningsAbove(gross, monthOneFreePay);
   const taxableWholePounds = taxablePence / 100n;
   // HMRC PAYE routines v24, definitions 9–11 and England tax formula 3.
