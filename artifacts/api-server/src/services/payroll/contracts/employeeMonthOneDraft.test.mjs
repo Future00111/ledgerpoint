@@ -228,3 +228,23 @@ test('NT M1 skips a refund on that payday and cumulative NT later refunds the ac
   assert.equal(calculateMonthlyEmployeeDraft(gross, codes).payeMinor, '-40000');
   assert.equal(calculateMonthlyEmployeeDraft(gross, ['BR', 'BR M1', 'NT']).payeMinor, '-80000');
 });
+
+test('D0 and D1 M1 reproduce both England monthly HMRC flat-rate examples', () => {
+  const pack = JSON.parse(readFileSync(new URL('./fixtures/hmrc-paye-2026-27-v1.1.json', import.meta.url)));
+  const rows = pack.cases.filter(({ input }) => input.region === 'rest_of_uk' && input.frequency === 'monthly'
+    && input.week1Month1 === 'WM1' && ['D0', 'D1'].includes(input.taxCode));
+  assert.deepEqual(rows.map(row => row.input.taxCode).sort(), ['D0', 'D1']);
+  for (const { input, expected } of rows) {
+    const result = calculateMayEmployeeDraft('200000', input.grossPayMinor, ['1257L', input.taxCode + ' M1']);
+    assert.equal(result.payeMinor, expected.taxDueMinor);
+  }
+});
+
+test('cumulative D codes carry fractional pounds and use actual prior deductions after a switch', () => {
+  assert.equal(calculateMayEmployeeDraft('9999', '9999', 'D0').payeMinor, '4000');
+  assert.equal(calculateMayEmployeeDraft('9999', '9999', 'D1').payeMinor, '4500');
+  const gross = ['100000', '100000', '100000'];
+  assert.equal(calculateMonthlyEmployeeDraft(gross.slice(0, 2), ['BR', 'D1']).payeMinor, '50000');
+  assert.equal(calculateMonthlyEmployeeDraft(gross, ['BR', 'D1', 'D0']).payeMinor, '50000');
+  assert.throws(() => calculateAprilEmployeeDraft('9999', 'SD0'), RangeError);
+});

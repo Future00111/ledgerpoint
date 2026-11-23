@@ -68,8 +68,11 @@ function taxForPayday(gross, grossToDate, taxPaid, taxCode, month) {
 
 function cumulativeTax(grossToDate, taxCode, month) {
   if (taxCode === 'NT') return 0n;
-  // HMRC PAYE routines v24 §5.4: tax all whole pounds of cumulative pay at basic rate.
-  if (taxCode === 'BR') return (grossToDate / 100n) * 20n;
+  // HMRC PAYE routines v24 §§5–6: flat-rate codes tax whole pounds of pay.
+  const wholePounds = grossToDate / 100n;
+  if (taxCode === 'BR') return wholePounds * 20n;
+  if (taxCode === 'D0') return wholePounds * 40n;
+  if (taxCode === 'D1') return wholePounds * 45n;
   // HMRC Table A for suffix codes. Cumulative 0T has no free pay.
   let monthOneFreePay;
   switch (taxCode) {
@@ -77,7 +80,7 @@ function cumulativeTax(grossToDate, taxCode, month) {
     case '999L': monthOneFreePay = 41667n + 41659n; break;
     case '1257L': monthOneFreePay = 2n * 41667n + 21492n; break;
     case '0T': monthOneFreePay = 0n; break;
-    default: throw new RangeError('Expected England tax code 45L, 999L, 1257L, 0T, BR or NT');
+    default: throw new RangeError('Expected England tax code 45L, 999L, 1257L, 0T, BR, D0, D1 or NT');
   }
   const taxablePence = earningsAbove(grossToDate, monthOneFreePay * month);
   const taxableWholePounds = taxablePence / 100n;
