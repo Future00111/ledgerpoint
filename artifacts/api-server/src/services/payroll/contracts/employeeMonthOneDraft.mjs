@@ -165,13 +165,26 @@ function contributions(gross, niCategory, thresholds) {
   const [mainRate, employerThreshold] = terms;
   const aboveUpperLimit = earningsAbove(gross, thresholds.upper);
   const mainBandEarnings = earningsAbove(gross, thresholds.primary) - aboveUpperLimit;
-  const employeeNi = mainRate === 0n ? 0n : roundedNi(mainBandEarnings * mainRate / 100n + aboveUpperLimit * 2n);
+  const employeeNi = mainRate === 0n ? 0n : roundedNi(mainBandEarnings * mainRate / 100n) + roundedNi(aboveUpperLimit * 2n);
   const employerNi = roundedNi(earningsAbove(gross, thresholds[employerThreshold]) * 15n);
   return { employeeNi, employerNi };
 }
 
 export function calculateWeeklyNiDraft(grossMinor, niCategory = 'A') {
-  const { employeeNi, employerNi } = contributions(readGross(grossMinor), niCategory, weeklyThresholds);
+  return calculatePeriodNiDraft(grossMinor, 'weekly', niCategory);
+}
+
+const niThresholdsByFrequency = new Map([
+  ['weekly', weeklyThresholds],
+  ['fortnightly', { primary: 48400n, standard: 19300n, zone: 96200n, upper: 193400n }],
+  ['four_weekly', { primary: 96700n, standard: 38500n, zone: 192400n, upper: 386700n }],
+  ['monthly', monthlyThresholds],
+]);
+
+export function calculatePeriodNiDraft(grossMinor, frequency, niCategory = 'A') {
+  const thresholds = niThresholdsByFrequency.get(frequency);
+  if (!thresholds) throw new RangeError('Unsupported NI earnings period');
+  const { employeeNi, employerNi } = contributions(readGross(grossMinor), niCategory, thresholds);
   return { employeeNiMinor: String(employeeNi), employerNiMinor: String(employerNi),
     totalNiMinor: String(employeeNi + employerNi) };
 }

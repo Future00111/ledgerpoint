@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { calculateWeeklyEmployeeDraft, calculateWeeklyNiDraft, calculateApril999LDraft, calculateAprilEmployeeDraft, calculateMayEmployeeDraft, calculateMonthlyEmployeeDraft } from './employeeMonthOneDraft.mjs';
+import { calculatePeriodNiDraft, calculateWeeklyEmployeeDraft, calculateWeeklyNiDraft, calculateApril999LDraft, calculateAprilEmployeeDraft, calculateMayEmployeeDraft, calculateMonthlyEmployeeDraft } from './employeeMonthOneDraft.mjs';
 
 test('April draft reproduces every reviewed payslip amount from gross alone', () => {
   const fixture = JSON.parse(readFileSync(new URL('./fixtures/employee-month-one-2026-27.json', import.meta.url)));
@@ -379,4 +379,17 @@ test('week 53 preserves the cumulative BR exception and applies week-one treatme
   assert.equal(calculateWeeklyEmployeeDraft(gross, 'BR W1').payeMinor, '20');
   assert.equal(calculateWeeklyEmployeeDraft(gross, 'D0').payeMinor, '40');
   assert.equal(calculateWeeklyEmployeeDraft(gross, [...Array(52).fill('D0'), 'NT']).payeMinor, '0');
+});
+
+test('fortnightly and four-weekly NI matches the eligible HMRC examples', () => {
+  const pack = JSON.parse(readFileSync(new URL('./fixtures/hmrc-ni-2026-27-v1.0.json', import.meta.url)));
+  for (const frequency of ['fortnightly', 'four_weekly']) {
+    const rows = pack.cases.filter(row => row.input.frequency === frequency && row.sourceIssues.length === 0);
+    assert.equal(rows.length, 222);
+    assert.equal(new Set(rows.map(row => row.input.category)).size, 16);
+    for (const { id, input, expected } of rows) {
+      assert.deepEqual(calculatePeriodNiDraft(input.grossPayMinor, frequency, input.category), expected, id);
+    }
+  }
+  assert.throws(() => calculatePeriodNiDraft('10000', 'biweekly'), RangeError);
 });
