@@ -19,16 +19,16 @@ test('draft calculates a second gross at the employee NI threshold', () => {
 });
 
 test('draft rejects gross outside its supported range and precision', () => {
-  for (const gross of ['104799', '390001', '250000.1', 250000, '0250000']) {
+  for (const gross of ['-1', '00', '', '390001', '250000.1', 250000, '0250000']) {
     assert.throws(() => calculateApril999LDraft(gross), RangeError);
   }
 });
 
-test('NI matches the six in-range category A monthly rows in the HMRC workbook', () => {
+test('NI matches the ten in-range category A monthly rows in the HMRC workbook', () => {
   const pack = JSON.parse(readFileSync(new URL('./fixtures/hmrc-ni-2026-27-v1.0.json', import.meta.url)));
   const rows = pack.cases.filter(({ input }) => input.category === 'A' && input.frequency === 'monthly'
-    && BigInt(input.grossPayMinor) >= 104800n && BigInt(input.grossPayMinor) <= 390000n);
-  assert.equal(rows.length, 6);
+    && BigInt(input.grossPayMinor) >= 0n && BigInt(input.grossPayMinor) <= 390000n);
+  assert.equal(rows.length, 10);
   for (const { input, expected, id } of rows) {
     const result = calculateApril999LDraft(input.grossPayMinor);
     assert.equal(result.employeeNiMinor, expected.employeeNiMinor, id);
@@ -45,4 +45,16 @@ test('one penny crosses the taxable pound boundary after month-one free pay', ()
     grossMinor: '250026', payeMinor: '33340', employeeNiMinor: '11618',
     employerNiMinor: '31249', netMinor: '205068',
   });
+});
+
+test('zero pay and the first taxable pound with zero opening balances', () => {
+  assert.deepEqual(calculateApril999LDraft('0'), {
+    grossMinor: '0', payeMinor: '0', employeeNiMinor: '0', employerNiMinor: '0', netMinor: '0',
+  });
+  for (const [gross, paye, net] of [['83425', '0', '83425'], ['83426', '20', '83406']]) {
+    const result = calculateApril999LDraft(gross);
+    assert.equal(result.payeMinor, paye);
+    assert.equal(result.employeeNiMinor, '0');
+    assert.equal(result.netMinor, net);
+  }
 });
