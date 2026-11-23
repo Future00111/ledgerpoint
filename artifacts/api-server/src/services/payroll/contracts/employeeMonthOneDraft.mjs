@@ -122,20 +122,34 @@ function cumulativeTax(grossToDate, suppliedCode, month) {
 
 // Current payday only. Main employee rates are in basis points; thresholds are in pence.
 const niCategories = new Map([
-  ['A', [800n, 41700n]], ['B', [185n, 41700n]], ['C', [0n, 41700n]], ['J', [200n, 41700n]],
-  ['F', [800n, 208300n]], ['I', [185n, 208300n]], ['S', [0n, 208300n]], ['L', [200n, 208300n]],
-  ['N', [800n, 208300n]], ['E', [185n, 208300n]], ['K', [0n, 208300n]], ['D', [200n, 208300n]],
-  ['H', [800n, 418900n]], ['M', [800n, 418900n]], ['V', [800n, 418900n]], ['Z', [200n, 418900n]],
+  ['A', [800n, 'standard']], ['B', [185n, 'standard']], ['C', [0n, 'standard']], ['J', [200n, 'standard']],
+  ['F', [800n, 'zone']], ['I', [185n, 'zone']], ['S', [0n, 'zone']], ['L', [200n, 'zone']],
+  ['N', [800n, 'zone']], ['E', [185n, 'zone']], ['K', [0n, 'zone']], ['D', [200n, 'zone']],
+  ['H', [800n, 'upper']], ['M', [800n, 'upper']], ['V', [800n, 'upper']], ['Z', [200n, 'upper']],
 ]);
 
-function payslip(gross, paye, niCategory) {
+const monthlyThresholds = { primary: 104800n, standard: 41700n, zone: 208300n, upper: 418900n };
+const weeklyThresholds = { primary: 24200n, standard: 9600n, zone: 48100n, upper: 96700n };
+
+function contributions(gross, niCategory, thresholds) {
   const terms = niCategories.get(niCategory);
   if (!terms) throw new RangeError('Unsupported employee NI category');
   const [mainRate, employerThreshold] = terms;
-  const aboveUpperLimit = earningsAbove(gross, 418900n);
-  const mainBandEarnings = earningsAbove(gross, 104800n) - aboveUpperLimit;
+  const aboveUpperLimit = earningsAbove(gross, thresholds.upper);
+  const mainBandEarnings = earningsAbove(gross, thresholds.primary) - aboveUpperLimit;
   const employeeNi = mainRate === 0n ? 0n : roundedNi(mainBandEarnings * mainRate / 100n + aboveUpperLimit * 2n);
-  const employerNi = roundedNi(earningsAbove(gross, employerThreshold) * 15n);
+  const employerNi = roundedNi(earningsAbove(gross, thresholds[employerThreshold]) * 15n);
+  return { employeeNi, employerNi };
+}
+
+export function calculateWeeklyNiDraft(grossMinor, niCategory = 'A') {
+  const { employeeNi, employerNi } = contributions(readGross(grossMinor), niCategory, weeklyThresholds);
+  return { employeeNiMinor: String(employeeNi), employerNiMinor: String(employerNi),
+    totalNiMinor: String(employeeNi + employerNi) };
+}
+
+function payslip(gross, paye, niCategory) {
+  const { employeeNi, employerNi } = contributions(gross, niCategory, monthlyThresholds);
   return {
     grossMinor: String(gross),
     payeMinor: String(paye),

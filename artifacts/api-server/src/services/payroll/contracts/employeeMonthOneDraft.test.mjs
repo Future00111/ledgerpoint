@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { calculateApril999LDraft, calculateAprilEmployeeDraft, calculateMayEmployeeDraft, calculateMonthlyEmployeeDraft } from './employeeMonthOneDraft.mjs';
+import { calculateWeeklyNiDraft, calculateApril999LDraft, calculateAprilEmployeeDraft, calculateMayEmployeeDraft, calculateMonthlyEmployeeDraft } from './employeeMonthOneDraft.mjs';
 
 test('April draft reproduces every reviewed payslip amount from gross alone', () => {
   const fixture = JSON.parse(readFileSync(new URL('./fixtures/employee-month-one-2026-27.json', import.meta.url)));
@@ -320,4 +320,15 @@ test('all 224 monthly NI workbook examples reconcile employee, employer and tota
     assert.equal(BigInt(result.netMinor), BigInt(input.grossPayMinor) - BigInt(expected.employeeNiMinor), id);
   }
   assert.throws(() => calculateAprilEmployeeDraft('250000', 'NT', 'X'), RangeError);
+});
+
+test('weekly NI matches all 224 HMRC rows across sixteen categories', () => {
+  const pack = JSON.parse(readFileSync(new URL('./fixtures/hmrc-ni-2026-27-v1.0.json', import.meta.url)));
+  const rows = pack.cases.filter(({ input }) => input.frequency === 'weekly');
+  assert.equal(rows.length, 224);
+  assert.equal(new Set(rows.map(row => row.input.category)).size, 16);
+  for (const { id, input, expected } of rows) {
+    assert.deepEqual(calculateWeeklyNiDraft(input.grossPayMinor, input.category), expected, id);
+  }
+  assert.throws(() => calculateWeeklyNiDraft('9999', 'X'), RangeError);
 });
