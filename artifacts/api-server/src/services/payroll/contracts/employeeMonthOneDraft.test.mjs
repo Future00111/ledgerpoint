@@ -87,7 +87,7 @@ test('1257L April payslip matches the pinned cumulative PAYE example', () => {
 test('1257L first taxable pound and explicit code selection', () => {
   assert.equal(calculateAprilEmployeeDraft('104925', '1257L').payeMinor, '0');
   assert.equal(calculateAprilEmployeeDraft('104926', '1257L').payeMinor, '20');
-  for (const code of [undefined, 'S1257L', '1257L M1', 'BR']) {
+  for (const code of [undefined, 'S1257L', '1257L M1', 'BR M1']) {
     assert.throws(() => calculateAprilEmployeeDraft('115625', code), RangeError);
   }
 });
@@ -156,4 +156,27 @@ test('April 1257L selects the additional rate a penny above its period threshold
   assert.equal(calculateAprilEmployeeDraft('1147726', '1257L').payeMinor, '354326');
   assert.equal(calculateAprilEmployeeDraft('1147727', '1257L').payeMinor, '354330');
   assert.equal(calculateAprilEmployeeDraft('6000000', '1257L').grossMinor, '6000000');
+});
+
+test('December BR uses the earlier payslips to reproduce the HMRC cumulative refund', () => {
+  const pack = JSON.parse(readFileSync(new URL('./fixtures/hmrc-paye-2026-27-v1.1.json', import.meta.url)));
+  const rows = pack.cases.filter(row => row.sequenceId === 'rest_of_uk/Gen_cumul-mthly' && row.input.period <= 9);
+  const december = rows.at(-1);
+  assert.equal(december.input.taxCode, 'BR');
+  const result = calculateMonthlyEmployeeDraft(rows.map(row => row.input.grossPayMinor), rows.map(row => row.input.taxCode));
+  assert.equal(result.payeMinor, december.expected.taxDueMinor);
+  assert.equal(BigInt(rows.at(-2).expected.taxDueToDateMinor) + BigInt(result.payeMinor),
+    BigInt(december.expected.taxDueToDateMinor));
+});
+
+test('code histories require one supported cumulative code for each payday', () => {
+  for (const codes of [[], ['BR'], ['BR', 'NT'], ['BR M1', 'BR'], Array(2)]) {
+    assert.throws(() => calculateMonthlyEmployeeDraft(['100', '100'], codes), RangeError);
+  }
+  assert.equal(calculateMonthlyEmployeeDraft(['199', '199'], 'BR').payeMinor, '40');
+});
+
+test('BR catch-up carries forward the tax actually withheld after a capped payday', () => {
+  assert.equal(calculateMonthlyEmployeeDraft(['100000', '10000'], ['1257L', 'BR']).payeMinor, '5000');
+  assert.equal(calculateMonthlyEmployeeDraft(['100000', '10000', '100000'], ['1257L', 'BR', 'BR']).payeMinor, '37000');
 });

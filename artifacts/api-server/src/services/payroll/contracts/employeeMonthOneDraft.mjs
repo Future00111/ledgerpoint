@@ -1,4 +1,4 @@
-// Offline 2026–27 scenario: England, cumulative 999L or 1257L, zero opening balances,
+// Offline 2026–27 scenario: England, cumulative 999L, 1257L or BR, zero opening balances,
 // ordinary monthly cash earnings, category A, no other deductions or adjustments.
 function earningsAbove(gross, threshold) {
   return gross > threshold ? gross - threshold : 0n;
@@ -24,10 +24,15 @@ export function calculateMayEmployeeDraft(aprilGrossMinor, mayGrossMinor, taxCod
   return calculateMonthlyEmployeeDraft([aprilGrossMinor, mayGrossMinor], taxCode);
 }
 
-// Gross history starts in tax month one and ends at the payday being calculated.
-export function calculateMonthlyEmployeeDraft(grossHistory, taxCode) {
+// Supply one cumulative code throughout, or the code in force on each payday.
+// Gross and code histories start in April.
+export function calculateMonthlyEmployeeDraft(grossHistory, taxCodes) {
   if (!Array.isArray(grossHistory) || grossHistory.length < 1 || grossHistory.length > 12) {
     throw new RangeError('Expected one to twelve consecutive monthly gross amounts');
+  }
+  const hasCodeHistory = Array.isArray(taxCodes);
+  if (hasCodeHistory && taxCodes.length !== grossHistory.length) {
+    throw new RangeError('Expected one tax code for each gross amount');
   }
   let grossToDate = 0n;
   let taxPaid = 0n;
@@ -35,6 +40,7 @@ export function calculateMonthlyEmployeeDraft(grossHistory, taxCode) {
     const gross = readGross(amount);
     if (index > 0 && gross === 0n) throw new RangeError('Expected a payment after April');
     grossToDate += gross;
+    const taxCode = hasCodeHistory ? taxCodes[index] : taxCodes;
     const due = cumulativeTax(grossToDate, taxCode, BigInt(index + 1)) - taxPaid;
     const deduction = due > gross / 2n ? gross / 2n : due;
     if (index === grossHistory.length - 1) return payslip(gross, deduction);
@@ -54,8 +60,10 @@ function readGross(grossMinor) {
 }
 
 function cumulativeTax(grossToDate, taxCode, month) {
+  // HMRC PAYE routines v24 §5.4: tax all whole pounds of cumulative pay at basic rate.
+  if (taxCode === 'BR') return (grossToDate / 100n) * 20n;
   if (taxCode !== '999L' && taxCode !== '1257L') {
-    throw new RangeError('Expected cumulative England tax code 999L or 1257L');
+    throw new RangeError('Expected cumulative England tax code 999L, 1257L or BR');
   }
   // HMRC Table A: blocks of 500 plus the month-one value for code 499 or 257.
   const monthOneFreePay = taxCode === '999L' ? 41667n + 41659n : 2n * 41667n + 21492n;
