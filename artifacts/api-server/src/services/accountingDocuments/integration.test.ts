@@ -2640,7 +2640,22 @@ const wait=async(fn,label)=>{await fetch('/progress',{method:'POST',headers:{'Co
   const result=await Promise.race([acceptance,failure]);assert.equal(result.passed,true,JSON.stringify({...result,stage}));assert.equal(result.refreshes,1);
   assert.equal(posts,0);assert.equal(lists,2);assert.equal(reads,1);assert.equal(pageLoads,2);assert.deepEqual(await snapshot(),before);
   console.log('CORRECTION_DISCOVERY_BROWSER_ACCEPTANCE',JSON.stringify({kind,actualComponents:true,nativeApi:true,missingLocator:true,explicitSelection:true,freshReceipt:true,actualReload:true,parentRefreshes:1,posts:0,browserStorageEmpty:true,realClerk:false}));
- }finally{clearTimeout(timer);report=()=>{};if(browser?.pid&&browser.exitCode===null&&browser.signalCode===null)await new Promise<void>(resolve=>{const force=setTimeout(()=>browser?.kill('SIGKILL'),5000);browser!.once('exit',()=>{clearTimeout(force);resolve();});browser!.kill('SIGTERM');});listener.closeAllConnections();await new Promise<void>(r=>listener.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});}
+ } finally {
+  clearTimeout(timer);
+  report=()=>{};
+  if(browser?.pid && browser.exitCode===null && browser.signalCode===null) {
+   await new Promise<void>(resolve=>{
+    const force=setTimeout(()=>browser?.kill('SIGKILL'),5000);
+    browser!.once('exit',()=>{clearTimeout(force);resolve();});
+    browser!.kill('SIGTERM');
+   });
+  }
+  const closed=new Promise<void>(resolve=>listener.close(()=>resolve()));
+  listener.closeAllConnections();
+  await closed;
+  // Chromium helpers can still write profile files briefly after the main process exits.
+  await fs.promises.rm(dir,{recursive:true,force:true,maxRetries:6,retryDelay:100});
+ }
 });
 
 registerCorrectionAdmissionJourney({fixture,create,post,source,request,admin,actor,readOnly,socket});

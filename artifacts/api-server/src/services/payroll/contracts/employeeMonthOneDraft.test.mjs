@@ -434,3 +434,20 @@ test('extra payday after W1 compares the full year pay with recorded week 52 fre
     }
   }
 });
+
+test('M, N and T suffixes use the issued allowance number throughout the pay history', () => {
+  for (const suffix of ['M', 'N', 'T']) {
+    for (const prefix of ['', 'S', 'C']) {
+      const code = prefix + '1131' + suffix;
+      const reference = prefix + '1131L';
+      for (const basis of ['', ' M1']) {
+        assert.deepEqual(calculateMonthlyEmployeeDraft(['180000', '360000'], code + basis),
+          calculateMonthlyEmployeeDraft(['180000', '360000'], reference + basis));
+      }
+      const payments = [...Array(52).fill('100'), '50000'];
+      assert.equal(calculateWeeklyEmployeeDraft(payments, code).payeMinor, '0');
+      assert.equal(calculateWeeklyEmployeeDraft(payments, [...Array(52).fill(code + ' W1'), code], 'A', '55200').payeMinor, '0');
+    }
+  }
+  assert.throws(() => calculateAprilEmployeeDraft('360000', '1131MT'), RangeError);
+});

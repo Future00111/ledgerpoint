@@ -84,6 +84,8 @@ function readGross(grossMinor) {
   return gross;
 }
 
+const allowanceCode = /^[1-9][0-9]{0,3}[LMNT]$/;
+
 function taxForPayday(gross, grossToDate, taxPaid, taxCode, period, periods = 12n, previousCode, interval = 1n, week52FreePayMinor) {
   if (typeof taxCode === 'string' && taxCode.endsWith(periods === 52n ? ' W1' : ' M1')) {
     return cumulativeTax(gross, taxCode.slice(0, -3), interval, periods);
@@ -94,7 +96,7 @@ function taxForPayday(gross, grossToDate, taxPaid, taxCode, period, periods = 12
     // Regulation 31(2) retains cumulative treatment for the basic-rate code.
     if (code !== 'BR') {
       // CWG2 §1.13: a cumulative suffix code can still have unused week 52 free pay.
-      if (code === '0T' || /^[1-9][0-9]{0,3}L$/.test(code)) {
+      if (code === '0T' || allowanceCode.test(code)) {
         if (previousCode.endsWith(' W1')) {
           // CWG2 compares the recorded week 52 total with pay including the extra payday.
           if (typeof week52FreePayMinor !== 'string' || !/^(0|[1-9][0-9]*)$/.test(week52FreePayMinor)) {
@@ -103,7 +105,7 @@ function taxForPayday(gross, grossToDate, taxPaid, taxCode, period, periods = 12
           if (grossToDate <= BigInt(week52FreePayMinor)) return 0n;
         }
         const prior = previousCode.replace(/^[SC]/, '');
-        if (/^[1-9][0-9]{0,3}L$/.test(prior) && grossToDate <= freePay(prior, periods) * 52n) return 0n;
+        if (allowanceCode.test(prior) && grossToDate <= freePay(prior, periods) * 52n) return 0n;
       }
       return cumulativeTax(gross, taxCode, interval, periods);
     }
@@ -121,7 +123,7 @@ const restOfUkBands = [[37700n, 20n], [125140n, 40n], [null, 45n]];
 function freePay(taxCode, periods) {
   let periodFreePay = 0n;
   if (taxCode !== '0T') {
-    if (typeof taxCode !== 'string' || !/^(?:K[1-9][0-9]{0,3}|[1-9][0-9]{0,3}L)$/.test(taxCode)) {
+    if (typeof taxCode !== 'string' || (!allowanceCode.test(taxCode) && !/^K[1-9][0-9]{0,3}$/.test(taxCode))) {
       throw new RangeError('Unsupported payroll tax code');
     }
     // HMRC v24 §4.3.1: both code families use Table A, with opposite signs.
