@@ -1,4 +1,4 @@
-// Offline April–May 2026 scenario: England, cumulative 999L or 1257L, zero opening balances,
+// Offline 2026–27 scenario: England, cumulative 999L or 1257L, zero opening balances,
 // ordinary monthly cash earnings, category A, no other deductions or adjustments.
 function earningsAbove(gross, threshold) {
   return gross > threshold ? gross - threshold : 0n;
@@ -21,12 +21,25 @@ export function calculateAprilEmployeeDraft(grossMinor, taxCode) {
 
 // Consecutive ordinary paydays with the same code and no previous employment.
 export function calculateMayEmployeeDraft(aprilGrossMinor, mayGrossMinor, taxCode) {
-  const april = readGross(aprilGrossMinor);
-  const may = readGross(mayGrossMinor);
-  if (may === 0n) throw new RangeError('Expected a May payment');
-  const aprilTax = cumulativeTax(april, taxCode, 1n);
-  const mayTax = cumulativeTax(april + may, taxCode, 2n) - aprilTax;
-  return payslip(may, mayTax);
+  return calculateMonthlyEmployeeDraft([aprilGrossMinor, mayGrossMinor], taxCode);
+}
+
+// Gross history starts in tax month one and ends at the payday being calculated.
+export function calculateMonthlyEmployeeDraft(grossHistory, taxCode) {
+  if (!Array.isArray(grossHistory) || grossHistory.length < 1 || grossHistory.length > 12) {
+    throw new RangeError('Expected one to twelve consecutive monthly gross amounts');
+  }
+  let grossToDate = 0n;
+  let taxPaid = 0n;
+  for (const [index, amount] of grossHistory.entries()) {
+    const gross = readGross(amount);
+    if (index > 0 && gross === 0n) throw new RangeError('Expected a payment after April');
+    grossToDate += gross;
+    const due = cumulativeTax(grossToDate, taxCode, BigInt(index + 1)) - taxPaid;
+    const deduction = due > gross / 2n ? gross / 2n : due;
+    if (index === grossHistory.length - 1) return payslip(gross, deduction);
+    taxPaid += deduction;
+  }
 }
 
 function readGross(grossMinor) {

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { calculateApril999LDraft, calculateAprilEmployeeDraft, calculateMayEmployeeDraft } from './employeeMonthOneDraft.mjs';
+import { calculateApril999LDraft, calculateAprilEmployeeDraft, calculateMayEmployeeDraft, calculateMonthlyEmployeeDraft } from './employeeMonthOneDraft.mjs';
 
 test('April draft reproduces every reviewed payslip amount from gross alone', () => {
   const fixture = JSON.parse(readFileSync(new URL('./fixtures/employee-month-one-2026-27.json', import.meta.url)));
@@ -112,4 +112,26 @@ test('lower May earnings refund April PAYE without refunding April NI', () => {
 test('May uses the cumulative two-month higher-rate threshold', () => {
   assert.equal(calculateMayEmployeeDraft('250000', '545052', '999L').payeMinor, '92360');
   assert.equal(calculateMayEmployeeDraft('250000', '545053', '999L').payeMinor, '92373');
+});
+
+test('twelve ordinary payments reconcile to year-end tax using the annual bands', () => {
+  for (const [code, expectedTax] of [['1257L', 1142800n], ['999L', 1246000n]]) {
+    const history = [];
+    let total = 0n;
+    for (let month = 1; month <= 12; month++) {
+      history.push('500000');
+      const result = calculateMonthlyEmployeeDraft(history, code);
+      total += BigInt(result.payeMinor);
+      assert.equal(result.employeeNiMinor, '26750');
+      assert.equal(result.employerNiMinor, '68745');
+      assert.equal(BigInt(result.netMinor) + BigInt(result.payeMinor), 473250n);
+    }
+    assert.equal(total, expectedTax);
+  }
+});
+
+test('history must start in April and fit one tax year of regular paydays', () => {
+  for (const history of [[], null, Array(13).fill('10000'), ['10', '0', '10'], Array(3)]) {
+    assert.throws(() => calculateMonthlyEmployeeDraft(history, '1257L'), RangeError);
+  }
 });
