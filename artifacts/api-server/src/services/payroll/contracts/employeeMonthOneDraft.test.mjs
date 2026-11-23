@@ -248,3 +248,31 @@ test('cumulative D codes carry fractional pounds and use actual prior deductions
   assert.equal(calculateMonthlyEmployeeDraft(gross, ['BR', 'D1', 'D0']).payeMinor, '50000');
   assert.throws(() => calculateAprilEmployeeDraft('9999', 'SD0'), RangeError);
 });
+
+test('England K codes reproduce the six monthly HMRC K examples', () => {
+  const pack = JSON.parse(readFileSync(new URL('./fixtures/hmrc-paye-2026-27-v1.1.json', import.meta.url)));
+  const rows = pack.cases.filter(({ input }) => input.region === 'rest_of_uk' && input.frequency === 'monthly'
+    && input.taxCode.startsWith('K'));
+  assert.equal(rows.length, 6);
+  const history = [];
+  for (const { input, expected, id } of rows) {
+    if (input.period === 1) history.length = 0;
+    history.push(input.grossPayMinor);
+    const code = input.week1Month1 === 'WM1' ? input.taxCode + ' M1' : input.taxCode;
+    assert.equal(calculateMonthlyEmployeeDraft(history, code).payeMinor, expected.taxDueMinor, id);
+  }
+});
+
+test('K-code adjustment affects only PAYE and caps April tax at half the actual pay', () => {
+  for (const code of ['K585', 'K585 M1']) {
+    const result = calculateAprilEmployeeDraft('101', code);
+    assert.equal(result.payeMinor, '50');
+    assert.equal(result.netMinor, '51');
+    assert.equal(result.employeeNiMinor, '0');
+    assert.equal(result.employerNiMinor, '0');
+    assert.deepEqual(result, calculateMonthlyEmployeeDraft(['101'], code));
+  }
+  for (const code of ['K0', 'K01', 'SK585', 'CK585', 'K10000']) {
+    assert.throws(() => calculateAprilEmployeeDraft('101', code), RangeError);
+  }
+});

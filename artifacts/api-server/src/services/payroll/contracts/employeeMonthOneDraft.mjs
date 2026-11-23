@@ -16,7 +16,8 @@ export function calculateApril999LDraft(grossMinor) {
 
 export function calculateAprilEmployeeDraft(grossMinor, taxCode) {
   const gross = readGross(grossMinor);
-  return payslip(gross, taxForPayday(gross, gross, 0n, taxCode, 1n));
+  const due = taxForPayday(gross, gross, 0n, taxCode, 1n);
+  return payslip(gross, cappedDeduction(due, gross));
 }
 
 // Consecutive ordinary paydays with the same code and no previous employment.
@@ -42,10 +43,14 @@ export function calculateMonthlyEmployeeDraft(grossHistory, taxCodes) {
     grossToDate += gross;
     const taxCode = hasCodeHistory ? taxCodes[index] : taxCodes;
     const due = taxForPayday(gross, grossToDate, taxPaid, taxCode, BigInt(index + 1));
-    const deduction = due > gross / 2n ? gross / 2n : due;
+    const deduction = cappedDeduction(due, gross);
     if (index === grossHistory.length - 1) return payslip(gross, deduction);
     taxPaid += deduction;
   }
+}
+
+function cappedDeduction(due, gross) {
+  return due > gross / 2n ? gross / 2n : due;
 }
 
 function readGross(grossMinor) {
@@ -80,7 +85,17 @@ function cumulativeTax(grossToDate, taxCode, month) {
     case '999L': monthOneFreePay = 41667n + 41659n; break;
     case '1257L': monthOneFreePay = 2n * 41667n + 21492n; break;
     case '0T': monthOneFreePay = 0n; break;
-    default: throw new RangeError('Expected England tax code 45L, 999L, 1257L, 0T, BR, D0, D1 or NT');
+    default: {
+      if (typeof taxCode !== 'string' || !/^K[1-9][0-9]{0,3}$/.test(taxCode)) {
+        throw new RangeError('Unsupported England tax code');
+      }
+      // HMRC v24 §4.3.1: K adds the Table A adjustment to taxable pay.
+      const number = BigInt(taxCode.slice(1));
+      const blocks = (number - 1n) / 500n;
+      const remainder = number - blocks * 500n;
+      const remainderMonthly = (remainder * 1000n + 900n + 11n) / 12n;
+      monthOneFreePay = -(blocks * 41667n + remainderMonthly);
+    }
   }
   const taxablePence = earningsAbove(grossToDate, monthOneFreePay * month);
   const taxableWholePounds = taxablePence / 100n;
