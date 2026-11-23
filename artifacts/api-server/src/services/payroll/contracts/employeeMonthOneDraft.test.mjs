@@ -272,27 +272,38 @@ test('K-code adjustment affects only PAYE and caps April tax at half the actual 
     assert.equal(result.employerNiMinor, '0');
     assert.deepEqual(result, calculateMonthlyEmployeeDraft(['101'], code));
   }
-  for (const code of ['K0', 'K01', 'SK585', 'CK585', 'K10000']) {
+  for (const code of ['K0', 'K01', 'SK585', 'CCK585', 'K10000']) {
     assert.throws(() => calculateAprilEmployeeDraft('101', code), RangeError);
   }
 });
 
-test('every monthly rest-of-UK workbook row matches period and year-to-date PAYE', () => {
-  const pack = JSON.parse(readFileSync(new URL('./fixtures/hmrc-paye-2026-27-v1.1.json', import.meta.url)));
-  const rows = pack.cases.filter(({ input }) => input.region === 'rest_of_uk' && input.frequency === 'monthly');
-  assert.equal(rows.length, 33);
-  const histories = new Map();
-  for (const row of rows) {
-    const { input, expected } = row;
-    const prior = input.period === 1 ? { gross: [], codes: [], paid: 0n } : histories.get(row.previousExampleId);
-    assert.ok(prior, row.id);
-    const gross = [...prior.gross, input.grossPayMinor];
-    const codes = [...prior.codes, input.week1Month1 === 'WM1' ? input.taxCode + ' M1' : input.taxCode];
-    assert.equal(gross.length, input.period, row.id);
-    const { payeMinor } = calculateMonthlyEmployeeDraft(gross, codes);
-    const paid = prior.paid + BigInt(payeMinor);
-    assert.equal(payeMinor, expected.taxDueMinor, row.id);
-    assert.equal(String(paid), expected.taxDueToDateMinor, row.id);
-    histories.set(row.id, { gross, codes, paid });
+for (const [region, count] of [['rest_of_uk', 33], ['wales', 21]]) {
+  test('every monthly workbook row matches period and year-to-date PAYE for ' + region, () => {
+    const pack = JSON.parse(readFileSync(new URL('./fixtures/hmrc-paye-2026-27-v1.1.json', import.meta.url)));
+    const rows = pack.cases.filter(({ input }) => input.region === region && input.frequency === 'monthly');
+    assert.equal(rows.length, count);
+    const histories = new Map();
+    for (const row of rows) {
+      const { input, expected } = row;
+      const prior = input.period === 1 ? { gross: [], codes: [], paid: 0n } : histories.get(row.previousExampleId);
+      assert.ok(prior, row.id);
+      const gross = [...prior.gross, input.grossPayMinor];
+      const codes = [...prior.codes, input.week1Month1 === 'WM1' ? input.taxCode + ' M1' : input.taxCode];
+      assert.equal(gross.length, input.period, row.id);
+      const { payeMinor } = calculateMonthlyEmployeeDraft(gross, codes);
+      const paid = prior.paid + BigInt(payeMinor);
+      assert.equal(payeMinor, expected.taxDueMinor, row.id);
+      assert.equal(String(paid), expected.taxDueToDateMinor, row.id);
+      histories.set(row.id, { gross, codes, paid });
+    }
+  });
+}
+
+test('Welsh K and zero-allowance codes use the supplied prefix; NT is unprefixed', () => {
+  for (const code of ['K585', '0T']) {
+    assert.deepEqual(calculateAprilEmployeeDraft('95000', 'C' + code), calculateAprilEmployeeDraft('95000', code));
+  }
+  for (const code of ['CNT', 'CCBR', 'C', 'CS1257L']) {
+    assert.throws(() => calculateAprilEmployeeDraft('95000', code), RangeError);
   }
 });

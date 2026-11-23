@@ -1,4 +1,4 @@
-// Offline 2026–27 scenario: England, monthly PAYE, zero opening balances,
+// Offline 2026–27 scenario: England and Wales, monthly PAYE, zero opening balances,
 // ordinary monthly cash earnings, category A, no other deductions or adjustments.
 function earningsAbove(gross, threshold) {
   return gross > threshold ? gross - threshold : 0n;
@@ -71,8 +71,11 @@ function taxForPayday(gross, grossToDate, taxPaid, taxCode, month) {
   return cumulativeTax(grossToDate, taxCode, month) - taxPaid;
 }
 
-function cumulativeTax(grossToDate, taxCode, month) {
-  if (taxCode === 'NT') return 0n;
+function cumulativeTax(grossToDate, suppliedCode, month) {
+  if (suppliedCode === 'NT') return 0n;
+  // For 2026–27 Wales uses the same rates and bands. NT has no regional prefix.
+  const taxCode = typeof suppliedCode === 'string' && suppliedCode.startsWith('C')
+    ? suppliedCode.slice(1) : suppliedCode;
   // HMRC PAYE routines v24 §§5–6: flat-rate codes tax whole pounds of pay.
   const wholePounds = grossToDate / 100n;
   if (taxCode === 'BR') return wholePounds * 20n;
@@ -81,7 +84,7 @@ function cumulativeTax(grossToDate, taxCode, month) {
   let monthOneFreePay = 0n;
   if (taxCode !== '0T') {
     if (typeof taxCode !== 'string' || !/^(?:K[1-9][0-9]{0,3}|[1-9][0-9]{0,3}L)$/.test(taxCode)) {
-      throw new RangeError('Unsupported England tax code');
+      throw new RangeError('Unsupported payroll tax code');
     }
     // HMRC v24 §4.3.1: both code families use Table A, with opposite signs.
     const isKCode = taxCode.startsWith('K');
