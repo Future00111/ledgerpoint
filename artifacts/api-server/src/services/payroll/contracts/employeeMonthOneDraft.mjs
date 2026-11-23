@@ -31,19 +31,19 @@ export function calculateMonthlyEmployeeDraft(grossHistory, taxCodes, niCategory
   return calculateEmployeeDraft(grossHistory, taxCodes, niCategory, 'monthly');
 }
 
-export function calculateWeeklyEmployeeDraft(grossHistory, taxCodes, niCategory = 'A') {
-  return calculateEmployeeDraft(grossHistory, taxCodes, niCategory, 'weekly');
+export function calculateWeeklyEmployeeDraft(grossHistory, taxCodes, niCategory = 'A', week52FreePayMinor) {
+  return calculateEmployeeDraft(grossHistory, taxCodes, niCategory, 'weekly', week52FreePayMinor);
 }
 
-export function calculateFortnightlyEmployeeDraft(grossHistory, taxCodes, niCategory = 'A') {
-  return calculateEmployeeDraft(grossHistory, taxCodes, niCategory, 'fortnightly');
+export function calculateFortnightlyEmployeeDraft(grossHistory, taxCodes, niCategory = 'A', week52FreePayMinor) {
+  return calculateEmployeeDraft(grossHistory, taxCodes, niCategory, 'fortnightly', week52FreePayMinor);
 }
 
-export function calculateFourWeeklyEmployeeDraft(grossHistory, taxCodes, niCategory = 'A') {
-  return calculateEmployeeDraft(grossHistory, taxCodes, niCategory, 'four_weekly');
+export function calculateFourWeeklyEmployeeDraft(grossHistory, taxCodes, niCategory = 'A', week52FreePayMinor) {
+  return calculateEmployeeDraft(grossHistory, taxCodes, niCategory, 'four_weekly', week52FreePayMinor);
 }
 
-function calculateEmployeeDraft(grossHistory, taxCodes, niCategory, frequency) {
+function calculateEmployeeDraft(grossHistory, taxCodes, niCategory, frequency, week52FreePayMinor) {
   const periods = frequency === 'monthly' ? 12n : 52n;
   const interval = frequency === 'fortnightly' ? 2n : frequency === 'four_weekly' ? 4n : 1n;
   const maxPayments = periods / interval + (frequency === 'monthly' ? 0n : 1n);
@@ -62,7 +62,7 @@ function calculateEmployeeDraft(grossHistory, taxCodes, niCategory, frequency) {
     grossToDate += gross;
     const taxCode = hasCodeHistory ? taxCodes[index] : taxCodes;
     const previousCode = hasCodeHistory ? taxCodes[index - 1] : taxCode;
-    const due = taxForPayday(gross, grossToDate, taxPaid, taxCode, BigInt(index + 1) * interval, periods, previousCode, interval);
+    const due = taxForPayday(gross, grossToDate, taxPaid, taxCode, BigInt(index + 1) * interval, periods, previousCode, interval, week52FreePayMinor);
     const deduction = cappedDeduction(due, gross);
     if (index === grossHistory.length - 1) return payslip(gross, deduction, niCategory, niThresholdsByFrequency.get(frequency));
     taxPaid += deduction;
@@ -84,7 +84,7 @@ function readGross(grossMinor) {
   return gross;
 }
 
-function taxForPayday(gross, grossToDate, taxPaid, taxCode, period, periods = 12n, previousCode, interval = 1n) {
+function taxForPayday(gross, grossToDate, taxPaid, taxCode, period, periods = 12n, previousCode, interval = 1n, week52FreePayMinor) {
   if (typeof taxCode === 'string' && taxCode.endsWith(periods === 52n ? ' W1' : ' M1')) {
     return cumulativeTax(gross, taxCode.slice(0, -3), interval, periods);
   }
@@ -95,7 +95,13 @@ function taxForPayday(gross, grossToDate, taxPaid, taxCode, period, periods = 12
     if (code !== 'BR') {
       // CWG2 §1.13: a cumulative suffix code can still have unused week 52 free pay.
       if (code === '0T' || /^[1-9][0-9]{0,3}L$/.test(code)) {
-        if (previousCode.endsWith(' W1')) throw new RangeError('Week 52 cumulative allowance unavailable after W1');
+        if (previousCode.endsWith(' W1')) {
+          // CWG2 compares the recorded week 52 total with pay including the extra payday.
+          if (typeof week52FreePayMinor !== 'string' || !/^(0|[1-9][0-9]*)$/.test(week52FreePayMinor)) {
+            throw new RangeError('Expected recorded week 52 total free pay in pence after W1');
+          }
+          if (grossToDate <= BigInt(week52FreePayMinor)) return 0n;
+        }
         const prior = previousCode.replace(/^[SC]/, '');
         if (/^[1-9][0-9]{0,3}L$/.test(prior) && grossToDate <= freePay(prior, periods) * 52n) return 0n;
       }

@@ -418,3 +418,19 @@ test('extra fortnightly and four-weekly paydays apply the extra-period rules', (
     assert.throws(() => calculate([...payments, '100'], '1257L'), RangeError);
   }
 });
+
+test('extra payday after W1 compares the full year pay with recorded week 52 free pay', () => {
+  for (const [calculate, normal] of [
+    [calculateWeeklyEmployeeDraft, 52], [calculateFortnightlyEmployeeDraft, 26], [calculateFourWeeklyEmployeeDraft, 13],
+  ]) {
+    const payments = [...Array(normal).fill('100'), '200000'];
+    const codes = [...Array(normal).fill('1257L W1'), '1257L'];
+    const total = normal * 100 + 200000;
+    const periodTax = calculate(['200000'], '1257L W1').payeMinor;
+    assert.equal(calculate(payments, codes, 'A', String(total)).payeMinor, '0');
+    assert.equal(calculate(payments, codes, 'A', String(total - 1)).payeMinor, periodTax);
+    for (const invalid of [undefined, null, -1, '-1', '12.50']) {
+      assert.throws(() => calculate(payments, codes, 'A', invalid), RangeError);
+    }
+  }
+});
