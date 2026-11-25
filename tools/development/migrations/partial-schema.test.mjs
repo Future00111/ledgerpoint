@@ -384,7 +384,7 @@ test('real PostgreSQL: interrupted migration-history recording leaves no DDL or 
 test('populated backup rehearses the amendment upgrade, rollback, retry and restored readback', async () => {
   const sourceDb = 'ledgerly_upgrade_source_test', targetDb = 'ledgerly_upgrade_copy_test';
   const restoredDb = 'ledgerly_upgrade_restored_test';
-  const { execFileSync } = await import('node:child_process');
+  const { execFileSync,spawnSync } = await import('node:child_process');
   const { installSchema, exportSchema } = await import(
     pathToFileURL(path.join(process.cwd(),'tools/accounting-flow/schema.mjs')).href);
   const { inputs, checkInstalledMigrationHistory, expectedMigrationHistory } = await historyAPI();
@@ -412,6 +412,18 @@ test('populated backup rehearses the amendment upgrade, rollback, retry and rest
     const candidate = await connect(targetDb);
     restore(targetDb,dump(sourceDb));
     assertSameFingerprint(before,await fingerprintDatabase(candidate));
+    const probe = (database,mode) => {
+      const {status,stdout,stderr} = spawnSync(process.execPath,['artifacts/api-server/dist/index.mjs',mode],{
+        cwd:process.cwd(),encoding:'utf8',timeout:15000,env:{PATH:process.env.PATH,NODE_ENV:'test',PORT:'0',
+          DATABASE_URL:'postgresql://ledgerly_api@localhost/'+database+'?host='+encodeURIComponent(socket)+'&port=55441'}});
+      return {status,log:stdout+stderr};
+    };
+    for (const mode of ['--check-amendment-schema','--require-amendment-schema']) {
+      const refused = probe(targetDb,mode);
+      assert.equal(refused.status,1,refused.log);
+      assert.match(refused.log,/MIGRATION_HISTORY_INCOMPATIBLE/);
+      assert.doesNotMatch(refused.log,/Server listening/);
+    }
     const oldHistory = (await candidate.query('SELECT * FROM public.schema_migrations ORDER BY id')).rows;
     const oldIds = new Set(oldHistory.map(row=>row.id));
     const additions = expectedMigrationHistory(inputs,{includeAmendments:true}).filter(row=>!oldIds.has(row.id));
@@ -455,6 +467,18 @@ test('populated backup rehearses the amendment upgrade, rollback, retry and rest
     assertSameFingerprint(after,await fingerprintDatabase(candidate));
     const recovered = await connect(restoredDb);
     restore(restoredDb,dump(targetDb));
+    assertSameFingerprint(after,await fingerprintDatabase(recovered));
+    const ready = probe(restoredDb,'--check-amendment-schema');
+    assert.equal(ready.status,0,ready.log);
+    assert.match(ready.log,/Amendment schema release check passed/);
+    await recovered.query('ALTER TABLE public.accounting_document_amendments DISABLE TRIGGER accounting_amendment_immutable');
+    try {
+      const broken = probe(restoredDb,'--require-amendment-schema');
+      assert.equal(broken.status,1,broken.log);
+      assert.match(broken.log,/CORRECTION_SCHEMA_INCOMPLETE/);
+    } finally {
+      await recovered.query('ALTER TABLE public.accounting_document_amendments ENABLE ALWAYS TRIGGER accounting_amendment_immutable');
+    }
     assertSameFingerprint(after,await fingerprintDatabase(recovered));
     assert.equal(await checkInstalledMigrationHistory(recovered,inputs,{includeAmendments:true}),true);
     await recovered.query('SET ROLE ledgerly_api');
