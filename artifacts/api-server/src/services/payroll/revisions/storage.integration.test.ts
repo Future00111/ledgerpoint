@@ -48,12 +48,15 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
     const source = { lineId:randomUUID(), employeeId, inputRevisionId:randomUUID(), payday:'2026-10-30', calculation:calculationFor(employeeId) };
     const {advanceDatedLoanPayslipDraft} = await import(pathToFileURL(path.resolve(
       'artifacts/api-server/src/services/payroll/contracts/datedLoanPayslipDraft.mjs')).href);
-    let opening;
+    type Opening = { employmentId:string, taxYear:string, frequency:string, completedPeriods:number, taxablePayMinor:string, taxPaidMinor:string };
+    let opening: Opening | undefined;
     for (const paymentDate of ['2026-04-30','2026-05-29','2026-06-30','2026-07-31','2026-08-28','2026-09-30']) {
-      const draft = advanceDatedLoanPayslipDraft({...source.calculation,opening,grossHistory:['350000'],
+      const draft: {nextOpening:Opening | null} = advanceDatedLoanPayslipDraft({...source.calculation,opening,grossHistory:['350000'],
         noticeContext:{...source.calculation.noticeContext,paymentDate}});
+      assert.ok(draft.nextOpening);
       opening = draft.nextOpening;
     }
+    assert.ok(opening);
     assert.equal(opening.taxablePayMinor,'2100000');
     assert.equal(opening.taxPaidMinor,'420000');
     const another = prepareDatedLoanLine({...source,calculation:{...source.calculation,grossHistory:['350000'],opening}});
