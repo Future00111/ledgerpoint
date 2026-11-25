@@ -151,14 +151,13 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
     await verify();
     // Competing drafts based on revision 2: one wins, the other must reload.
     const otherCompanyRevision = randomUUID(), otherRunRevision = randomUUID();
-    const latest = randomUUID();
+    const latest = randomUUID(), winner = randomUUID();
     const contender = new pg.Client({host:socket,port:55441,database,user:'w03_bootstrap',ssl:false});
     await contender.connect();
     try {
       const pid = (await contender.query('SELECT pg_backend_pid() AS pid')).rows[0].pid;
       await assert.rejects(insert(randomUUID(),4,'gap'),{code:'23514'});
       await admin.query('BEGIN');
-      const winner = randomUUID();
       await insert(winner,3,'winner');
       const outcome = insert(randomUUID(),3,'contender',[],contender).then(() => 'accepted', error => error.code);
       await waitForBlockedWriter(pid);
@@ -205,6 +204,11 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
         for (const id of [line.employee_id,line.input_revision_id,another.employee_id,another.input_revision_id])
           assert.ok(!JSON.stringify(body).includes(id));
       }
+      for (const query of ['?history=all','?history=adjacent&extra=1','?history=adjacent&history=adjacent']) {
+        assert.equal((await review(company,second,actor,'GET',query)).status,400);
+      }
+      assert.equal((await review(other,second,actor,'GET','?history=adjacent')).status,403);
+      assert.equal((await review(company,second,'header-reader','GET','?history=adjacent')).status,403);
       const foreign = await review(other,second,actor);
       const missing = await review(company,randomUUID(),actor);
       assert.equal(foreign.status,403);
@@ -232,7 +236,7 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
           '--virtual-time-budget=15000',origin+'/revision-browser'],{timeout:45000,killSignal:'SIGKILL'});
         assert.match(stdout,/data-revision-review="passed"/);
         const audited = await admin.query("SELECT company_id,target_id FROM accounting_audit_events WHERE actor_id='browser-reviewer' AND capability='payroll.read'");
-        assert.deepEqual(audited.rows.map(row=>row.target_id).sort(),[second,latest].sort());
+        assert.deepEqual(audited.rows.map(row=>row.target_id).sort(),[second,first,second,latest,winner].sort());
         assert.ok(audited.rows.every(row=>row.company_id===company));
       } finally { rmSync(dir,{recursive:true,force:true,maxRetries:6,retryDelay:100}); }
     } finally { await new Promise<void>(resolve => server.close(()=>resolve())); }

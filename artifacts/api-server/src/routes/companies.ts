@@ -101,9 +101,10 @@ router.use(auth);
 router.get("/:id/payroll-run-revisions/:revisionId", async (req: Request, res: Response) => {
   if (req.method !== "GET") { res.set("Allow", "GET").status(405).end(); return; }
   try {
-    if (Object.keys(req.query).length) throw new SensitiveAccessError("SENSITIVE_REQUEST_INVALID");
+    const history = req.query.history === 'adjacent';
+    if (Object.keys(req.query).length !== (history ? 1 : 0)) throw new SensitiveAccessError("SENSITIVE_REQUEST_INVALID");
     const { userId } = req as AuthenticatedRequest;
-    const revision = await readDraftRevision(req.params["id"] as string, userId, req.params["revisionId"] as string, true);
+    const revision = await readDraftRevision(req.params["id"] as string, userId, req.params["revisionId"] as string, history ? "history" : true);
     res.status(200).type("application/json").end(JSON.stringify(revision));
   } catch (error) {
     companyError(req, res, error, "pay-run revision review error");

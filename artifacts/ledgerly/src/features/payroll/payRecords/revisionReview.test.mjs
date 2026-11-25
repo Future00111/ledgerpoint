@@ -47,3 +47,17 @@ test('review accepts priority orders and rejects a negative order even when the 
   }
   assert.throws(() => validatedReview(row,id));
 });
+
+test('revision history validates first, middle and current links before displaying them', () => {
+  const prior = '13b008c3-f6fa-4973-a356-b6e4af7adbd1';
+  const next = '13b008c3-f6fa-4973-a356-b6e4af7adbd2';
+  const middle = {...draft,revision_number:2,is_current_revision:false,current_revision_id:next,
+    previous_revision_id:prior,next_revision_id:next};
+  assert.equal(validatedReview(middle,id,true),middle);
+  for (const change of [{previous_revision_id:null},{previous_revision_id:next},{next_revision_id:null},
+    {next_revision_id:id},{next_revision_id:'invalid'},{revision_number:1}]) {
+    assert.throws(()=>validatedReview({...middle,...change},id,true));
+  }
+  const only = {...draft,previous_revision_id:null,next_revision_id:null};
+  assert.equal(validatedReview(only,id,true),only);
+});

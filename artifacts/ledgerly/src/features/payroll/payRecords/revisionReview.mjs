@@ -9,14 +9,23 @@ const components = (values,names) => object(values) && Object.entries(values).ev
 const money = row => amount(row.gross) && amount(row.net) && components(row.deductions,deductionNames) && components(row.adjustments,adjustmentNames);
 const uuid = value => typeof value === 'string' && /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(value);
 
-export function validatedReview(row,requested) {
+export function validatedReview(row,requested,history = false) {
   const fields = ['run_id','revision_id','revision_number','period_start','period_end','payday','currency','rules_version','is_current_revision','current_revision_id','review_breakdown'];
+  if (history) fields.push('previous_revision_id','next_revision_id');
   if (!exact(row,fields) || row.revision_id !== recordId(requested) || recordId(row.current_revision_id) !== row.current_revision_id ||
     row.is_current_revision !== (row.revision_id === row.current_revision_id) || !uuid(row.run_id) ||
     !Number.isSafeInteger(row.revision_number) || row.revision_number < 1 || typeof row.is_current_revision !== 'boolean' ||
     row.currency !== 'GBP' || typeof row.rules_version !== 'string' || !row.rules_version.trim() ||
     ![row.period_start,row.period_end,row.payday].every(date => effectiveDate(date) === date) || row.period_end < row.period_start)
     throw Error('Invalid draft revision');
+  if (history) {
+    const previous = row.previous_revision_id, next = row.next_revision_id;
+    const links = [previous,next].filter(id => id !== null);
+    if (links.some(id => recordId(id) !== id || id === row.revision_id) ||
+        new Set(links).size !== links.length || previous === row.current_revision_id ||
+        (previous === null) !== (row.revision_number === 1) || (next === null) !== row.is_current_revision)
+      throw Error('Invalid revision history');
+  }
   const data = row.review_breakdown;
   if (!exact(data,['lines','totals']) || !Array.isArray(data.lines) || !exact(data.totals,['line_count','gross','net','deductions','adjustments']) ||
     data.totals.line_count !== data.lines.length || !money(data.totals) || data.lines.some(line =>
