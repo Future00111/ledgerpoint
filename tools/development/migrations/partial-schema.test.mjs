@@ -417,34 +417,33 @@ test('populated backup rehearses the amendment upgrade, rollback, retry and rest
     const additions = expectedMigrationHistory(inputs,{includeAmendments:true}).filter(row=>!oldIds.has(row.id));
     assert.deepEqual(additions.map(row=>row.id),['accounting-document-amendments',
       'conditional-discount-corrected-observations','conditional-discount-commercial-credits']);
-    const apply = async interruptAfter => {
-      await candidate.query('BEGIN');
-      try {
-        await candidate.query('SELECT pg_advisory_xact_lock(17428,3003)');
-        await checkInstalledMigrationHistory(candidate,inputs);
-        for (const row of additions) {
-          await candidate.query(inputs[row.id]);
-          await candidate.query(`INSERT INTO public.schema_migrations(id,sha256,contract_version,dependencies)
-            VALUES ($1,$2,$3,$4::jsonb)`,[row.id,row.sha256,row.contract_version,JSON.stringify(row.dependencies)]);
-          if (row.id === interruptAfter) throw Error('Injected rehearsal interruption');
-        }
-        await checkInstalledMigrationHistory(candidate,inputs,{includeAmendments:true});
-        assert.equal(await amendmentSchema(candidate),true);
-        await candidate.query('COMMIT');
-      } catch (error) { await candidate.query('ROLLBACK'); throw error; }
-    };
+    const {rehearseAmendmentUpgrade} = await import(pathToFileURL(
+      path.join(process.cwd(),'tools/development/migrations/rehearse-amendments.mjs')).href);
+    const apply = client => rehearseAmendmentUpgrade(client,socket,process.cwd());
+    await assert.rejects(()=>apply(source),/Disposable upgrade copy required/);
     for (const row of additions) {
-      await assert.rejects(()=>apply(row.id),/Injected rehearsal interruption/);
+      const interrupted = {query:async (sql,values) => {
+        const result = await candidate.query(sql,values);
+        if (sql.startsWith('INSERT INTO public.schema_migrations') && values[0] === row.id)
+          throw Error('Injected rehearsal interruption');
+        return result;
+      }};
+      await assert.rejects(()=>apply(interrupted),/Injected rehearsal interruption/);
       assertSameFingerprint(before,await fingerprintDatabase(candidate));
     }
-    await apply(null);
+    await candidate.query('CREATE TABLE accounting_document_amendment_heads (id integer)');
+    try { await assert.rejects(()=>apply(candidate),/Unexpected partial amendment schema/); }
+    finally { await candidate.query('DROP TABLE accounting_document_amendment_heads'); }
+    assertSameFingerprint(before,await fingerprintDatabase(candidate));
+    assert.deepEqual(await apply(candidate),additions.map(row=>row.id));
+    assert.equal(await amendmentSchema(candidate),true);
     const after = await fingerprintDatabase(candidate);
     for (const table of before.tables.filter(table=>table.table !== 'schema_migrations')) {
       assert.deepEqual(after.tables.find(current=>current.table === table.table),table);
     }
     const preserved = (await candidate.query('SELECT * FROM public.schema_migrations WHERE id=ANY($1) ORDER BY id',[[...oldIds]])).rows;
     assert.deepEqual(preserved,oldHistory);
-    await assert.rejects(()=>apply(null),{code:'MIGRATION_HISTORY_INCOMPATIBLE'});
+    await assert.rejects(()=>apply(candidate),{code:'MIGRATION_HISTORY_INCOMPATIBLE'});
     assertSameFingerprint(after,await fingerprintDatabase(candidate));
     const recovered = await connect(restoredDb);
     restore(restoredDb,dump(targetDb));
