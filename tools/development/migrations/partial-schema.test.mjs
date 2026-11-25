@@ -380,3 +380,84 @@ test('real PostgreSQL: interrupted migration-history recording leaves no DDL or 
     assert.deepEqual((await candidate.query('SELECT id FROM schema_migrations')).rows.map(row => row.id).sort(), Object.keys(inputs).sort());
   } finally { await candidate.end(); await admin.query(`DROP DATABASE ${database}`); }
 });
+
+test('populated backup rehearses the amendment upgrade, rollback, retry and restored readback', async () => {
+  const sourceDb = 'ledgerly_upgrade_source_test', targetDb = 'ledgerly_upgrade_copy_test';
+  const restoredDb = 'ledgerly_upgrade_restored_test';
+  const { execFileSync } = await import('node:child_process');
+  const { installSchema, exportSchema } = await import(
+    pathToFileURL(path.join(process.cwd(),'tools/accounting-flow/schema.mjs')).href);
+  const { inputs, checkInstalledMigrationHistory, expectedMigrationHistory } = await historyAPI();
+  const databases = [], clients = [];
+  const connect = async name => {
+    // Names originate only from this rehearsal. CREATE must succeed before cleanup owns the database.
+    await admin.query('CREATE DATABASE '+name);
+    databases.push(name);
+    const client = new pg.Client({host:socket,port:55441,user:'w03_bootstrap',database:name,ssl:false});
+    clients.push(client);
+    await client.connect();
+    return client;
+  };
+  const args = name => ['-h',socket,'-p','55441','-U','w03_bootstrap','-d',name];
+  const dump = name => execFileSync('pg_dump',[...args(name),'--format=custom'],{maxBuffer:64*1024*1024});
+  const restore = (name,archive) => execFileSync('pg_restore',[...args(name),'--exit-on-error','--single-transaction'],{input:archive});
+  try {
+    const source = await connect(sourceDb);
+    await installSchema(source,exportSchema());
+    await source.query("INSERT INTO companies(id,name) VALUES ('00000000-0000-4000-8000-000000000001','Synthetic upgrade business')");
+    await source.query(`INSERT INTO public.employee_pay_records(company_id,employee_id,id,effective_from,annual_salary_pence)
+      VALUES ('00000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000002',
+        '00000000-0000-4000-8000-000000000003','2026-04-06',4200000)`);
+    const before = await fingerprintDatabase(source);
+    const candidate = await connect(targetDb);
+    restore(targetDb,dump(sourceDb));
+    assertSameFingerprint(before,await fingerprintDatabase(candidate));
+    const oldHistory = (await candidate.query('SELECT * FROM public.schema_migrations ORDER BY id')).rows;
+    const oldIds = new Set(oldHistory.map(row=>row.id));
+    const additions = expectedMigrationHistory(inputs,{includeAmendments:true}).filter(row=>!oldIds.has(row.id));
+    assert.deepEqual(additions.map(row=>row.id),['accounting-document-amendments',
+      'conditional-discount-corrected-observations','conditional-discount-commercial-credits']);
+    const apply = async interruptAfter => {
+      await candidate.query('BEGIN');
+      try {
+        await candidate.query('SELECT pg_advisory_xact_lock(17428,3003)');
+        await checkInstalledMigrationHistory(candidate,inputs);
+        for (const row of additions) {
+          await candidate.query(inputs[row.id]);
+          await candidate.query(`INSERT INTO public.schema_migrations(id,sha256,contract_version,dependencies)
+            VALUES ($1,$2,$3,$4::jsonb)`,[row.id,row.sha256,row.contract_version,JSON.stringify(row.dependencies)]);
+          if (row.id === interruptAfter) throw Error('Injected rehearsal interruption');
+        }
+        await checkInstalledMigrationHistory(candidate,inputs,{includeAmendments:true});
+        assert.equal(await amendmentSchema(candidate),true);
+        await candidate.query('COMMIT');
+      } catch (error) { await candidate.query('ROLLBACK'); throw error; }
+    };
+    for (const row of additions) {
+      await assert.rejects(()=>apply(row.id),/Injected rehearsal interruption/);
+      assertSameFingerprint(before,await fingerprintDatabase(candidate));
+    }
+    await apply(null);
+    const after = await fingerprintDatabase(candidate);
+    for (const table of before.tables.filter(table=>table.table !== 'schema_migrations')) {
+      assert.deepEqual(after.tables.find(current=>current.table === table.table),table);
+    }
+    const preserved = (await candidate.query('SELECT * FROM public.schema_migrations WHERE id=ANY($1) ORDER BY id',[[...oldIds]])).rows;
+    assert.deepEqual(preserved,oldHistory);
+    await assert.rejects(()=>apply(null),{code:'MIGRATION_HISTORY_INCOMPATIBLE'});
+    assertSameFingerprint(after,await fingerprintDatabase(candidate));
+    const recovered = await connect(restoredDb);
+    restore(restoredDb,dump(targetDb));
+    assertSameFingerprint(after,await fingerprintDatabase(recovered));
+    assert.equal(await checkInstalledMigrationHistory(recovered,inputs,{includeAmendments:true}),true);
+    await recovered.query('SET ROLE ledgerly_api');
+    try { assert.equal(await amendmentSchema(recovered),true); }
+    finally { await recovered.query('RESET ROLE'); }
+    assertSameFingerprint(before,await fingerprintDatabase(source));
+    console.log('POPULATED_UPGRADE_REHEARSAL',JSON.stringify({originalHistory:oldIds.size,added:additions.map(row=>row.id),
+      verifiedPriorTables:before.tables.length-1,rollbackBoundaries:additions.length,restored:true,sourceUnchanged:true}));
+  } finally {
+    for (const client of clients.reverse()) await client.end();
+    for (const name of databases.reverse()) await admin.query('DROP DATABASE '+name);
+  }
+});
