@@ -33,7 +33,8 @@ BEGIN
     adjustment := 0;
     FOREACH kind IN ARRAY ARRAY['deductions','adjustments'] LOOP
       FOR component IN SELECT key,value FROM jsonb_each(item->kind) LOOP
-        IF (kind='deductions' AND component.key NOT IN ('paye','employee_ni','student_loan','postgraduate_loan'))
+        IF (kind='deductions' AND component.key NOT IN ('paye','employee_ni','student_loan','postgraduate_loan','priority_order'))
+          OR (component.key='priority_order' AND left(component.value #>> '{}',1)='-')
           OR (kind='adjustments' AND component.key NOT IN ('rounding','correction')) OR jsonb_typeof(component.value) <> 'string'
           OR (component.value #>> '{}') !~ '^(0|-?[1-9][0-9]{0,17})$'
         THEN RAISE EXCEPTION 'Invalid draft component' USING ERRCODE='23514'; END IF;

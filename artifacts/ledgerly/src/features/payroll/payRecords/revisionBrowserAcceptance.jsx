@@ -25,7 +25,10 @@ async function exercise() {
   const lines = [...table.querySelectorAll('tbody tr')];
   if (!document.body.innerText.includes('Revision 2 · Superseded') || lines.length !== 2 ||
     lines.some((row,i)=>row.querySelector('th').textContent !== lineIds[i]) ||
-    table.querySelector('tfoot tr td:last-child')?.textContent !== '£90,071,992,547,410.70') throw Error('Revision mismatch');
+    !lines[1].innerText.includes('Priority order £50.00') || !lines[1].innerText.includes('Postgraduate loan £103.00') ||
+    !lines[1].innerText.includes('Student loan £0.00') || !lines[1].innerText.includes('£2,450.84') ||
+    !table.querySelector('tfoot').innerText.includes('Priority order £50.00') ||
+    table.querySelector('tfoot tr td:last-child')?.textContent !== '£90,071,992,549,859.74') throw Error('Revision mismatch');
   button('Open current revision').click();
   await wait(()=>document.body.innerText.includes('Revision 4 · Current at lookup') && input.value === latest);
   if (button('Open current revision') || document.body.innerText.includes(lineIds[0])) throw Error('Old draft remained visible');

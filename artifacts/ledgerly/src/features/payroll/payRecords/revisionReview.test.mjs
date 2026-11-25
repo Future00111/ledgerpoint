@@ -33,3 +33,17 @@ test('review rejects duplicate lines and inconsistent line or revision totals',(
     assert.throws(()=>validatedReview(altered,id));
   }
 });
+
+test('review accepts priority orders and rejects a negative order even when the displayed net reconciles', () => {
+  const row = structuredClone(draft);
+  for (const target of [row.review_breakdown.lines[0],row.review_breakdown.totals]) {
+    target.deductions.priority_order = '50';
+    target.net = '49';
+  }
+  assert.equal(validatedReview(row,id),row);
+  for (const target of [row.review_breakdown.lines[0],row.review_breakdown.totals]) {
+    target.deductions.priority_order = '-50';
+    target.net = '149';
+  }
+  assert.throws(() => validatedReview(row,id));
+});

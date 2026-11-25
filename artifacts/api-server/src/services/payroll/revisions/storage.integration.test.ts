@@ -10,6 +10,7 @@ import {execFile,execFileSync} from 'node:child_process';
 import {mkdtempSync,rmSync,readFileSync} from 'node:fs';
 import pg from 'pg';
 import {pool} from '@workspace/db';
+import {prepareDatedLoanLine} from './datedLoanLine.mjs';
 import {readDraftRevision} from './readDraftRevision';
 
 test('draft revision headers are immutable, company-scoped and recoverable', async () => {
@@ -32,8 +33,31 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
     await admin.query(readFileSync('artifacts/api-server/src/services/payroll/revisions/draft-storage.sql','utf8'));
     const line = {line_id:randomUUID(),employee_id:randomUUID(),input_revision_id:randomUUID(),
       gross:'9007199254740993',net:'9007199254740890',deductions:{paye:'100'},adjustments:{rounding:'-3'}};
-    const another = {...line,line_id:randomUUID(),employee_id:randomUUID(),input_revision_id:randomUUID(),
-      gross:'200',net:'180',deductions:{paye:'20'},adjustments:{}};
+    function calculationFor(employeeId:string) {
+      const payday = '2026-10-30';
+      const notice = (plan:string,type:string) => ({plan,type,id:type,employmentId:employeeId,effectiveDate:'2026-09-10',
+        receivedDate:'2026-09-10',firstAvailablePayday:'2026-09-30',availabilityEvidence:'Synthetic regular cutoff'});
+      return {grossHistory:Array(7).fill('350000'),taxCodes:'BR',priorityOrder:{deductionMinor:'5000',protectedLevelMinor:'245000'},
+        noticeContext:{taxYear:'2026-27',frequency:'monthly',paymentDate:payday,payMinor:'350000',plan:'plan_2',
+          employmentId:employeeId,earningsBasis:'class1_ni_earnings',activeEmployment:true,employeeStopRequest:false,otherInstructions:[],
+          occupationalPensionOnly:false,deceased:false,protectedEarnings:true,concurrentLoan:true,correction:false,offPayroll:false,
+          notices:[notice('plan_2','SL1'),notice('postgraduate','PGL1')]}};
+    }
+    const employeeId = randomUUID();
+    const source = { lineId:randomUUID(), employeeId, inputRevisionId:randomUUID(), payday:'2026-10-30', calculation:calculationFor(employeeId) };
+    const another = prepareDatedLoanLine(source);
+    assert.throws(() => prepareDatedLoanLine({...source, employeeId:randomUUID()}), RangeError);
+    assert.throws(() => prepareDatedLoanLine({...source, payday:'2026-10-31'}), RangeError);
+    assert.throws(() => prepareDatedLoanLine({...source, lineId:employeeId}), RangeError);
+    assert.deepEqual(another.deductions,{paye:'70000',employee_ni:'19616',student_loan:'0',postgraduate_loan:'10300',priority_order:'5000'});
+    assert.equal(another.net,'245084');
+    const {priorityOrder, ...ordinaryCalculation} = source.calculation;
+    const ordinary = prepareDatedLoanLine({...source, calculation:{...ordinaryCalculation,
+      noticeContext:{...ordinaryCalculation.noticeContext,protectedEarnings:false}}});
+    assert.equal(Object.hasOwn(ordinary.deductions,'priority_order'),false);
+    const zeroOrder = prepareDatedLoanLine({...source, calculation:{...source.calculation,
+      priorityOrder:{...priorityOrder,deductionMinor:'0'}}});
+    assert.equal(zeroOrder.deductions.priority_order,'0');
     const payInput = (tenant:string,employee:string,id:string,date:string) => admin.query(
       'INSERT INTO public.employee_pay_records(company_id,employee_id,id,effective_from,annual_salary_pence) VALUES ($1,$2,$3,$4,4200000)',
       [tenant,employee,id,date]);
@@ -56,7 +80,7 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
     assert.deepEqual(snapshot,{run_id:run,revision_id:first,revision_number:1,period_start:'2026-10-01',
       period_end:'2026-10-31',payday:'2026-10-30',currency:'GBP',rules_version:'synthetic-v1'});
     await insert(second,2,'synthetic-v2',[line,another]);
-    for (const invalid of [[{...line,net:'1'}],[line,line],[line,{...another,line_id:line.employee_id}],[{...line,input_revision_id:null}],
+    for (const invalid of [[{...another,net:'250085',deductions:{...another.deductions,priority_order:'-1'}}],[{...line,net:'1'}],[line,line],[line,{...another,line_id:line.employee_id}],[{...line,input_revision_id:null}],
       [{...line,adjustments:{other:'-3'}}],[{...line,net:12}],[{...line,bank_account:'invalid'}]]) {
       await assert.rejects(insert(randomUUID(),3,'invalid',invalid),{code:'23514'});
     }
@@ -100,7 +124,7 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
       assert.equal((await readDraftRevision(company,actor,first,true)).is_current_revision,false);
       assert.deepEqual(detailed.review_breakdown,{
         lines:[line,another].map(({employee_id,input_revision_id,...visible}) => visible),
-        totals:{line_count:2,gross:'9007199254741193',net:'9007199254741070',deductions:{paye:'120'},adjustments:{rounding:'-3'}}
+        totals:{line_count:2,gross:'9007199255090993',net:'9007199254985974',deductions:{paye:'70100',employee_ni:'19616',student_loan:'0',postgraduate_loan:'10300',priority_order:'5000'},adjustments:{rounding:'-3'}}
       });
       await assert.rejects(readDraftRevision(company,'header-reader',second,true),{code:'SENSITIVE_ACCESS_DENIED'});
       await assert.rejects(readDraftRevision(other,actor,second,true),{code:'SENSITIVE_ACCESS_DENIED'});
@@ -176,7 +200,7 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
         assert.deepEqual(body,{...snapshot,revision_number:2,revision_id:second,rules_version:'synthetic-v2',
           is_current_revision:false,current_revision_id:latest,review_breakdown:{
             lines:[line,another].map(({employee_id,input_revision_id,...visible}) => visible),
-            totals:{line_count:2,gross:'9007199254741193',net:'9007199254741070',deductions:{paye:'120'},adjustments:{rounding:'-3'}}
+            totals:{line_count:2,gross:'9007199255090993',net:'9007199254985974',deductions:{paye:'70100',employee_ni:'19616',student_loan:'0',postgraduate_loan:'10300',priority_order:'5000'},adjustments:{rounding:'-3'}}
           }});
         for (const id of [line.employee_id,line.input_revision_id,another.employee_id,another.input_revision_id])
           assert.ok(!JSON.stringify(body).includes(id));

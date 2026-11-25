@@ -1,11 +1,11 @@
 import {recordId,effectiveDate} from './model.mjs';
 
-export const deductionNames = {paye:'PAYE',employee_ni:'Employee NI',student_loan:'Student loan',postgraduate_loan:'Postgraduate loan'};
+export const deductionNames = {paye:'PAYE',employee_ni:'Employee NI',student_loan:'Student loan',postgraduate_loan:'Postgraduate loan',priority_order:'Priority order'};
 export const adjustmentNames = {rounding:'Rounding',correction:'Correction'};
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const exact = (value, keys) => object(value) && Object.keys(value).length === keys.length && keys.every(key => Object.hasOwn(value,key));
 const amount = value => typeof value === 'string' && /^(0|-?[1-9]\d*)$/.test(value);
-const components = (values,names) => object(values) && Object.entries(values).every(([key,value]) => Object.hasOwn(names,key) && amount(value));
+const components = (values,names) => object(values) && Object.entries(values).every(([key,value]) => Object.hasOwn(names,key) && amount(value) && (key !== 'priority_order' || !value.startsWith('-')));
 const money = row => amount(row.gross) && amount(row.net) && components(row.deductions,deductionNames) && components(row.adjustments,adjustmentNames);
 const uuid = value => typeof value === 'string' && /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(value);
 
