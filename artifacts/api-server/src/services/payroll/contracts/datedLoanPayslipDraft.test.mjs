@@ -85,3 +85,52 @@ test('both instructions stop on the same payday after separate starts', () => {
     pairedNotice('plan_2','SL2',2), pairedNotice('plan_2','PGL2',2)];
   checkPair('plan_2', notices, [[13900,0],[13900,13500],[0,0],[0,0]]);
 });
+
+const protectedGross = ['400000'];
+const beforeOrder = BigInt(calculateMonthlyEmployeeDraft(protectedGross, '1257L').netMinor);
+function protectedDraft(plan, types, headroom, concurrentLoan = false) {
+  return calculateDatedLoanPayslipDraft({
+    grossHistory: protectedGross, taxCodes: '1257L',
+    noticeContext: { ...context, paymentDate: paydays[0], plan, concurrentLoan, protectedEarnings: true,
+      notices: types.map(type => pairedNotice(plan, type, 0)) },
+    priorityOrder: { deductionMinor: '5000', protectedLevelMinor: String(beforeOrder - 5000n - BigInt(headroom)) },
+  }).payslip;
+}
+
+for (const [plan, due] of [['plan_1',15800], ['plan_2',13900], ['plan_4',10600], ['plan_5',17200], ['postgraduate',13500]]) {
+  test(plan + ' respects a priority order before taking a single active loan', () => {
+    const pg = plan === 'postgraduate';
+    for (const [headroom, paid] of [[-1,0],[99,0],[100,100],[5399,5300],[99999,due]]) {
+      const slip = protectedDraft(plan, [pg ? 'PGL1' : 'SL1'], headroom);
+      assert.equal(slip.priorityOrderMinor, '5000');
+      assert.equal(slip.studentLoanMinor, String(pg ? 0 : paid));
+      assert.equal(slip.postgraduateLoanMinor, String(pg ? paid : 0));
+      assert.equal(slip.netMinor, String(beforeOrder - 5000n - BigInt(paid)));
+    }
+  });
+  if (plan !== 'postgraduate') test(plan + ' shares the protected headroom with an active postgraduate loan', () => {
+    for (const [headroom, pg, student] of [[99,0,0],[5399,5300,0],[13599,13500,0],[13600,13500,100],[99999,13500,due]]) {
+      const slip = protectedDraft(plan, ['SL1','PGL1'], headroom, true);
+      assert.equal(slip.postgraduateLoanMinor, String(pg));
+      assert.equal(slip.studentLoanMinor, String(student));
+      assert.equal(slip.netMinor, String(beforeOrder - 5000n - BigInt(pg + student)));
+    }
+  });
+}
+test('a priority order still reduces take-home pay when neither loan has started', () => {
+  const slip = protectedDraft('plan_2', [], 5000, true);
+  assert.equal(slip.studentLoanMinor, '0');
+  assert.equal(slip.postgraduateLoanMinor, '0');
+  assert.equal(slip.netMinor, String(beforeOrder - 5000n));
+});
+
+test('protected pay rejects incomplete, inconsistent and unaffordable order inputs', () => {
+  const noticeContext = { ...context, paymentDate: paydays[0], plan: 'plan_1', notices: [], protectedEarnings: true };
+  const input = { grossHistory: protectedGross, taxCodes: '1257L', noticeContext };
+  for (const priorityOrder of [undefined, null, {}, { deductionMinor: '1.2', protectedLevelMinor: '0' },
+    { deductionMinor: String(beforeOrder + 1n), protectedLevelMinor: '0' }]) {
+    assert.throws(() => calculateDatedLoanPayslipDraft({ ...input, priorityOrder }), RangeError);
+  }
+  assert.throws(() => calculateDatedLoanPayslipDraft({ ...input, noticeContext: { ...noticeContext, protectedEarnings: false },
+    priorityOrder: { deductionMinor: '0', protectedLevelMinor: '0' } }), RangeError);
+});
