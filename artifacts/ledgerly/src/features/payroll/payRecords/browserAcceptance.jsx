@@ -14,6 +14,7 @@ const requests = [];
 // Synthetic UI projection; the native route and audit are covered in the revision database suite.
 const reviewId = crypto.randomUUID();
 const reviewRun = crypto.randomUUID();
+const previousRevision = crypto.randomUUID(), currentRevision = crypto.randomUUID();
 let releaseReview;
 let reviewReads = 0;
 const exportStatuses = [];
@@ -26,7 +27,8 @@ window.fetch = async (url, options = {}) => {
     const amounts = {gross:'9007199254740993',net:'9007199254740989',deductions:{paye:'3'},adjustments:{rounding:'-1'}};
     if (reviewReads === 2) await new Promise(resolve => { releaseReview = resolve; });
     return Response.json({run_id:reviewRun,revision_id:reviewId,revision_number:2,period_start:'2026-10-01',
-      period_end:'2026-10-31',payday:'2026-10-30',currency:'GBP',rules_version:'synthetic',is_current_revision:false,current_revision_id:reviewRun,
+      period_end:'2026-10-31',payday:'2026-10-30',currency:'GBP',rules_version:'synthetic',is_current_revision:false,current_revision_id:currentRevision,
+      previous_revision_id:previousRevision,next_revision_id:currentRevision,
       review_breakdown:{lines:[{line_id:crypto.randomUUID(),...amounts}],totals:{line_count:1,...amounts}}});
   }
   const headers = new Headers(options.headers);
