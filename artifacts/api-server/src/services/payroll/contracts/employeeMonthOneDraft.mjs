@@ -50,9 +50,89 @@ function calculateEmployeeDraft(grossHistory, taxCodes, niCategory, frequency, w
 
 // One regular payment per tax week from week 1. NI uses only payments since appointment.
 export function calculateWeeklyDirectorPayslipDraft(grossHistory, taxCodes, category, appointmentWeek, week52FreePayMinor) {
+  return weeklyDirectorPayslip(grossHistory, taxCodes, category, appointmentWeek, week52FreePayMinor, calculateDirectorNiDraft);
+}
+
+// Final payday under the alternative method. Pass the NI already paid since appointment.
+export function calculateFinalWeeklyAlternativeDirectorPayslipDraft(grossHistory, taxCodes, category, appointmentWeek, paid, week52FreePayMinor) {
+  return weeklyDirectorPayslip(grossHistory, taxCodes, category, appointmentWeek, week52FreePayMinor,
+    (history, niCategory, week) => reconcileDirectorNiDraft(history, niCategory, week, paid));
+}
+
+// One monthly payment from April onwards; director in post at the start of the tax year.
+export function calculateFullYearMonthlyDirectorPayslipDraft(grossHistory, taxCodes, category) {
+  const paye = calculatePaydayPaye(grossHistory, taxCodes, 'monthly');
+  return formatDirectorPayslip(grossHistory, paye, calculateDirectorNiDraft(grossHistory, category, 1));
+}
+
+export function calculateFinalFullYearMonthlyAlternativeDirectorPayslipDraft(grossHistory, taxCodes, category, paid) {
+  const paye = calculatePaydayPaye(grossHistory, taxCodes, 'monthly');
+  return formatDirectorPayslip(grossHistory, paye, reconcileDirectorNiDraft(grossHistory, category, 1, paid));
+}
+
+// One dated payment per tax month, starting in April 2026. Prior NI paid, when
+// provided, is the director-only balance before the final alternative-method payday.
+export function calculateAppointedMonthlyDirectorPayslipDraft(payments, taxCodes, category, appointmentDate, finalPaid) {
+  return calculateDatedDirectorPayslipDraft(payments, taxCodes, category, appointmentDate, 'monthly', finalPaid);
+}
+
+export function calculateDatedDirectorPayslipDraft(payments, taxCodes, category, appointmentDate, frequency, finalPaid, week52FreePayMinor) {
+  return datedDirectorPayslip(payments, taxCodes, category, appointmentDate, frequency, finalPaid, week52FreePayMinor, false);
+}
+
+// Regular alternative-method payday before reconciliation. Category eligibility is supplied by payroll.
+export function calculateInterimAlternativeDirectorPayslipDraft(payments, taxCodes, category, appointmentDate, frequency, week52FreePayMinor) {
+  return datedDirectorPayslip(payments, taxCodes, category, appointmentDate, frequency, undefined, week52FreePayMinor, true);
+}
+
+function datedDirectorPayslip(payments, taxCodes, category, appointmentDate, frequency, finalPaid, week52FreePayMinor, interim) {
+  if (!niThresholdsByFrequency.has(frequency)) throw new RangeError('Unsupported dated pay frequency');
+  const start = Date.UTC(2026, 3, 6);
+  const end = Date.UTC(2027, 3, 6);
+  const taxDate = value => {
+    if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new RangeError('Expected YYYY-MM-DD');
+    const timestamp = Date.parse(value + 'T00:00:00Z');
+    if (!Number.isFinite(timestamp) || timestamp >= end ||
+        new Date(timestamp).toISOString().slice(0, 10) !== value) throw new RangeError('Expected valid date by the end of 2026–27');
+    return timestamp;
+  };
+  const appointed = Math.max(start, taxDate(appointmentDate));
+  if (!Array.isArray(payments) || !payments.length) throw new RangeError('Expected consecutive payments');
+  const intervalDays = { weekly: 7, fortnightly: 14, four_weekly: 28 }[frequency];
+  let firstPayday;
+  const grossHistory = [], directorHistory = [];
+  for (const [index, payment] of payments.entries()) {
+    const payday = taxDate(payment?.date);
+    if (payday < start) throw new RangeError('Expected payday in 2026–27');
+    if (frequency === 'monthly') {
+      if (payday < Date.UTC(2026, 3 + index, 6) || payday >= Date.UTC(2026, 4 + index, 6)) {
+        throw new RangeError('Expected one payday in each consecutive tax month');
+      }
+    } else {
+      if (index === 0) firstPayday = payday;
+      if (firstPayday >= start + intervalDays * 86400000 || payday !== firstPayday + index * intervalDays * 86400000) {
+        throw new RangeError('Expected regular paydays from the first earnings period');
+      }
+    }
+    grossHistory.push(payment.grossMinor);
+    if (payday >= appointed) directorHistory.push(payment.grossMinor);
+  }
+  const week = Math.floor((appointed - start) / (7 * 86400000)) + 1;
+  const paye = calculatePaydayPaye(grossHistory, taxCodes, frequency, week52FreePayMinor);
+  if (!directorHistory.length) throw new RangeError('Expected a payday on or after appointment');
+  if (interim) return payslip(BigInt(grossHistory.at(-1)), paye, category, niThresholdsByFrequency.get(frequency));
+  const ni = finalPaid === undefined ? calculateDirectorNiDraft(directorHistory, category, week)
+    : reconcileDirectorNiDraft(directorHistory, category, week, finalPaid);
+  return formatDirectorPayslip(grossHistory, paye, ni);
+}
+
+function weeklyDirectorPayslip(grossHistory, taxCodes, category, appointmentWeek, week52FreePayMinor, calculateNi) {
   const paye = calculatePaydayPaye(grossHistory, taxCodes, 'weekly', week52FreePayMinor);
   const directorHistory = grossHistory.slice(appointmentWeek - 1);
-  const ni = calculateDirectorNiDraft(directorHistory, category, appointmentWeek);
+  return formatDirectorPayslip(grossHistory, paye, calculateNi(directorHistory, category, appointmentWeek));
+}
+
+function formatDirectorPayslip(grossHistory, paye, ni) {
   return formatPayslip(BigInt(grossHistory.at(-1)), paye, BigInt(ni.employeeNiMinor), BigInt(ni.employerNiMinor));
 }
 
@@ -272,14 +352,14 @@ export function reconcileDirectorNiDraft(grossHistory, category, appointmentWeek
 }
 
 function directorThresholds(category, appointmentWeek) {
-  if (category !== 'A' && category !== 'M') throw new RangeError('Expected director NI category A or M');
+  if (!niCategories.has(category)) throw new RangeError('Unsupported director NI category');
   if (!Number.isInteger(appointmentWeek) || appointmentWeek < 1 || appointmentWeek > 53) {
     throw new RangeError('Expected appointment week from 1 through 53');
   }
   // CA44 sections 24–25: count the appointment week, then round each threshold up in pounds.
   const weeks = BigInt(Math.max(1, 53 - appointmentWeek));
   const threshold = annualPounds => ((annualPounds * weeks + 51n) / 52n) * 100n;
-  return { primary: threshold(12570n), standard: threshold(5000n), upper: threshold(50270n) };
+  return { primary: threshold(12570n), standard: threshold(5000n), zone: threshold(25000n), upper: threshold(50270n) };
 }
 
 function directorNiBalance(current, previous) {
