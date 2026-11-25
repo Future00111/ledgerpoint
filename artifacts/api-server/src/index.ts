@@ -8,7 +8,15 @@ async function startServer() {
   const checkOnly = process.argv.slice(2).includes('--check-amendment-schema');
   await assertIsolatedInvoiceDemoDatabase();
   if (checkOnly || process.argv.slice(2).includes('--require-amendment-schema')) {
-    await checkAmendmentRelease(pool);
+    try {
+      await checkAmendmentRelease(pool);
+    } catch (error) {
+      const code = error instanceof Error && 'code' in error ? error.code : undefined;
+      const reason = ['MIGRATION_HISTORY_INCOMPATIBLE','MIGRATION_HISTORY_LEGACY_DEPENDENCIES','CORRECTION_SCHEMA_INCOMPLETE']
+        .find(known => known === code) ?? 'AMENDMENT_SCHEMA_CHECK_FAILED';
+      logger.error({ reason }, 'Amendment schema release check failed');
+      throw error;
+    }
     if (checkOnly) {
       logger.info('Amendment schema release check passed');
       await pool.end();
