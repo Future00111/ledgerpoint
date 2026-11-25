@@ -43,6 +43,29 @@ export function calculateFourWeeklyEmployeeDraft(grossHistory, taxCodes, niCateg
   return calculateEmployeeDraft(grossHistory, taxCodes, niCategory, 'four_weekly', week52FreePayMinor);
 }
 
+const loanPeriods = new Map([['weekly', 52n], ['fortnightly', 26n], ['four_weekly', 13n], ['monthly', 12n]]);
+const studentThresholds = new Map([['plan_1', 2690000n], ['plan_2', 2938500n], ['plan_4', 3379500n], ['plan_5', 2500000n]]);
+
+// Offline ordinary-pay scenario: gross equals Class 1 earnings, no attachment orders,
+// and the caller supplies the loan instructions confirmed active for this payday.
+export function calculateRegularEmployeeLoanPayslipDraft({
+  grossHistory, taxCodes, frequency, niCategory = 'A', studentPlan, postgraduate, week52FreePayMinor, ...extra
+}) {
+  if (Object.keys(extra).length) throw new RangeError('Unsupported loan payslip context');
+  const periods = loanPeriods.get(frequency);
+  if (!periods) throw new RangeError('Expected a regular payroll frequency');
+  if (studentPlan !== null && !studentThresholds.has(studentPlan)) throw new RangeError('Expected a confirmed student plan or null');
+  if (typeof postgraduate !== 'boolean') throw new RangeError('Expected postgraduate instruction status');
+  const slip = calculateEmployeeDraft(grossHistory, taxCodes, niCategory, frequency, week52FreePayMinor);
+  const gross = BigInt(slip.grossMinor);
+  // HMRC sections 3–4: truncate each period threshold to pence and each deduction to pounds.
+  const deduction = (annualThreshold, rate) => earningsAbove(gross, annualThreshold / periods) * rate / 10000n * 100n;
+  const student = studentPlan === null ? 0n : deduction(studentThresholds.get(studentPlan), 9n);
+  const postgrad = postgraduate ? deduction(2100000n, 6n) : 0n;
+  return { ...slip, studentLoanMinor: String(student), postgraduateLoanMinor: String(postgrad),
+    netMinor: String(BigInt(slip.netMinor) - student - postgrad) };
+}
+
 function calculateEmployeeDraft(grossHistory, taxCodes, niCategory, frequency, week52FreePayMinor) {
   const paye = calculatePaydayPaye(grossHistory, taxCodes, frequency, week52FreePayMinor);
   return payslip(BigInt(grossHistory.at(-1)), paye, niCategory, niThresholdsByFrequency.get(frequency));
