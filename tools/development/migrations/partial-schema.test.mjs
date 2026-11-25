@@ -384,7 +384,7 @@ test('real PostgreSQL: interrupted migration-history recording leaves no DDL or 
 test('populated backup rehearses the amendment upgrade, rollback, retry and restored readback', async () => {
   const sourceDb = 'ledgerly_upgrade_source_test', targetDb = 'ledgerly_upgrade_copy_test';
   const restoredDb = 'ledgerly_upgrade_restored_test';
-  const { execFileSync,spawnSync } = await import('node:child_process');
+  const { execFileSync,spawnSync,spawn } = await import('node:child_process');
   const { installSchema, exportSchema } = await import(
     pathToFileURL(path.join(process.cwd(),'tools/accounting-flow/schema.mjs')).href);
   const { inputs, checkInstalledMigrationHistory, expectedMigrationHistory } = await historyAPI();
@@ -412,14 +412,22 @@ test('populated backup rehearses the amendment upgrade, rollback, retry and rest
     const candidate = await connect(targetDb);
     restore(targetDb,dump(sourceDb));
     assertSameFingerprint(before,await fingerprintDatabase(candidate));
-    const probe = (database,mode) => {
-      const {status,stdout,stderr} = spawnSync(process.execPath,['artifacts/api-server/dist/index.mjs',mode],{
-        cwd:process.cwd(),encoding:'utf8',timeout:15000,env:{PATH:process.env.PATH,NODE_ENV:'test',PORT:'0',
-          DATABASE_URL:'postgresql://ledgerly_api@localhost/'+database+'?host='+encodeURIComponent(socket)+'&port=55441'}});
+    const manifest = 'artifacts/api-server/.replit-artifact/artifact.toml';
+    const command = JSON.parse(execFileSync('python3',['-c',
+      'import json, sys, tomllib; print(json.dumps(tomllib.load(open(sys.argv[1],"rb"))["services"][0]["production"]["run"]))',
+      manifest],{encoding:'utf8'}));
+    const [executable,...releaseArgs] = command.args;
+    assert.equal(executable,'node');
+    const probeArgs = ['artifacts/api-server/dist/index.mjs','--check-amendment-schema'];
+    const releaseEnv = (database,port) => ({...command.env,PATH:process.env.PATH,PORT:String(port),
+      DATABASE_URL:'postgresql://ledgerly_api@localhost/'+database+'?host='+encodeURIComponent(socket)+'&port=55441'});
+    const probe = (database,args) => {
+      const {status,stdout,stderr} = spawnSync(process.execPath,args,{
+        cwd:process.cwd(),encoding:'utf8',timeout:15000,env:releaseEnv(database,0)});
       return {status,log:stdout+stderr};
     };
-    for (const mode of ['--check-amendment-schema','--require-amendment-schema']) {
-      const refused = probe(targetDb,mode);
+    for (const args of [probeArgs,releaseArgs]) {
+      const refused = probe(targetDb,args);
       assert.equal(refused.status,1,refused.log);
       assert.match(refused.log,/MIGRATION_HISTORY_INCOMPATIBLE/);
       assert.doesNotMatch(refused.log,/Server listening/);
@@ -468,12 +476,33 @@ test('populated backup rehearses the amendment upgrade, rollback, retry and rest
     const recovered = await connect(restoredDb);
     restore(restoredDb,dump(targetDb));
     assertSameFingerprint(after,await fingerprintDatabase(recovered));
-    const ready = probe(restoredDb,'--check-amendment-schema');
+    const ready = probe(restoredDb,probeArgs);
     assert.equal(ready.status,0,ready.log);
     assert.match(ready.log,/Amendment schema release check passed/);
+    // The positive control must actually listen; a check-only command also exits 0.
+    const {createServer,connect:createConnection} = await import('node:net');
+    const {once} = await import('node:events');
+    const temporary = createServer();
+    temporary.listen(0,'127.0.0.1');
+    await once(temporary,'listening');
+    const port = temporary.address().port;
+    await new Promise(resolve=>temporary.close(resolve));
+    const service = spawn(process.execPath,releaseArgs,{env:releaseEnv(restoredDb,port),stdio:['ignore','pipe','pipe']});
+    const stopped = once(service,'exit');
+    let output = '';
+    service.stdout.on('data',chunk=>{output += chunk;});
+    service.stderr.on('data',chunk=>{output += chunk;});
+    try {
+      const deadline = Date.now()+15000;
+      while (!output.includes('Server listening') && service.exitCode === null && Date.now()<deadline)
+        await new Promise(resolve=>setTimeout(resolve,25));
+      assert.ok(output.includes('Server listening'),output);
+      const connection = createConnection({host:'127.0.0.1',port});
+      try { await once(connection,'connect'); } finally { connection.destroy(); }
+    } finally { service.kill(); await stopped; }
     await recovered.query('ALTER TABLE public.accounting_document_amendments DISABLE TRIGGER accounting_amendment_immutable');
     try {
-      const broken = probe(restoredDb,'--require-amendment-schema');
+      const broken = probe(restoredDb,releaseArgs);
       assert.equal(broken.status,1,broken.log);
       assert.match(broken.log,/CORRECTION_SCHEMA_INCOMPLETE/);
     } finally {
@@ -486,7 +515,7 @@ test('populated backup rehearses the amendment upgrade, rollback, retry and rest
     finally { await recovered.query('RESET ROLE'); }
     assertSameFingerprint(before,await fingerprintDatabase(source));
     console.log('POPULATED_UPGRADE_REHEARSAL',JSON.stringify({originalHistory:oldIds.size,added:additions.map(row=>row.id),
-      verifiedPriorTables:before.tables.length-1,rollbackBoundaries:additions.length,restored:true,freshControlsMatch:true,sourceUnchanged:true}));
+      verifiedPriorTables:before.tables.length-1,rollbackBoundaries:additions.length,restored:true,freshControlsMatch:true,manifestStartupVerified:true,sourceUnchanged:true}));
   } finally {
     for (const client of clients.reverse()) await client.end();
     for (const name of databases.reverse()) await admin.query('DROP DATABASE '+name);
