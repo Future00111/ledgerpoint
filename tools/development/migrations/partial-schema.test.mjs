@@ -70,13 +70,34 @@ test('real PostgreSQL: absent amendment pair preserves original projection and d
   });
 });
 
-test('real PostgreSQL: missing amendment lookup column aborts projection with no repair or writes', async () => {
+test('real PostgreSQL: every missing, mistyped or nullable amendment column blocks projection', async () => {
+  const relations = ['accounting_document_amendments','accounting_document_amendment_heads'];
+  const { rows } = await admin.query(`SELECT c.relname, a.attname, format_type(a.atttypid,a.atttypmod) AS type
+    FROM pg_catalog.pg_attribute a JOIN pg_catalog.pg_class c ON c.oid=a.attrelid
+    WHERE c.relnamespace='public'::regnamespace AND c.relname=ANY($1)
+      AND a.attnum>0 AND NOT a.attisdropped ORDER BY c.relname,a.attnum`,[relations]);
+  assert.equal(rows.length,26);
+  const unavailable = error => error.code === 'CORRECTION_SCHEMA_INCOMPLETE' && error.status === 503;
   await unchangedAfterRollback(async () => {
-    await admin.query('ALTER TABLE accounting_document_amendment_heads RENAME COLUMN company_id TO partial_schema_company');
-    await restricted();
-    // The existing service fails at the SQL read; it does not yet provide a typed
-    // whole-schema compatibility error. P03-03 must add that wider startup gate.
-    await assert.rejects(() => amendmentHistory(admin, original.id, original), error => error.code === '42703');
+    for (const {relname,attname,type} of rows) {
+      assert.ok(relations.includes(relname) && /^[a-z_]+$/.test(attname));
+      await admin.query('SAVEPOINT column_rehearsal');
+      await admin.query(`ALTER TABLE public.${relname} RENAME COLUMN ${attname} TO rehearsal_held`);
+      await restricted();
+      await assert.rejects(()=>amendmentHistory(admin,original.id,original),unavailable);
+      await admin.query('RESET ROLE');
+      await admin.query(`ALTER TABLE public.${relname} ADD COLUMN ${attname} boolean NOT NULL DEFAULT false`);
+      await restricted();
+      await assert.rejects(()=>amendmentHistory(admin,original.id,original),unavailable);
+      await admin.query('RESET ROLE');
+      await admin.query(`ALTER TABLE public.${relname} DROP COLUMN ${attname}`);
+      await admin.query(`ALTER TABLE public.${relname} ADD COLUMN ${attname} ${type}`);
+      await restricted();
+      await assert.rejects(()=>amendmentHistory(admin,original.id,original),unavailable);
+      await admin.query('ROLLBACK TO SAVEPOINT column_rehearsal');
+      await admin.query('RELEASE SAVEPOINT column_rehearsal');
+    }
+    assert.equal(await amendmentSchema(admin),true);
   });
 });
 
