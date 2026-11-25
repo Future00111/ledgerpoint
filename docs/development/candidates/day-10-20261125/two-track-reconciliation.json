@@ -1,0 +1,45 @@
+{
+  "date": "2026-11-25",
+  "trialDay": 10,
+  "queue": {
+    "priorStateCommit": "dba41ae3cdda04bb3a05b4ecd9603e95560029b0",
+    "revision": 972,
+    "acceptedParentCount": 14,
+    "newParentClosures": [],
+    "codeHead": "6b3cfbc7c654a4f6961d2846bd145c1ffd2597bc"
+  },
+  "candidate": {
+    "pullRequest": 35,
+    "head": "056911de7fbdeb8a1e0419125b8f5aa798b48082",
+    "tree": "1ec3b75abf4bb14f52977e72a64afc7ad9403813",
+    "status": "verified on draft branch"
+  },
+  "verification": {
+    "run": 45666731933,
+    "job": 139390778891,
+    "successfulSteps": 20,
+    "jobLogSpanSeconds": 258
+  },
+  "milestones": [
+    {
+      "parent": "P03-03",
+      "verified": "Populated three-migration upgrade preserves prior data across 62 business tables; rollback at each boundary; restored copy matches upgraded source. Upgraded table inventory and control digests match a fresh amended installation.",
+      "remaining": "Qualify the deployment compatibility gate and broader representative upgrade paths beyond this disposable amendment profile."
+    },
+    {
+      "parent": "P04-03",
+      "verified": "Six generated monthly opening records for one synthetic employment carry into an October draft; saved line equals full-history computation, survives PostgreSQL restore and is read through the audited Chromium review. Gross to date before October 2100000 pence, PAYE 420000 pence. Prior workbook comparison covers 168 official PAYE rows.",
+      "remaining": "Independent review and remaining correction, loss and tax-year transition coverage. Live pay-run approval remains separate."
+    }
+  ],
+  "trialMetrics": {
+    "scope": "Latest PR-triggered LedgerPoint regression for each of 17 PR #35 commits dated 25 November through this evidence head",
+    "success": 13,
+    "failure": 2,
+    "cancelled": 2,
+    "workflowLeadTime": null,
+    "blockerAge": null,
+    "creditSavings": null
+  },
+  "authority": "Evidence checkpoint only. Both parents remain pending; no merge or production action."
+}
