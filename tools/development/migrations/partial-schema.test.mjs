@@ -387,7 +387,7 @@ test('populated backup rehearses the amendment upgrade, rollback, retry and rest
   const { execFileSync,spawnSync,spawn } = await import('node:child_process');
   const { installSchema, exportSchema } = await import(
     pathToFileURL(path.join(process.cwd(),'tools/accounting-flow/schema.mjs')).href);
-  const { inputs, checkInstalledMigrationHistory, expectedMigrationHistory } = await historyAPI();
+  const { inputs, checkInstalledMigrationHistory, expectedMigrationHistory, appendLegacyDependencyCorrection } = await historyAPI();
   const databases = [], clients = [];
   const connect = async name => {
     // Names originate only from this rehearsal. CREATE must succeed before cleanup owns the database.
@@ -500,6 +500,46 @@ test('populated backup rehearses the amendment upgrade, rollback, retry and rest
     restore(restoredDb,dump(targetDb));
     assertSameFingerprint(after,await fingerprintDatabase(recovered));
     assert.deepEqual(await invoiceEvidence(recovered),posted);
+    // Recreate the committed legacy installer output on the isolated restored copy.
+    // Re-enable the immutable trigger before committing the fixture or invoking repair.
+    await recovered.query('BEGIN');
+    try {
+      await recovered.query('ALTER TABLE public.schema_migrations DISABLE TRIGGER ledgerly_migration_history_immutable');
+      for (const [id,previous] of [
+        ['conditional-discount-replacements','conditional-discount-compensations'],
+        ['conditional-discount-cash-reversal','conditional-discount-replacements'],
+        ['conditional-discount-replacement-observations','conditional-discount-cash-reversal'],
+      ]) await recovered.query('UPDATE public.schema_migrations SET dependencies=jsonb_build_array($2::text) WHERE id=$1',[id,previous]);
+      await recovered.query('ALTER TABLE public.schema_migrations ENABLE ALWAYS TRIGGER ledgerly_migration_history_immutable');
+      await recovered.query('COMMIT');
+    } catch (error) { await recovered.query('ROLLBACK'); throw error; }
+    const blocked = probe(restoredDb,releaseArgs);
+    assert.equal(blocked.status,1,blocked.log);
+    assert.match(blocked.log,/MIGRATION_HISTORY_LEGACY_DEPENDENCIES/);
+    const history = async client => (await client.query('SELECT * FROM public.schema_migrations ORDER BY id')).rows;
+    const committed = await history(recovered);
+    const profile = {includeAmendments:true};
+    assert.equal(await appendLegacyDependencyCorrection(recovered,inputs,profile),true);
+    assert.equal(await appendLegacyDependencyCorrection(recovered,inputs,profile),false);
+    const forwardHistory = await history(recovered);
+    assert.equal(forwardHistory.length,committed.length+1);
+    assert.deepEqual(forwardHistory.filter(row=>row.id!=='migration-history-dependencies-v1'),committed);
+    const {validateInstalledMigrationHistory} = await historyAPI();
+    const expectedHistory=expectedMigrationHistory(inputs,profile);
+    for (const change of [{sha256:'0'.repeat(64)},{contract_version:2},{dependencies:[]}]) {
+      const tampered = forwardHistory.map(row=>row.id==='migration-history-dependencies-v1' ? {...row,...change} : row);
+      assert.throws(()=>validateInstalledMigrationHistory(tampered,expectedHistory),{code:'MIGRATION_HISTORY_INCOMPATIBLE'});
+    }
+    const repaired = await fingerprintDatabase(recovered);
+    assert.deepEqual(repaired.controlDigests,after.controlDigests);
+    assert.deepEqual(repaired.tables.filter(t=>t.table!=='schema_migrations'),after.tables.filter(t=>t.table!=='schema_migrations'));
+    assert.deepEqual(await invoiceEvidence(recovered),posted);
+    const restoredRepairDb='ledgerly_forward_fix_restored_test';
+    const restoredRepair=await connect(restoredRepairDb);
+    restore(restoredRepairDb,dump(restoredDb));
+    assertSameFingerprint(repaired,await fingerprintDatabase(restoredRepair));
+    const restoredProbe=probe(restoredRepairDb,probeArgs);
+    assert.equal(restoredProbe.status,0,restoredProbe.log);
     const ready = probe(restoredDb,probeArgs);
     assert.equal(ready.status,0,ready.log);
     assert.match(ready.log,/Amendment schema release check passed/);
@@ -532,14 +572,14 @@ test('populated backup rehearses the amendment upgrade, rollback, retry and rest
     } finally {
       await recovered.query('ALTER TABLE public.accounting_document_amendments ENABLE ALWAYS TRIGGER accounting_amendment_immutable');
     }
-    assertSameFingerprint(after,await fingerprintDatabase(recovered));
+    assertSameFingerprint(repaired,await fingerprintDatabase(recovered));
     assert.equal(await checkInstalledMigrationHistory(recovered,inputs,{includeAmendments:true}),true);
     await recovered.query('SET ROLE ledgerly_api');
     try { assert.equal(await amendmentSchema(recovered),true); }
     finally { await recovered.query('RESET ROLE'); }
     assertSameFingerprint(before,await fingerprintDatabase(source));
     console.log('POPULATED_UPGRADE_REHEARSAL',JSON.stringify({originalHistory:oldIds.size,added:additions.map(row=>row.id),
-      verifiedPriorTables:before.tables.length-1,rollbackBoundaries:additions.length,restored:true,freshControlsMatch:true,manifestStartupVerified:true,postedInvoiceVerified:true,sourceUnchanged:true}));
+      verifiedPriorTables:before.tables.length-1,rollbackBoundaries:additions.length,restored:true,freshControlsMatch:true,manifestStartupVerified:true,postedInvoiceVerified:true,legacyForwardFixVerified:true,sourceUnchanged:true}));
   } finally {
     for (const client of clients.reverse()) await client.end();
     for (const name of databases.reverse()) await admin.query('DROP DATABASE '+name);
