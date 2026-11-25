@@ -1,0 +1,26 @@
+{
+  "task": "P03-03",
+  "decision": "Keep parent pending; guarded startup milestone verified in draft PR 35.",
+  "reviewDate": "2026-11-25",
+  "candidate": "9363070a505203c527a37671ad35e91f81eb9b9d",
+  "workflowRun": 45670613442,
+  "job": 139404569327,
+  "successfulSteps": 20,
+  "criteria": [
+    {
+      "requirement": "Fresh and representative existing-data rehearsals; startup performs no implicit upgrade.",
+      "verified": "Fresh amended installation and restored upgraded copy matched table inventory and recorded control digests. Release preflight reads within a read-only transaction. The populated rehearsal explicitly seeds a company and one employee pay record.",
+      "remaining": "Exercise pre-existing accounting records affected by these migrations, including a posted invoice with linked journal and conditional-discount evidence. Verify its identity, monetary values and links after upgrade and restore."
+    },
+    {
+      "requirement": "Partial/failed migration, rollback/forward-fix and backup-restore evidence; incompatible schema prevents release.",
+      "verified": "Partial schema refused. Each of the three injected interruptions rolled back. A subsequent clean retry succeeded. Restored copy accepted a connection using the release manifest command. Older history and a disabled amendment guard both stopped startup.",
+      "remaining": "Demonstrate a versioned forward correction to a previously committed incompatible state. Preserve its original migration history and business evidence and verify the repaired release can start. The tested retry starts from a rolled-back transaction."
+    }
+  ],
+  "counts": {
+    "existingBusinessTablesCompared": 62,
+    "newParentClosures": 0
+  },
+  "scope": "Review of the pinned disposable amendment upgrade and release rehearsal. Production was not exercised."
+}
