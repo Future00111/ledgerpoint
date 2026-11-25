@@ -408,6 +408,28 @@ test('populated backup rehearses the amendment upgrade, rollback, retry and rest
     await source.query(`INSERT INTO public.employee_pay_records(company_id,employee_id,id,effective_from,annual_salary_pence)
       VALUES ('00000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000002',
         '00000000-0000-4000-8000-000000000003','2026-04-06',4200000)`);
+    execFileSync('pnpm',['--filter','@workspace/api-server','exec','esbuild',
+      '../../tools/development/migrations/seed-upgrade-invoice.mjs','--bundle','--platform=node','--format=cjs',
+      '--external:pg','--outfile=../../generated-artifacts/seed-upgrade-invoice.cjs'],{stdio:'inherit'});
+    execFileSync(process.execPath,['generated-artifacts/seed-upgrade-invoice.cjs'],{stdio:'inherit',timeout:30000,
+      env:{...process.env,
+        DATABASE_URL:'postgresql://ledgerly_api@localhost/'+sourceDb+'?host='+encodeURIComponent(socket)+'&port=55441'}});
+    const invoiceEvidence = async client => (await client.query(`SELECT d.company_id,d.id,d.revision,d.number,d.journal_id,
+      d.money->>'gross_pence' AS gross,e.id AS evidence_id,e.terms_hash,e.evidence_hash,
+      e.terms->>'discount_gross_pence' AS discount,b.binding_hash,
+      (SELECT sum(l.debit_minor)::text FROM public.canonical_journal_lines l
+       WHERE l.company_id=d.company_id AND l.journal_entry_id=j.id) AS debits,
+      (SELECT sum(l.credit_minor)::text FROM public.canonical_journal_lines l
+       WHERE l.company_id=d.company_id AND l.journal_entry_id=j.id) AS credits
+      FROM public.accounting_document_sources d
+      JOIN public.canonical_journal_entries j ON j.company_id=d.company_id AND j.id=d.journal_id
+      JOIN public.conditional_discount_original_bindings b ON b.company_id=d.company_id AND b.document_id=d.id AND b.journal_id=j.id
+      JOIN public.conditional_discount_evidence e ON e.company_id=d.company_id AND e.party_id=d.party_id
+        AND e.id::text=d.source#>>'{conditional_discount,evidence_receipt_id}'
+      WHERE d.kind='sales_invoice' AND d.status='posted'`)).rows;
+    const posted = await invoiceEvidence(source);
+    assert.equal(posted.length,1);
+    assert.deepEqual([posted[0].gross,posted[0].discount,posted[0].debits,posted[0].credits],['12000','1200','12000','12000']);
     const before = await fingerprintDatabase(source);
     const candidate = await connect(targetDb);
     restore(targetDb,dump(sourceDb));
@@ -457,6 +479,7 @@ test('populated backup rehearses the amendment upgrade, rollback, retry and rest
     assertSameFingerprint(before,await fingerprintDatabase(candidate));
     assert.deepEqual(await apply(candidate),additions.map(row=>row.id));
     assert.equal(await amendmentSchema(candidate),true);
+    assert.deepEqual(await invoiceEvidence(candidate),posted);
     const after = await fingerprintDatabase(candidate);
     // A restored upgraded schema must grant the same rights and enforce the same
     // constraints and triggers as the reviewed fresh installation of this version.
@@ -476,6 +499,7 @@ test('populated backup rehearses the amendment upgrade, rollback, retry and rest
     const recovered = await connect(restoredDb);
     restore(restoredDb,dump(targetDb));
     assertSameFingerprint(after,await fingerprintDatabase(recovered));
+    assert.deepEqual(await invoiceEvidence(recovered),posted);
     const ready = probe(restoredDb,probeArgs);
     assert.equal(ready.status,0,ready.log);
     assert.match(ready.log,/Amendment schema release check passed/);
@@ -515,7 +539,7 @@ test('populated backup rehearses the amendment upgrade, rollback, retry and rest
     finally { await recovered.query('RESET ROLE'); }
     assertSameFingerprint(before,await fingerprintDatabase(source));
     console.log('POPULATED_UPGRADE_REHEARSAL',JSON.stringify({originalHistory:oldIds.size,added:additions.map(row=>row.id),
-      verifiedPriorTables:before.tables.length-1,rollbackBoundaries:additions.length,restored:true,freshControlsMatch:true,manifestStartupVerified:true,sourceUnchanged:true}));
+      verifiedPriorTables:before.tables.length-1,rollbackBoundaries:additions.length,restored:true,freshControlsMatch:true,manifestStartupVerified:true,postedInvoiceVerified:true,sourceUnchanged:true}));
   } finally {
     for (const client of clients.reverse()) await client.end();
     for (const name of databases.reverse()) await admin.query('DROP DATABASE '+name);
