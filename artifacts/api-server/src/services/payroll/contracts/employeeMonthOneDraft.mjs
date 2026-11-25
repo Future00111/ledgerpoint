@@ -49,14 +49,14 @@ const studentThresholds = new Map([['plan_1', 2690000n], ['plan_2', 2938500n], [
 // Offline ordinary-pay scenario: gross equals Class 1 earnings, no attachment orders,
 // and the caller supplies the loan instructions confirmed active for this payday.
 export function calculateRegularEmployeeLoanPayslipDraft({
-  grossHistory, taxCodes, frequency, niCategory = 'A', studentPlan, postgraduate, week52FreePayMinor, ...extra
+  grossHistory, taxCodes, frequency, niCategory = 'A', studentPlan, postgraduate, week52FreePayMinor, opening, ...extra
 }) {
   if (Object.keys(extra).length) throw new RangeError('Unsupported loan payslip context');
   const periods = loanPeriods.get(frequency);
   if (!periods) throw new RangeError('Expected a regular payroll frequency');
   if (studentPlan !== null && !studentThresholds.has(studentPlan)) throw new RangeError('Expected a confirmed student plan or null');
   if (typeof postgraduate !== 'boolean') throw new RangeError('Expected postgraduate instruction status');
-  const slip = calculateEmployeeDraft(grossHistory, taxCodes, niCategory, frequency, week52FreePayMinor);
+  const slip = calculateEmployeeDraft(grossHistory, taxCodes, niCategory, frequency, week52FreePayMinor, opening);
   const gross = BigInt(slip.grossMinor);
   // HMRC sections 3–4: truncate each period threshold to pence and each deduction to pounds.
   const deduction = (annualThreshold, rate) => earningsAbove(gross, annualThreshold / periods) * rate / 10000n * 100n;
@@ -66,8 +66,8 @@ export function calculateRegularEmployeeLoanPayslipDraft({
     netMinor: String(BigInt(slip.netMinor) - student - postgrad) };
 }
 
-function calculateEmployeeDraft(grossHistory, taxCodes, niCategory, frequency, week52FreePayMinor) {
-  const paye = calculatePaydayPaye(grossHistory, taxCodes, frequency, week52FreePayMinor);
+function calculateEmployeeDraft(grossHistory, taxCodes, niCategory, frequency, week52FreePayMinor, opening) {
+  const paye = calculatePaydayPaye(grossHistory, taxCodes, frequency, week52FreePayMinor, opening);
   return payslip(BigInt(grossHistory.at(-1)), paye, niCategory, niThresholdsByFrequency.get(frequency));
 }
 
@@ -159,7 +159,7 @@ function formatDirectorPayslip(grossHistory, paye, ni) {
   return formatPayslip(BigInt(grossHistory.at(-1)), paye, BigInt(ni.employeeNiMinor), BigInt(ni.employerNiMinor));
 }
 
-function calculatePaydayPaye(grossHistory, taxCodes, frequency, week52FreePayMinor) {
+function calculatePaydayPaye(grossHistory, taxCodes, frequency, week52FreePayMinor, opening) {
   const periods = frequency === 'monthly' ? 12n : 52n;
   const interval = frequency === 'fortnightly' ? 2n : frequency === 'four_weekly' ? 4n : 1n;
   const maxPayments = periods / interval + (frequency === 'monthly' ? 0n : 1n);
@@ -172,13 +172,28 @@ function calculatePaydayPaye(grossHistory, taxCodes, frequency, week52FreePayMin
   }
   let grossToDate = 0n;
   let taxPaid = 0n;
+  let completed = 0;
+  if (opening !== undefined) {
+    // Resume the same employment and frequency at the next ordinary payday.
+    // Extra paydays need the prior code and free-pay record and use the full-history path.
+    const keys = ['employmentId','taxYear','frequency','completedPeriods','taxablePayMinor','taxPaidMinor'];
+    const minor = value => typeof value === 'string' && /^(0|[1-9][0-9]{0,15})$/.test(value);
+    if (!opening || !keys.every(key => Object.hasOwn(opening,key)) || Object.keys(opening).length !== keys.length ||
+        typeof opening.employmentId !== 'string' || !opening.employmentId.trim() || opening.taxYear !== '2026-27' || opening.frequency !== frequency || !Number.isInteger(opening.completedPeriods) ||
+        opening.completedPeriods < 1 || opening.completedPeriods + grossHistory.length > Number(periods / interval) ||
+        !minor(opening.taxablePayMinor) || !minor(opening.taxPaidMinor) || week52FreePayMinor !== undefined)
+      throw new RangeError('Invalid ordinary-period PAYE opening balances');
+    completed = opening.completedPeriods;
+    grossToDate = BigInt(opening.taxablePayMinor);
+    taxPaid = BigInt(opening.taxPaidMinor);
+  }
   for (const [index, amount] of grossHistory.entries()) {
     const gross = readGross(amount);
-    if (index > 0 && gross === 0n) throw new RangeError('Expected a payment after the first period');
+    if (completed + index > 0 && gross === 0n) throw new RangeError('Expected a payment after the first period');
     grossToDate += gross;
     const taxCode = hasCodeHistory ? taxCodes[index] : taxCodes;
     const previousCode = hasCodeHistory ? taxCodes[index - 1] : taxCode;
-    const due = taxForPayday(gross, grossToDate, taxPaid, taxCode, BigInt(index + 1) * interval, periods, previousCode, interval, week52FreePayMinor);
+    const due = taxForPayday(gross, grossToDate, taxPaid, taxCode, BigInt(completed + index + 1) * interval, periods, previousCode, interval, week52FreePayMinor);
     const deduction = cappedDeduction(due, gross);
     if (index === grossHistory.length - 1) return deduction;
     taxPaid += deduction;

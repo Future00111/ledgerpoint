@@ -2,9 +2,11 @@
 import { reviewPairedLoanNoticeTiming, reviewRegularSingleLoanNoticeTiming } from './plan1NoticeFixtures.mjs';
 import { calculateRegularEmployeeLoanPayslipDraft } from './employeeMonthOneDraft.mjs';
 
-export function calculateDatedLoanPayslipDraft({ grossHistory, taxCodes, niCategory, week52FreePayMinor, noticeContext, priorityOrder, ...extra }) {
+export function calculateDatedLoanPayslipDraft({ grossHistory, taxCodes, niCategory, week52FreePayMinor, noticeContext, priorityOrder, opening, ...extra }) {
   if (!Array.isArray(grossHistory) || !grossHistory.length) throw new RangeError('Expected consecutive gross payments');
   if (Object.keys(extra).length) throw new RangeError('Unsupported dated payslip context');
+  if (opening !== undefined && (!opening || opening.employmentId !== noticeContext?.employmentId ||
+      !Object.hasOwn(opening,'employmentId'))) throw new RangeError('Opening balance employment must match the notice context');
   const protectedPay = noticeContext?.protectedEarnings === true;
   if (protectedPay !== (priorityOrder !== undefined)) throw new RangeError('Priority order and protected earnings must be supplied together');
   // Timing is independent of the order. Apply the restriction after resolving both notices.
@@ -18,12 +20,12 @@ export function calculateDatedLoanPayslipDraft({ grossHistory, taxCodes, niCateg
   const period = frequency === 'monthly'
     ? (payday.getUTCFullYear() - 2026) * 12 + payday.getUTCMonth() - 2 - Number(payday.getUTCDate() < 6)
     : Math.floor(days / intervalDays[frequency]) + 1;
-  if (grossHistory.length !== period || grossHistory.at(-1) !== payMinor) {
+  if (grossHistory.length + (opening?.completedPeriods ?? 0) !== period || grossHistory.at(-1) !== payMinor) {
     throw new RangeError('Notice review must match the current payslip period and gross pay');
   }
   const studentActive = paired ? timing.student.instructionActive : plan !== 'postgraduate' && timing.instructionActive;
   const postgraduate = paired ? timing.postgraduate.instructionActive : plan === 'postgraduate' && timing.instructionActive;
-  const payslip = calculateRegularEmployeeLoanPayslipDraft({ grossHistory, taxCodes, niCategory, frequency, week52FreePayMinor,
+  const payslip = calculateRegularEmployeeLoanPayslipDraft({ grossHistory, taxCodes, niCategory, frequency, week52FreePayMinor, opening,
     studentPlan: studentActive ? plan : null, postgraduate });
   if (!protectedPay) return { payslip, timing };
   // Ordinary cash pay only. The caller supplies the actual priority deduction and
