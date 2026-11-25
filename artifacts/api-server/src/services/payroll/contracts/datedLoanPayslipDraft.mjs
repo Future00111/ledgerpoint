@@ -1,10 +1,11 @@
-// Offline 2026–27 draft for one loan, ordinary pay and supplied notice evidence.
-import { reviewRegularSingleLoanNoticeTiming } from './plan1NoticeFixtures.mjs';
+// Offline 2026–27 draft for ordinary pay and supplied notice evidence.
+import { reviewPairedLoanNoticeTiming, reviewRegularSingleLoanNoticeTiming } from './plan1NoticeFixtures.mjs';
 import { calculateRegularEmployeeLoanPayslipDraft } from './employeeMonthOneDraft.mjs';
 
 export function calculateDatedLoanPayslipDraft({ grossHistory, taxCodes, niCategory, week52FreePayMinor, noticeContext }) {
   if (!Array.isArray(grossHistory) || !grossHistory.length) throw new RangeError('Expected consecutive gross payments');
-  const timing = reviewRegularSingleLoanNoticeTiming(noticeContext);
+  const paired = noticeContext?.concurrentLoan === true;
+  const timing = paired ? reviewPairedLoanNoticeTiming(noticeContext) : reviewRegularSingleLoanNoticeTiming(noticeContext);
   const { frequency, paymentDate, payMinor, plan } = noticeContext;
   const payday = new Date(paymentDate);
   const days = (payday.getTime() - Date.UTC(2026, 3, 6)) / 86400000;
@@ -15,8 +16,9 @@ export function calculateDatedLoanPayslipDraft({ grossHistory, taxCodes, niCateg
   if (grossHistory.length !== period || grossHistory.at(-1) !== payMinor) {
     throw new RangeError('Notice review must match the current payslip period and gross pay');
   }
+  const studentActive = paired ? timing.student.instructionActive : plan !== 'postgraduate' && timing.instructionActive;
+  const postgraduate = paired ? timing.postgraduate.instructionActive : plan === 'postgraduate' && timing.instructionActive;
   const payslip = calculateRegularEmployeeLoanPayslipDraft({ grossHistory, taxCodes, niCategory, frequency, week52FreePayMinor,
-    studentPlan: timing.instructionActive && plan !== 'postgraduate' ? plan : null,
-    postgraduate: timing.instructionActive && plan === 'postgraduate' });
+    studentPlan: studentActive ? plan : null, postgraduate });
   return { payslip, timing };
 }

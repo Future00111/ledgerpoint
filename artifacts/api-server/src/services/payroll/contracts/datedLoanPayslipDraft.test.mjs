@@ -45,3 +45,43 @@ test('notice review is tied to the same payday period and earnings across all fo
     assert.throws(() => calculateDatedLoanPayslipDraft({ ...input, grossHistory: ['100000', '400001'] }), RangeError);
   }
 });
+
+const paydays = ['2026-04-30', '2026-05-29', '2026-06-30', '2026-07-31', '2026-08-28'];
+function pairedNotice(plan, type, month) {
+  return notice(type.startsWith('SL') ? plan : 'postgraduate', type,
+    paydays[month].slice(0, 8) + '10', paydays[month]);
+}
+
+function checkPair(plan, notices, amounts) {
+  for (const [month, [student, postgraduate]] of amounts.entries()) {
+    const grossHistory = Array(month + 1).fill(context.payMinor);
+    const base = calculateMonthlyEmployeeDraft(grossHistory, '1257L');
+    const { payslip, timing } = calculateDatedLoanPayslipDraft({ grossHistory, taxCodes: '1257L',
+      noticeContext: { ...context, concurrentLoan: true, plan, notices, paymentDate: paydays[month] } });
+    assert.equal(timing.student.instructionActive, student > 0);
+    assert.equal(timing.postgraduate.instructionActive, postgraduate > 0);
+    assert.deepEqual(payslip, { ...base, studentLoanMinor: String(student), postgraduateLoanMinor: String(postgraduate),
+      netMinor: String(BigInt(base.netMinor) - BigInt(student + postgraduate)) });
+  }
+}
+
+for (const [plan, amount] of [['plan_1', 15800], ['plan_2', 13900], ['plan_4', 10600], ['plan_5', 17200]]) {
+  test(plan + ' starts and stops before the postgraduate loan', () => {
+    const notices = ['SL1','PGL1','SL2','PGL2'].map((type, i) => pairedNotice(plan, type, i + 1));
+    checkPair(plan, notices, [[0,0],[amount,0],[amount,13500],[0,13500],[0,0]]);
+  });
+  test(plan + ' starts and stops after the postgraduate loan', () => {
+    const notices = ['PGL1','SL1','PGL2','SL2'].map((type, i) => pairedNotice(plan, type, i + 1));
+    checkPair(plan, notices, [[0,0],[0,13500],[amount,13500],[amount,0],[0,0]]);
+  });
+}
+
+test('both instructions start on the same payday', () => {
+  checkPair('plan_2', [pairedNotice('plan_2','PGL1',1), pairedNotice('plan_2','SL1',1)],
+    [[0,0],[13900,13500],[13900,13500]]);
+});
+test('both instructions stop on the same payday after separate starts', () => {
+  const notices = [pairedNotice('plan_2','SL1',0), pairedNotice('plan_2','PGL1',1),
+    pairedNotice('plan_2','SL2',2), pairedNotice('plan_2','PGL2',2)];
+  checkPair('plan_2', notices, [[13900,0],[13900,13500],[0,0],[0,0]]);
+});
