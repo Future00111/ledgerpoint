@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {promisify} from 'node:util';
 import path from 'node:path';
+import {pathToFileURL} from 'node:url';
 import {execFile,execFileSync} from 'node:child_process';
 import {mkdtempSync,rmSync,readFileSync} from 'node:fs';
 import pg from 'pg';
@@ -45,7 +46,18 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
     }
     const employeeId = randomUUID();
     const source = { lineId:randomUUID(), employeeId, inputRevisionId:randomUUID(), payday:'2026-10-30', calculation:calculationFor(employeeId) };
-    const another = prepareDatedLoanLine(source);
+    const {advanceDatedLoanPayslipDraft} = await import(pathToFileURL(path.resolve(
+      'artifacts/api-server/src/services/payroll/contracts/datedLoanPayslipDraft.mjs')).href);
+    let opening;
+    for (const paymentDate of ['2026-04-30','2026-05-29','2026-06-30','2026-07-31','2026-08-28','2026-09-30']) {
+      const draft = advanceDatedLoanPayslipDraft({...source.calculation,opening,grossHistory:['350000'],
+        noticeContext:{...source.calculation.noticeContext,paymentDate}});
+      opening = draft.nextOpening;
+    }
+    assert.equal(opening.taxablePayMinor,'2100000');
+    assert.equal(opening.taxPaidMinor,'420000');
+    const another = prepareDatedLoanLine({...source,calculation:{...source.calculation,grossHistory:['350000'],opening}});
+    assert.deepEqual(another,prepareDatedLoanLine(source));
     assert.throws(() => prepareDatedLoanLine({...source, employeeId:randomUUID()}), RangeError);
     assert.throws(() => prepareDatedLoanLine({...source, payday:'2026-10-31'}), RangeError);
     assert.throws(() => prepareDatedLoanLine({...source, lineId:employeeId}), RangeError);

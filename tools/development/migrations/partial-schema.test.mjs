@@ -438,6 +438,14 @@ test('populated backup rehearses the amendment upgrade, rollback, retry and rest
     assert.deepEqual(await apply(candidate),additions.map(row=>row.id));
     assert.equal(await amendmentSchema(candidate),true);
     const after = await fingerprintDatabase(candidate);
+    // A restored upgraded schema must grant the same rights and enforce the same
+    // constraints and triggers as the reviewed fresh installation of this version.
+    const fresh = await connect('ledgerly_upgrade_fresh_reference_test');
+    await installSchema(fresh,exportSchema(),{includeAmendments:true});
+    const reference = await fingerprintDatabase(fresh);
+    assert.deepEqual(after.controlDigests,reference.controlDigests);
+    assert.deepEqual(after.tables.map(table=>table.table),reference.tables.map(table=>table.table));
+
     for (const table of before.tables.filter(table=>table.table !== 'schema_migrations')) {
       assert.deepEqual(after.tables.find(current=>current.table === table.table),table);
     }
@@ -454,7 +462,7 @@ test('populated backup rehearses the amendment upgrade, rollback, retry and rest
     finally { await recovered.query('RESET ROLE'); }
     assertSameFingerprint(before,await fingerprintDatabase(source));
     console.log('POPULATED_UPGRADE_REHEARSAL',JSON.stringify({originalHistory:oldIds.size,added:additions.map(row=>row.id),
-      verifiedPriorTables:before.tables.length-1,rollbackBoundaries:additions.length,restored:true,sourceUnchanged:true}));
+      verifiedPriorTables:before.tables.length-1,rollbackBoundaries:additions.length,restored:true,freshControlsMatch:true,sourceUnchanged:true}));
   } finally {
     for (const client of clients.reverse()) await client.end();
     for (const name of databases.reverse()) await admin.query('DROP DATABASE '+name);
