@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { calculateDatedLoanPayslipDraft } from './datedLoanPayslipDraft.mjs';
+import { advanceDatedLoanPayslipDraft, calculateDatedLoanPayslipDraft } from './datedLoanPayslipDraft.mjs';
 
 const fixture = JSON.parse(readFileSync(new URL('./fixtures/hmrc-paye-2026-27-v1.1.json', import.meta.url)));
 const byId = new Map(fixture.cases.map(row => [row.id,row]));
@@ -50,4 +50,48 @@ test('a resumed series carries actual deductions through later code changes and 
       grossHistory:[...request.grossHistory,...current.grossHistory], taxCodes:[request.taxCodes,current.taxCodes]});
     assert.equal(payslip.payeMinor,row.expected.taxDueMinor,row.id);
   }
+});
+
+for (const region of ['rest_of_uk','scotland','wales']) {
+  for (const frequency of ['weekly','monthly']) {
+    test(region+' '+frequency+' carries generated balances across every official sequence', () => {
+      const balances = new Map();
+      for (const row of fixture.cases.filter(row => row.input.region === region && row.input.frequency === frequency)) {
+        const { input } = row, monthly = frequency === 'monthly';
+        const day = monthly ? Date.UTC(2026,2+input.period,20) : Date.UTC(2026,3,6+7*(input.period-1));
+        const opening = input.period === 1 ? undefined : balances.get(row.previousExampleId);
+        const result = advanceDatedLoanPayslipDraft({
+          opening, grossHistory:[input.grossPayMinor],
+          taxCodes:input.taxCode + (input.week1Month1 === 'WM1' ? (monthly ? ' M1' : ' W1') : ''),
+          noticeContext:{...context, frequency, paymentDate:new Date(day).toISOString().slice(0,10), payMinor:input.grossPayMinor},
+        });
+        assert.equal(result.payslip.payeMinor,row.expected.taxDueMinor,row.id);
+        assert.equal(result.taxPaidToDateMinor,row.expected.taxDueToDateMinor,row.id);
+        assert.equal(result.taxablePayToDateMinor,input.taxablePayToDateMinor,row.id);
+        balances.set(row.id,result.nextOpening);
+      }
+    });
+  }
+}
+
+for (const [frequency,periods,days] of [['weekly',52,7],['fortnightly',26,14],['four_weekly',13,28],['monthly',12,0]]) {
+  test(frequency+' rolls forward every ordinary payday and closes the annual balances', () => {
+    let opening;
+    for (let period=1;period<=periods;period++) {
+      const date = days ? Date.UTC(2026,3,6+(period-1)*days) : Date.UTC(2026,2+period,20);
+      const result = advanceDatedLoanPayslipDraft({ opening, grossHistory:['100000'], taxCodes:'BR',
+        noticeContext:{...context, frequency,paymentDate:new Date(date).toISOString().slice(0,10),payMinor:'100000'} });
+      assert.equal(result.taxablePayToDateMinor,String(period*100000));
+      assert.equal(result.taxPaidToDateMinor,String(period*20000));
+      opening=result.nextOpening;
+      if (period<periods) assert.equal(opening.completedPeriods,period);
+    }
+    assert.equal(opening,null);
+  });
+}
+
+test('advancing a draft refuses replay of multiple payments and a non-reusable closing balance', () => {
+  const request = example(resumable[0]);
+  assert.throws(()=>advanceDatedLoanPayslipDraft({...request,grossHistory:['10000','20000']}),RangeError);
+  assert.throws(()=>advanceDatedLoanPayslipDraft({...request,opening:{...request.opening,taxablePayMinor:'9999999999999999'}}),RangeError);
 });

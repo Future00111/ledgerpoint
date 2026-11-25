@@ -48,3 +48,25 @@ export function calculateDatedLoanPayslipDraft({ grossHistory, taxCodes, niCateg
     postgraduateLoanMinor: String(postgraduatePaid), studentLoanMinor: String(student),
     netMinor: String(afterOrder - postgraduatePaid - student) } };
 }
+
+// Advance one ordinary payday and return the exact opening record for the next.
+// Year-end extra paydays continue to use the full-history calculation.
+export function advanceDatedLoanPayslipDraft(request) {
+  if (!Array.isArray(request?.grossHistory) || request.grossHistory.length !== 1) {
+    throw new RangeError('Expected exactly one current payment');
+  }
+  const result = calculateDatedLoanPayslipDraft(request);
+  const { opening, noticeContext } = request;
+  const completedPeriods = (opening?.completedPeriods ?? 0) + 1;
+  const periods = { weekly:52, fortnightly:26, four_weekly:13, monthly:12 };
+  const taxablePay = BigInt(opening?.taxablePayMinor ?? 0) + BigInt(result.payslip.grossMinor);
+  const taxPaid = BigInt(opening?.taxPaidMinor ?? 0) + BigInt(result.payslip.payeMinor);
+  if (taxablePay > 9999999999999999n || taxPaid < 0n || taxPaid > 9999999999999999n) {
+    throw new RangeError('Closing figures exceed the supported opening balance range');
+  }
+  const nextOpening = completedPeriods === periods[noticeContext.frequency] ? null : {
+    employmentId:noticeContext.employmentId, taxYear:noticeContext.taxYear, frequency:noticeContext.frequency,
+    completedPeriods, taxablePayMinor:String(taxablePay), taxPaidMinor:String(taxPaid),
+  };
+  return { ...result, taxablePayToDateMinor:String(taxablePay), taxPaidToDateMinor:String(taxPaid), nextOpening };
+}
