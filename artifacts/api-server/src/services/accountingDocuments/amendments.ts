@@ -43,6 +43,17 @@ export async function amendmentSchema(q: Queryable): Promise<boolean> {
       ON a.attrelid = CASE WHEN expected.is_history THEN relations.amendments ELSE relations.heads END
       AND a.attname = expected.column_name AND a.attnum > 0 AND NOT a.attisdropped
     WHERE a.atttypid IS DISTINCT FROM expected.column_type OR a.attnotnull IS DISTINCT FROM true
+  ) AND NOT EXISTS (
+    SELECT 1 FROM (VALUES
+      (relations.amendments, 'accounting_amendment_immutable', 'public.accounting_amendment_immutable()', 27),
+      (relations.amendments, 'accounting_amendment_no_truncate', 'public.accounting_amendment_immutable()', 34),
+      (relations.heads, 'accounting_amendment_head_guard', 'public.accounting_amendment_head_guard()', 31),
+      (relations.heads, 'accounting_amendment_head_no_truncate', 'public.accounting_amendment_head_guard()', 34)
+    ) expected(relation_id,trigger_name,function_name,event_mask)
+    LEFT JOIN pg_catalog.pg_trigger t ON t.tgrelid=expected.relation_id AND t.tgname=expected.trigger_name
+    WHERE t.tgenabled IS DISTINCT FROM 'A' OR t.tgtype IS DISTINCT FROM expected.event_mask
+      OR t.tgfoid IS DISTINCT FROM to_regprocedure(expected.function_name)::oid
+      OR t.tgqual IS NOT NULL OR t.tgnargs IS DISTINCT FROM 0 OR cardinality(t.tgattr) > 0
   ) AS compatible FROM relations`)).rows[0];
   if (!row.amendments && !row.heads) return false;
   if (!row.amendments || !row.heads || !row.compatible) fail(503, 'CORRECTION_SCHEMA_INCOMPLETE');

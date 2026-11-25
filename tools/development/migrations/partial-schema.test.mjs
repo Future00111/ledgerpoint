@@ -101,6 +101,28 @@ test('real PostgreSQL: every missing, mistyped or nullable amendment column bloc
   });
 });
 
+test('correction reads require each installed append-only and head guard to fire on replica and ordinary writes', async () => {
+  const guards = {
+    accounting_document_amendments:['accounting_amendment_immutable','accounting_amendment_no_truncate'],
+    accounting_document_amendment_heads:['accounting_amendment_head_guard','accounting_amendment_head_no_truncate'],
+  };
+  await unchangedAfterRollback(async () => {
+    for (const [table,triggers] of Object.entries(guards)) {
+      for (const trigger of triggers) {
+        for (const mode of ['DISABLE','ENABLE','ENABLE REPLICA']) {
+          await admin.query('SAVEPOINT guard_rehearsal');
+          await admin.query(`ALTER TABLE public.${table} ${mode} TRIGGER ${trigger}`);
+          await restricted();
+          await assert.rejects(()=>amendmentSchema(admin),{code:'CORRECTION_SCHEMA_INCOMPLETE'});
+          await admin.query('ROLLBACK TO SAVEPOINT guard_rehearsal');
+          await admin.query('RELEASE SAVEPOINT guard_rehearsal');
+        }
+      }
+    }
+    assert.equal(await amendmentSchema(admin),true);
+  });
+});
+
 test('real PostgreSQL: failed transactional DDL rolls back prior rename and all original evidence', async () => {
   await unchangedAfterRollback(async () => {
     await admin.query('ALTER TABLE accounting_document_amendments RENAME TO partial_schema_held_amendments');
