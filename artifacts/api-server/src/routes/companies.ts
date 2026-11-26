@@ -6,6 +6,15 @@
  * PUT    /api/companies/:id                  — update company fields (owner only)
  * DELETE /api/companies/:id                  — delete company (owner only)
  * GET    /api/companies/:id/members          — list members of a company
+ * GET    /api/companies/:id/specialist-access-history — bounded audited owner-only history
+ * GET    /api/companies/:id/payroll-pay-records/:recordId — audited pay fields by payroll role
+ * GET    /api/companies/:id/payroll-pay-records/:recordId/export.csv — audited single-pay export
+ * GET    /api/companies/:id/payroll-run-revisions/:revisionId — audited draft review for owners and approvers
+ * GET    /api/companies/:id/payroll-bank-details/:employeeId — audited role-projected bank account
+ * GET    /api/companies/:id/personal-tax-preparations/:recordId — audited annual draft input by tax role
+ * GET    /api/companies/:id/personal-tax-preparations/:recordId/export.csv — audited single-input export
+ * POST   /api/companies/:id/personal-tax-preparations — create/replay an annual draft input (owner/preparer)
+ * POST   /api/companies/:id/payroll-pay-records — create or replay dated pay intent (owner/preparer)
  * POST   /api/companies/:id/members          — add a member by Clerk user_id
  * PUT    /api/companies/:id/members/:userId  — change a member's role (owner only)
  * DELETE /api/companies/:id/members/:userId  — remove a member (owner can remove anyone; member can remove self)
@@ -21,6 +30,14 @@ import { findActiveMembership } from "../middlewares/companyScope";
 import { isCompanyRole } from "../security/roles";
 import { safeErrorLog, safeRouteErrors } from "../security/publicErrors";
 import { authorizeMemberChange, CompanyPolicyError, createCompanyBody, updateCompanyBody } from "../security/companyPolicy";
+import { queryAdapter } from "../services/accountingDocuments/core";
+import { auditSpecializedMembershipChange, auditSpecializedMembershipChanges } from "../services/payroll/access/membershipAudit";
+import { SensitiveAccessError } from "../services/payroll/access/boundary";
+import { readSpecialistAccessHistory } from "../services/payroll/access/membershipHistory";
+import { readPayRecord, createPayRecord, exportPayRecord } from "../services/payroll/access/payRecord";
+import { readDraftRevision } from "../services/payroll/revisions/readDraftRevision";
+import { readEmployeeBankDetails } from "../services/payroll/access/bankDetails";
+import { readPersonalTaxPreparation, createPersonalTaxPreparation, exportPersonalTaxPreparation } from "../services/tax/access/preparationRecord";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -40,6 +57,11 @@ async function lockedMembers(tx: CompanyTx, companyId: string) {
 }
 
 function companyError(req: Request, res: Response, error: unknown, operation: string) {
+  if (error instanceof SensitiveAccessError) {
+    res.status(error.status).json({ error: error.code === "SENSITIVE_REQUEST_CONFLICT"
+      ? "This request conflicts with an existing record." : "Unable to complete this request. Please try again.", code: error.code });
+    return;
+  }
   if (error instanceof CompanyPolicyError) {
     res.status(error.status).json({ error: error.message, code: error.code });
     return;
@@ -69,7 +91,128 @@ const clerkIdentityLookup: CompanyIdentityLookup = {
 /** Injectable dependencies permit synthetic authorization tests without Clerk requests. */
 export function createCompaniesRouter(auth: RequestHandler = requireAuth, identities: CompanyIdentityLookup = clerkIdentityLookup) {
 const router = Router();
+// Apply before authentication so denied/unauthenticated responses also cannot be cached.
+router.use(["/:id/specialist-access-history", "/:id/payroll-pay-records", "/:id/personal-tax-preparations", "/:id/payroll-bank-details", "/:id/payroll-run-revisions"], (_req, res, next) => {
+  res.set("Cache-Control", "no-store");
+  next();
+});
 router.use(auth);
+
+router.get("/:id/payroll-run-revisions/:revisionId", async (req: Request, res: Response) => {
+  if (req.method !== "GET") { res.set("Allow", "GET").status(405).end(); return; }
+  if (req.app.locals.payRevisionReviewEnabled !== true) { res.status(404).end(); return; }
+  try {
+    const history = req.query.history === 'adjacent';
+    if (Object.keys(req.query).length !== (history ? 1 : 0)) throw new SensitiveAccessError("SENSITIVE_REQUEST_INVALID");
+    const { userId } = req as AuthenticatedRequest;
+    const revision = await readDraftRevision(req.params["id"] as string, userId, req.params["revisionId"] as string, history ? "history" : true);
+    res.status(200).type("application/json").end(JSON.stringify(revision));
+  } catch (error) {
+    companyError(req, res, error, "pay-run revision review error");
+  }
+});
+
+router.get("/:id/payroll-bank-details/:employeeId", async (req: Request, res: Response) => {
+  if (req.method !== 'GET') { res.set('Allow', 'GET').status(405).end(); return; }
+  try {
+    if (Object.keys(req.query).length > 0) throw new SensitiveAccessError("SENSITIVE_REQUEST_INVALID");
+    const { userId } = req as AuthenticatedRequest;
+    const result = await readEmployeeBankDetails(req.params["id"] as string, userId, req.params["employeeId"] as string);
+    // Release only the committed projection, without ETag/conditional response caching.
+    res.status(200).set('Content-Type', 'application/json; charset=utf-8').end(JSON.stringify(result));
+  } catch (error) {
+    companyError(req, res, error, "employee bank details read error");
+  }
+});
+
+router.get("/:id/personal-tax-preparations/:recordId/export.csv", async (req: Request, res: Response) => {
+  // Express otherwise treats HEAD as GET. An explicit download is the only audited export action.
+  if (req.method !== 'GET') { res.set('Allow', 'GET').status(405).end(); return; }
+  try {
+    if (Object.keys(req.query).length > 0) throw new SensitiveAccessError("SENSITIVE_REQUEST_INVALID");
+    const { userId } = req as AuthenticatedRequest;
+    const csv = await exportPersonalTaxPreparation(req.params["id"] as string, userId, req.params["recordId"] as string);
+    res.status(200).set({ 'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': 'attachment; filename="personal-tax-input.csv"',
+      'X-Personal-Tax-Company': (req.params['id'] as string).toLowerCase(),
+      'X-Personal-Tax-Record': (req.params['recordId'] as string).toLowerCase(),
+      'Content-Length': String(Buffer.byteLength(csv)) }).end(csv);
+  } catch (error) {
+    companyError(req, res, error, "personal tax preparation export error");
+  }
+});
+
+router.get("/:id/payroll-pay-records/:recordId/export.csv", async (req: Request, res: Response) => {
+  // Express otherwise treats HEAD as GET. An explicit download is the only audited export action.
+  if (req.method !== 'GET') { res.set('Allow', 'GET').status(405).end(); return; }
+  try {
+    if (Object.keys(req.query).length > 0) throw new SensitiveAccessError("SENSITIVE_REQUEST_INVALID");
+    const { userId } = req as AuthenticatedRequest;
+    const csv = await exportPayRecord(req.params["id"] as string, userId, req.params["recordId"] as string);
+    res.status(200).set({ 'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': 'attachment; filename="payroll-pay-record.csv"',
+      'X-Payroll-Company': (req.params['id'] as string).toLowerCase(),
+      'X-Payroll-Record': (req.params['recordId'] as string).toLowerCase(),
+      'Content-Length': String(Buffer.byteLength(csv)) }).end(csv);
+  } catch (error) {
+    companyError(req, res, error, "pay record export error");
+  }
+});
+
+router.post("/:id/personal-tax-preparations", async (req: Request, res: Response) => {
+  try {
+    if (Object.keys(req.query).length > 0) throw new SensitiveAccessError("SENSITIVE_REQUEST_INVALID");
+    const { userId } = req as AuthenticatedRequest;
+    const result = await createPersonalTaxPreparation(req.params["id"] as string, userId, req.body);
+    res.status(result.status === "created" ? 201 : 200).json(result);
+  } catch (error) {
+    companyError(req, res, error, "personal tax preparation create error");
+  }
+});
+
+router.get("/:id/personal-tax-preparations/:recordId", async (req: Request, res: Response) => {
+  try {
+    if (Object.keys(req.query).length > 0) throw new SensitiveAccessError("SENSITIVE_REQUEST_INVALID");
+    const { userId } = req as AuthenticatedRequest;
+    const record = await readPersonalTaxPreparation(req.params["id"] as string, userId, req.params["recordId"] as string);
+    res.json(record);
+  } catch (error) {
+    companyError(req, res, error, "personal tax preparation read error");
+  }
+});
+
+router.post("/:id/payroll-pay-records", async (req: Request, res: Response) => {
+  try {
+    if (Object.keys(req.query).length > 0) throw new SensitiveAccessError("SENSITIVE_REQUEST_INVALID");
+    const { userId } = req as AuthenticatedRequest;
+    const result = await createPayRecord(req.params["id"] as string, userId, req.body);
+    res.status(result.status === "created" ? 201 : 200).json(result);
+  } catch (error) {
+    companyError(req, res, error, "payroll pay record create error");
+  }
+});
+
+router.get("/:id/payroll-pay-records/:recordId", async (req: Request, res: Response) => {
+  try {
+    if (Object.keys(req.query).length > 0) throw new SensitiveAccessError("SENSITIVE_REQUEST_INVALID");
+    const { userId } = req as AuthenticatedRequest;
+    const record = await readPayRecord(req.params["id"] as string, userId, req.params["recordId"] as string);
+    res.json(record);
+  } catch (error) {
+    companyError(req, res, error, "payroll pay record read error");
+  }
+});
+
+router.get("/:id/specialist-access-history", async (req: Request, res: Response) => {
+  try {
+    if (Object.keys(req.query).length > 0) throw new SensitiveAccessError("SENSITIVE_REQUEST_INVALID");
+    const { userId } = req as AuthenticatedRequest;
+    const history = await readSpecialistAccessHistory(req.params["id"] as string, userId);
+    res.json(history);
+  } catch (error) {
+    companyError(req, res, error, "specialist access history error");
+  }
+});
 
 // ─── GET /api/companies ───────────────────────────────────────────────────────
 router.get("/", async (req: Request, res: Response) => {
@@ -172,8 +315,14 @@ router.delete("/:id", async (req: Request, res: Response) => {
       if (actors.length !== 1 || actors[0]?.role !== "owner" || actors[0]?.is_active !== true) {
         throw new CompanyPolicyError("access_denied");
       }
-      await tx.delete(companyUsersTable).where(eq(companyUsersTable.company_id, companyId));
-      await tx.delete(companiesTable).where(eq(companiesTable.id, companyId));
+      const removed = await tx.delete(companyUsersTable).where(eq(companyUsersTable.company_id, companyId)).returning();
+      if (removed.length !== members.length) throw new SensitiveAccessError("SENSITIVE_OPERATION_UNAVAILABLE");
+      await auditSpecializedMembershipChanges(queryAdapter(tx), {
+        companyId, actorId: userId,
+        changes: removed.map(member => ({ operation: "company_delete", before: member, after: null })),
+      });
+      const deleted = await tx.delete(companiesTable).where(eq(companiesTable.id, companyId)).returning({ id: companiesTable.id });
+      if (deleted.length !== 1 || deleted[0]?.id !== companyId.toLowerCase()) throw new SensitiveAccessError("SENSITIVE_OPERATION_UNAVAILABLE");
     });
     res.json({ success: true });
   } catch (err: unknown) {
@@ -217,6 +366,10 @@ router.post("/:id/members", async (req: Request, res: Response) => {
       const members = await lockedMembers(tx, companyId);
       authorizeMemberChange({ companyId, actorId: userId, targetId: user_id, members, action: "add", nextRole: role });
       const [created] = await tx.insert(companyUsersTable).values({ company_id: companyId, user_id, role }).returning();
+      if (!created) throw new SensitiveAccessError("SENSITIVE_OPERATION_UNAVAILABLE");
+      await auditSpecializedMembershipChange(queryAdapter(tx), {
+        companyId, actorId: userId, operation: "member_add", before: null, after: created,
+      });
       return created;
     });
     res.status(201).json(m);
@@ -239,6 +392,10 @@ router.put("/:id/members/:userId", async (req: Request, res: Response) => {
       authorizeMemberChange({ companyId, actorId: userId, targetId: targetUserId, members, action: "change_role", nextRole: role });
       const [changed] = await tx.update(companyUsersTable).set({ role, updated_at: new Date() })
         .where(and(eq(companyUsersTable.company_id, companyId), eq(companyUsersTable.user_id, targetUserId))).returning();
+      if (!changed) throw new SensitiveAccessError("SENSITIVE_OPERATION_UNAVAILABLE");
+      await auditSpecializedMembershipChange(queryAdapter(tx), {
+        companyId, actorId: userId, operation: "role_change", before: members.find(member => member.user_id === targetUserId)!, after: changed,
+      });
       return changed;
     });
     res.json(updated);
@@ -257,8 +414,12 @@ router.delete("/:id/members/:userId", async (req: Request, res: Response) => {
     await db.transaction(async tx => {
       const members = await lockedMembers(tx, companyId);
       authorizeMemberChange({ companyId, actorId: userId, targetId: targetUserId, members, action: "remove" });
-      await tx.delete(companyUsersTable)
-        .where(and(eq(companyUsersTable.company_id, companyId), eq(companyUsersTable.user_id, targetUserId)));
+      const [removed] = await tx.delete(companyUsersTable)
+        .where(and(eq(companyUsersTable.company_id, companyId), eq(companyUsersTable.user_id, targetUserId))).returning();
+      if (!removed) throw new SensitiveAccessError("SENSITIVE_OPERATION_UNAVAILABLE");
+      await auditSpecializedMembershipChange(queryAdapter(tx), {
+        companyId, actorId: userId, operation: "member_remove", before: removed, after: null,
+      });
     });
     res.json({ success: true });
   } catch (err: unknown) {
@@ -295,6 +456,10 @@ router.post("/:id/invite", async (req: Request, res: Response) => {
       authorizeMemberChange({ companyId, actorId: userId, targetId: invitee.id, members, action: "add", nextRole: role });
       const [created] = await tx.insert(companyUsersTable)
         .values({ company_id: companyId, user_id: invitee.id, role }).returning();
+      if (!created) throw new SensitiveAccessError("SENSITIVE_OPERATION_UNAVAILABLE");
+      await auditSpecializedMembershipChange(queryAdapter(tx), {
+        companyId, actorId: userId, operation: "member_invite", before: null, after: created,
+      });
       return created;
     });
 

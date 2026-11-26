@@ -164,6 +164,18 @@
     "element": "<AuditHistory />"
   },
   {
+    "path": "/payroll/pay-records",
+    "element": "<PayRecords />"
+  },
+  {
+    "path": "/payroll/access-history",
+    "element": "<AccessHistory />"
+  },
+  {
+    "path": "/personal-tax/preparations",
+    "element": "<TaxPreparations />"
+  },
+  {
     "path": "/bank-accounts",
     "element": "<BankAccounts />"
   },

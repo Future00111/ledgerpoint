@@ -51,6 +51,51 @@ export function specificationTrace(raw) {
     recoveryNumerator:numerator.toString(),wholePoundsDenominator:'10000',deductionMinor:deduction.toString()};
 }
 
+/** Offline 2026–27 reference for one confirmed regular-period Plan 2 instruction and one
+ * confirmed postgraduate instruction, applied to the same Class 1 NI earnings. */
+function pairedLoanTrace(raw, monthlyOnly) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) fail('SPEC_INPUT_FIELDS');
+  const { plan2Instruction, postgraduateInstruction, ...period } = raw;
+  if (!Object.hasOwn(raw, 'plan2Instruction') || !Object.hasOwn(raw, 'postgraduateInstruction') ||
+      plan2Instruction !== true || postgraduateInstruction !== true) fail('SPEC_PAIR_INSTRUCTIONS');
+  if (['plan', 'confirmedInstruction', 'concurrentLoan'].some(key => Object.hasOwn(period, key))) fail('SPEC_INPUT_FIELDS');
+
+  if (monthlyOnly && period.frequency !== 'monthly') fail('SPEC_PERIOD');
+  const { qualified, notForPayroll, student: plan2, postgraduate, totalDeductionMinor } = calculateRegularPair(period, 'plan_2');
+  return { qualified, notForPayroll, plan2, postgraduate, totalDeductionMinor };
+}
+
+function calculateRegularPair(period, studentPlan) {
+  const component = { ...period, confirmedInstruction: true, concurrentLoan: false };
+  const student = specificationTrace({ ...component, plan: studentPlan });
+  const postgraduate = specificationTrace({ ...component, plan: 'postgraduate' });
+  return {
+    qualified: false, notForPayroll: true, studentPlan, student, postgraduate,
+    totalDeductionMinor: (BigInt(student.deductionMinor) + BigInt(postgraduate.deductionMinor)).toString(),
+  };
+}
+
+// The caller supplies the confirmed plan. Notice interpretation and plan selection
+// are outside this offline arithmetic reference.
+export function regularStudentPostgraduateTrace(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) fail('SPEC_INPUT_FIELDS');
+  const { confirmedStudentPlan, postgraduateInstruction, ...period } = raw;
+  if (!Object.hasOwn(raw, 'confirmedStudentPlan') || !Object.hasOwn(raw, 'postgraduateInstruction') ||
+      !['plan_1', 'plan_2', 'plan_4', 'plan_5'].includes(confirmedStudentPlan) ||
+      postgraduateInstruction !== true) fail('SPEC_PAIR_INSTRUCTIONS');
+  if (['plan', 'confirmedInstruction', 'concurrentLoan'].some(key => Object.hasOwn(period, key))) fail('SPEC_INPUT_FIELDS');
+  return calculateRegularPair(period, confirmedStudentPlan);
+}
+
+export function regularPlan2PostgraduateTrace(raw) {
+  return pairedLoanTrace(raw, false);
+}
+
+// The monthly entry point retains its frequency constraint for existing callers.
+export function monthlyPlan2PostgraduateTrace(raw) {
+  return pairedLoanTrace(raw, true);
+}
+
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
 export function loadPinnedEvidence() {
   const root=new URL('../../',import.meta.url);

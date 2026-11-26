@@ -23,6 +23,7 @@ const admin=new pg.Pool({host:socket,port:55441,user:'w03_bootstrap',database:'l
 const actor='synthetic-witness-owner';
 let server:ReturnType<ReturnType<typeof express>['listen']>,base:string;
 let browserHtml='';
+let browserAcceptance:{id:string;receive:(value:any)=>void}|undefined;
 before(async()=>{
  assert.deepEqual((await admin.query(`SELECT current_database() db,current_user actor,inet_server_addr() addr,current_setting('data_directory') dir`)).rows[0],
   {db:'ledgerly_accounting_flow_test',actor:'w03_bootstrap',addr:null,dir:path.join(path.dirname(socket),'data')});
@@ -30,6 +31,7 @@ before(async()=>{
  const app=express();app.use(express.json());
  // Loopback-only, fresh synthetic test harness; production router keeps Clerk.
  app.get('/synthetic-compensation-browser',(_req,res)=>res.type('html').send(browserHtml));
+ app.post('/synthetic-browser-result',(req,res)=>{if(!browserAcceptance||req.body?.id!==browserAcceptance.id){res.sendStatus(409);return;}res.json({ok:true});browserAcceptance.receive(req.body);});
  app.use('/companies/:companyId',createAccountingRouter((req,res,next)=>{
   const user=req.get('x-test-actor');if(!user){res.sendStatus(401);return;}
   (req as any).userId=user;next();
@@ -1862,25 +1864,38 @@ for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${
 for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${side} full-paid ordinary commercial credit and explicit refund actual-page recovery`,async()=>{
  const f=await ordinaryOriginalFixture(side),kind=side==='customer'?'sales_invoice':'purchase_bill',route=side==='customer'?'/invoices':'/bills',creditRoute=side==='customer'?'/sales-credit-notes':'/supplier-credit-notes',creditKind=side==='customer'?'sales_credit_note':'supplier_credit_note',number='BROWSER-COMMERCIAL-'+randomUUID();
  const dir=mkdtempSync(path.join(path.dirname(socket),'agreement-page-browser-'));
+ const reportId=randomUUID();let child:ReturnType<typeof spawn>|undefined,stage='browser startup',report:(value:any)=>void=()=>{};
+ browserAcceptance={id:reportId,receive:value=>{stage=String(value.stage??stage);if(typeof value.passed==='boolean')report(value);}};
  try {
   const frontend=path.join(process.cwd(),'artifacts/ledgerly'),entry=path.join(dir,'entry.jsx'),bundle=path.join(dir,'bundle.js'),companyStub=path.join(dir,'company.mjs');
   writeFileSync(companyStub,`export const useCompany=()=>({activeCompany:{id:${JSON.stringify(f.company)}}});`);
   writeFileSync(entry,`
    import React from ${JSON.stringify(frontend+'/node_modules/react/index.js')};
    import {createRoot} from ${JSON.stringify(frontend+'/node_modules/react-dom/client.js')};
+   import {flushSync} from ${JSON.stringify(frontend+'/node_modules/react-dom/index.js')};
    import {MemoryRouter,Routes,Route,useNavigate} from ${JSON.stringify(frontend+'/node_modules/react-router-dom/dist/index.mjs')};
    import {QueryClient,QueryClientProvider} from ${JSON.stringify(frontend+'/node_modules/@tanstack/react-query/build/modern/index.js')};
    import Form from ${JSON.stringify(frontend+'/src/pages/AccountingDocumentForm.jsx')};
    import Payments from ${JSON.stringify(frontend+'/src/pages/Payments.jsx')};
    import {readDiscountRecovery} from ${JSON.stringify(frontend+'/src/features/paidCreditReview/model.mjs')};
-   const nativeFetch=window.fetch.bind(window);let captures=0,saves=0,posts=0,observed=0,discountPosts=0,recoveries=0,savedId=null;
+   const nativeFetch=window.fetch.bind(window);let captures=0,saves=0,posts=0,observed=0,discountPosts=0,recoveries=0,refundPosts=0,refundResponses=0,savedId=null;
+   let ledgerGate;
+   let stage='mount';
+   const report=(passed,error=null)=>nativeFetch('/synthetic-browser-result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:${JSON.stringify(reportId)},stage,passed,error,captures,saves,posts,observed,discountPosts,recoveries,refundPosts,refundResponses})});
+   const progress=async value=>{stage=value;await nativeFetch('/synthetic-browser-result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:${JSON.stringify(reportId)},stage})});};
+   window.addEventListener('error',event=>{void report(false,event.message)});
+   window.addEventListener('unhandledrejection',event=>{void report(false,String(event.reason?.message??event.reason))});
    window.fetch=async(url,options={})=>{
     const path=String(url).replace(/^\\/api\\//,'/');
     const headers=new Headers(options.headers);headers.set('x-test-actor',${JSON.stringify(actor)});
     if(path.endsWith('/conditional-discount-evidence')&&options.method==='POST')captures++;
     if(path.endsWith('/accounting-documents')&&options.method==='POST')saves++;
     if(path.includes('/conditional-original')&&options.method==='POST'&&!path.endsWith('/observe'))posts++;
+    const isRefund=path.endsWith('/accounting-payments')&&options.method==='POST'&&JSON.parse(options.body).kind==='refund';
+    if(isRefund)refundPosts++;
     const response=await nativeFetch(path,{...options,headers});
+    if(ledgerGate && path.includes('/accounting-reports?')) await ledgerGate;
+    if(isRefund&&response.ok)refundResponses++;
     if(path.endsWith('/accounting-documents')&&options.method==='POST'&&response.ok)savedId=(await response.clone().json()).data.id;
     if(path.endsWith('/conditional-original/observe')&&response.ok)observed++;
     if(path.endsWith('/commercial-credit')&&options.method==='POST'&&response.ok){discountPosts++;if(discountPosts===1)throw Error('Synthetic lost discount response');}
@@ -1892,8 +1907,8 @@ for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${
    const mount=(url,key)=>root.render(<QueryClientProvider key={key} client={new QueryClient({defaultOptions:{queries:{retry:false}}})}><MemoryRouter initialEntries={[url]}><Navigation/><Routes><Route path="/payments" element={<Payments/>}/><Route path=${JSON.stringify(route+'/:id')} element={<Form kind=${JSON.stringify(kind)}/>}/><Route path=${JSON.stringify(creditRoute+'/:id')} element={<Form kind=${JSON.stringify(creditKind)}/>}/></Routes></MemoryRouter></QueryClientProvider>);
    mount(${JSON.stringify(route+'/new')},'initial');
    const el=id=>document.querySelector('[data-testid="'+id+'"]');
-   const wait=async(fn)=>{for(let i=0;i<240;i++){if(fn())return;await new Promise(r=>setTimeout(r,25));}throw Error('Browser timeout: '+document.getElementById('root').textContent.slice(-1200));};
-   const change=async(selector,value)=>{const node=document.querySelector(selector);if(!node)throw Error('Missing '+selector);const proto=node.tagName==='SELECT'?HTMLSelectElement.prototype:node.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(proto,'value').set.call(node,value);node.dispatchEvent(new Event(node.tagName==='SELECT'?'change':'input',{bubbles:true}));await new Promise(r=>setTimeout(r,25));};
+   const wait=async(fn)=>{await progress(String(fn).slice(0,240));const deadline=Date.now()+6000;while(Date.now()<deadline){if(fn())return;await new Promise(r=>setTimeout(r,25));}throw Error('Browser condition timed out at '+stage+': '+document.body.textContent.slice(-2400));};
+   const change=async(selector,value)=>{const node=document.querySelector(selector);if(!node)throw Error('Missing '+selector);const proto=node.tagName==='SELECT'?HTMLSelectElement.prototype:node.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(proto,'value').set.call(node,value);flushSync(()=>node.dispatchEvent(new Event(node.tagName==='SELECT'?'change':'input',{bubbles:true})));};
    (async()=>{
     await wait(()=>el('select-party'));
     await change('#party',${JSON.stringify(f.body.party_id)});await change('#number',${JSON.stringify(number)});
@@ -1921,6 +1936,7 @@ for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${
     window.testNavigate(${JSON.stringify(creditRoute+'/new?original=')}+originalId);
     await wait(()=>document.querySelector('#reason'));
     await change('#reason','Ordinary price reduction after full payment');await change('#p0','12');await change('#number',${JSON.stringify(number+'-CREDIT')});
+    await change('#effective','2026-11-15');await change('#due','2026-11-15');
     el('button-save').click();await wait(()=>savedId!==originalId&&el('button-save')?.textContent==='Save changes'&&!el('button-post').disabled);
     await change('[aria-label="Credit purpose"]','commercial');
     el('button-post').click();await wait(()=>document.querySelector('[aria-label="Credit settlement review"]'));
@@ -1938,21 +1954,33 @@ for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${
     if(!recoverButton||recoverButton.disabled)throw Error('Posted page omitted recovery action');
     recoverButton.click();await wait(()=>!recovery()&&recoveries===1&&pending()===null&&document.getElementById('root').textContent.includes('Posted'));
     if(discountPosts!==1)throw Error('Recovery resubmitted discount');
+    let releaseLedger;
+    ledgerGate=new Promise(resolve=>{releaseLedger=resolve;});
     mount('/payments?event='+payment.id,'refund');
     const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent===text);
-    await wait(()=>button('Record refund')&&!button('Record refund').disabled);button('Record refund').click();
+    await wait(()=>button('Record refund'));
+    for(const action of ['Record payment','Allocate','Undo allocation','Record refund','Reverse payment']){
+      if(!button(action)?.disabled)throw Error(action+' enabled before ledger readiness');
+    }
+    releaseLedger();
+    await wait(()=>button('Record payment')&&!button('Record payment').disabled&&button('Record refund')&&!button('Record refund').disabled);button('Record refund').click();
     await wait(()=>document.querySelector('#pay-amount'));await change('#pay-date','2026-11-16');await change('#pay-amount','12.00');await change('#pay-reference','Separately reviewed browser refund');
     button('Review accounting entries').click();await wait(()=>button('Confirm and record')&&!button('Confirm and record').disabled);
-    button('Confirm and record').click();await wait(()=>!document.querySelector('#pay-amount')&&!button('Confirm and record'));
-    document.body.dataset.originalAgreementAcceptance='passed';
-   })().catch(e=>{document.body.dataset.originalAgreementAcceptance='failed';document.getElementById('root').append(document.createTextNode(e.message));});
+    button('Confirm and record').click();await wait(()=>refundPosts===1&&refundResponses===1&&document.getElementById('root').textContent.includes('Payment event recorded.')&&!document.querySelector('#pay-amount')&&!button('Confirm and record'));
+    await progress('commercial credit recovery and separate refund verified');await report(true);
+   })().catch(e=>report(false,e.message));
   `);
   execFileSync('pnpm',['--filter','@workspace/api-server','exec','esbuild',entry,'--bundle','--platform=browser','--format=iife','--jsx=automatic','--alias:@='+frontend+'/src','--alias:@/lib/useCompany='+companyStub,'--outfile='+bundle],{stdio:'pipe'});
   browserHtml=`<!doctype html><html><head><meta charset="utf-8"><title>Synthetic original agreement form</title></head><body><div id="root"></div><script>${readFileSync(bundle,'utf8').replaceAll('</script','<\\/script')}</script></body></html>`;
-  const child=spawn('chromium',['--headless','--no-first-run','--disable-gpu','--disable-background-networking','--disable-component-update','--disable-sync','--user-data-dir='+path.join(dir,'profile'),'--dump-dom','--virtual-time-budget=24000',base+'/synthetic-compensation-browser'],{stdio:['ignore','pipe','pipe']});
-  let html='',stderr='';child.stdout.on('data',b=>{html+=b.toString();});child.stderr.on('data',b=>{stderr+=b.toString();});
-  const code=await new Promise<number>((resolve,reject)=>{const timer=setTimeout(()=>{child.kill('SIGTERM');reject(Error('Bounded Chromium timeout'));},35000);child.once('error',e=>{clearTimeout(timer);reject(e);});child.once('exit',n=>{clearTimeout(timer);resolve(n??1);});});
-  assert.equal(code,0,stderr.slice(-2000));assert.match(html,/<body[^>]*data-original-agreement-acceptance="passed"/,html.slice(0,18000));
+  child=spawn('chromium',['--headless','--no-first-run','--disable-gpu','--disable-background-networking','--disable-component-update','--disable-sync','--user-data-dir='+path.join(dir,'profile'),base+'/synthetic-compensation-browser'],{stdio:['ignore','pipe','pipe']});
+  let stderr='';child.stdout!.resume();child.stderr!.on('data',chunk=>stderr=(stderr+chunk).slice(-4000));
+  const acceptance=await new Promise<any>((resolve,reject)=>{
+   const finish=(error:Error|null,value?:any)=>{clearTimeout(timer);report=()=>{};child!.off('error',failed);child!.off('exit',exited);error?reject(error):resolve(value);};
+   const failed=(error:Error)=>finish(error),exited=(code:number|null)=>finish(Error('Browser exited before commercial credit acceptance at '+stage+' ('+code+'): '+stderr));
+   const timer=setTimeout(()=>finish(Error('Bounded commercial credit browser timeout at '+stage+': '+stderr)),35000);
+   report=value=>finish(null,value);child!.once('error',failed);child!.once('exit',exited);
+  });
+  assert.equal(acceptance?.passed,true,JSON.stringify(acceptance));assert.equal(acceptance.stage,'commercial credit recovery and separate refund verified');
   const row=(await pool.query(`SELECT id FROM ${side==='customer'?'sales_invoices':'purchase_bills'} WHERE company_id=$1 AND ${side==='customer'?'invoice_number':'bill_number'}=$2`,[f.company,number])).rows[0];
   assert.ok(row);const saved=await getDocument(f.company,actor,row.id);assert.equal(saved.status,'posted');assert.equal(saved.source.conditional_discount.discount_gross_pence,'1200');
   assert.equal((await pool.query('SELECT count(*)::int n FROM conditional_discount_original_observations WHERE company_id=$1 AND document_id=$2',[f.company,row.id])).rows[0].n,1);
@@ -1962,7 +1990,13 @@ for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${
   assert.equal((await pool.query("SELECT amount_minor FROM accounting_payment_events WHERE company_id=$1 AND kind='payment'",[f.company])).rows[0].amount_minor,'12000');
   assert.deepEqual((await pool.query(`SELECT amount_paid::text,balance_due::text FROM ${side==='customer'?'sales_invoices':'purchase_bills'} WHERE id=$1`,[row.id])).rows[0],{amount_paid:'108.00',balance_due:'0.00'});
   console.log('COMMERCIAL_CREDIT_REFUND_PAGE_BROWSER_ACCEPTANCE' ,JSON.stringify({party:side,actualFullPage:true,blankEntry:true,nativeEvidence:true,invalidatedTerms:true,savedReceiptReload:true,explicitReviewAndPost:true,nativePayment:true,actualDiscountCreditPage:true,commercialRelease:true,separateRefund:true,lostResponse:true,actualFormRemountRecovery:true,noResubmission:true,syntheticOnly:true}));
- }finally{browserHtml='';rmSync(dir,{recursive:true,force:true});}
+ }finally{
+  browserAcceptance=undefined;report=()=>{};browserHtml='';
+  if(child?.pid&&child.exitCode===null&&child.signalCode===null)await new Promise<void>(resolve=>{
+   const timer=setTimeout(()=>child?.kill('SIGKILL'),5000);child!.once('exit',()=>{clearTimeout(timer);resolve();});child!.kill('SIGTERM');
+  });
+  rmSync(dir,{recursive:true,force:true,maxRetries:6,retryDelay:100});
+ }
 });
 
 for(const side of ['customer','supplier'] as const)test(`real PostgreSQL HTTP: ${side} full-paid commercial purpose, replay, recovery and explicit refund`,async()=>{

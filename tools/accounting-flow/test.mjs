@@ -50,14 +50,28 @@ try {
   await admin.query(`REVOKE TEMPORARY ON DATABASE ${canonicalDatabase} FROM PUBLIC`);await admin.end();
   admin=new Client({host:socket,port,user:'w03_bootstrap',database:canonicalDatabase,password:()=>'',ssl:false});
   await admin.connect();await installSchema(admin,exportSchema(),{includeAmendments:true});await admin.end();admin=null;
+  const revisionDatabase = 'ledgerly_revision_test_' + runId.replaceAll('-', '');
+  admin=new Client({host:socket,port,user:'w03_bootstrap',database:'postgres',password:()=>'',ssl:false});
+  await admin.connect();
+  await admin.query(`CREATE DATABASE ${revisionDatabase}`);
+  await admin.end(); admin=null;
+  admin=new Client({host:socket,port,user:'w03_bootstrap',database:revisionDatabase,password:()=>'',ssl:false});
+  await admin.connect();
+  await installSchema(admin,exportSchema(),{includeAmendments:true,includePayRevisions:true});
+  await admin.end(); admin=null;
   const testEnv={...env,NODE_ENV:'test',NODE_PATH:root+'/artifacts/api-server/node_modules',
     ACCOUNTING_FLOW_TEST_SOCKET:socket,
     DATABASE_URL:`postgresql://ledgerly_api@localhost/ledgerly_accounting_flow_test?host=${encodeURIComponent(socket)}&port=${port}`};
+  execFileSync('pnpm',['--filter','@workspace/api-server','exec','esbuild','src/services/durableJobs/restartWorker.ts','--bundle','--platform=node','--format=cjs','--external:pg','--outfile=../../generated-artifacts/durable-job-restart.cjs'],{cwd:root,stdio:'inherit'});
   for(const [entry,output] of [
     ['src/services/accounting/canonicalPosting.integration.test.ts','canonical-posting-flow.test.cjs'],
+    ['src/services/durableJobs/contract.test.ts','durable-jobs-contract.test.cjs'],
+    ['src/services/durableJobs/integration.test.ts','durable-jobs-flow.test.cjs'],
+    ['src/services/durableJobs/execution.integration.test.ts','durable-execution-flow.test.cjs'],
     ['src/services/accountingDocuments/integration.test.ts','accounting-flow.test.cjs'],
     ['src/services/accountingDocuments/conditionalDiscount.integration.test.ts','conditional-discount-flow.test.cjs'],
     ['src/services/accountingDocuments/conditionalDiscount.test.ts','conditional-discount-unit.test.cjs'],
+    ['src/services/payroll/revisions/storage.integration.test.ts','revision-storage.test.cjs'],
     ['src/security/integration.test.ts','security-flow.test.cjs'],
     ['src/services/accountingDocuments/corrections.integration.test.ts','corrections-flow.test.cjs'],
     ['src/services/accountingDocuments/vatCoverage.integration.test.ts','vat-coverage-flow.test.cjs'],
@@ -68,7 +82,8 @@ try {
       '--bundle','--platform=node','--format=cjs','--external:pg','--external:@clerk/express',
       '--external:pino','--external:pino-http','--external:pino-pretty','--external:thread-stream',
       '--outfile=../../generated-artifacts/'+output],{cwd:root,stdio:'inherit'});
-    const suiteEnv=output==='canonical-posting-flow.test.cjs' ? {...testEnv,
+    const suiteEnv=output==='revision-storage.test.cjs' ? {...testEnv, REVISION_TEST_DATABASE:revisionDatabase,
+      DATABASE_URL:`postgresql://ledgerly_api@localhost/${revisionDatabase}?host=${encodeURIComponent(socket)}&port=${port}`} : output==='canonical-posting-flow.test.cjs' ? {...testEnv,
       DATABASE_URL:`postgresql://ledgerly_api@localhost/${canonicalDatabase}?host=${encodeURIComponent(socket)}&port=${port}`,
       LEDGERLY_CANONICAL_TEST_DATABASE_NAME:canonicalDatabase,
       LEDGERLY_CANONICAL_TEST_RUN_ID:runId,
@@ -86,6 +101,18 @@ try {
       env:{...testEnv,DATABASE_URL:`postgresql://ledgerly_api@localhost/ledgerly_accounting_flow_restore_test?host=${encodeURIComponent(socket)}&port=${port}`},stdio:'inherit'});
     exitCode=await new Promise((resolve,reject)=>{result.on('error',reject);result.on('exit',code=>resolve(code??1));});
     restore.compensationAcceptanceVerified=exitCode===0;
+    if(exitCode===0){
+      execFileSync('pnpm',['--filter','@workspace/api-server','exec','esbuild','src/services/operationRecovery/correctionRecovery.restore.test.ts','--bundle','--platform=node','--format=cjs','--external:pg','--outfile=../../generated-artifacts/correction-recovery-restore.test.cjs'],{cwd:root,stdio:'inherit'});
+      const corrections=spawn(process.execPath,['--test',root+'/generated-artifacts/correction-recovery-restore.test.cjs'],{cwd:root,env:{...testEnv,DATABASE_URL:`postgresql://ledgerly_api@localhost/ledgerly_accounting_flow_restore_test?host=${encodeURIComponent(socket)}&port=${port}`},stdio:'inherit'});
+      exitCode=await new Promise((resolve,reject)=>{corrections.on('error',reject);corrections.on('exit',code=>resolve(code??1));});
+      restore.correctionRecoveryVerified=exitCode===0;
+    }
+    if(exitCode===0){
+      execFileSync('pnpm',['--filter','@workspace/api-server','exec','esbuild','src/services/durableJobs/restore.test.ts','--bundle','--platform=node','--format=cjs','--external:pg','--outfile=../../generated-artifacts/durable-jobs-restore.test.cjs'],{cwd:root,stdio:'inherit'});
+      const jobs=spawn(process.execPath,['--test',root+'/generated-artifacts/durable-jobs-restore.test.cjs'],{cwd:root,env:{...testEnv,DATABASE_URL:`postgresql://ledgerly_api@localhost/ledgerly_accounting_flow_restore_test?host=${encodeURIComponent(socket)}&port=${port}`},stdio:'inherit'});
+      exitCode=await new Promise((resolve,reject)=>{jobs.on('error',reject);jobs.on('exit',code=>resolve(code??1));});
+      restore.durableQueueRecoveryVerified=exitCode===0;
+    }
     writeFileSync(restoreReceipt,JSON.stringify(restore,null,2)+'\n');
     console.log('Disposable backup/restore verified: original rows, restored evidence and restricted runtime match.');
   }

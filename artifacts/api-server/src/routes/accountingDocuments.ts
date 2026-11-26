@@ -12,9 +12,9 @@ import { journal, reports } from "../services/accountingDocuments/reports";
 import { CanonicalPostingError, type DatabaseTransaction } from "../services/accounting/canonicalPosting";
 import { chart, AccountSelectionError } from "../services/accountingDocuments/accounts";
 import { saveAccount } from "../services/accountingDocuments/chart";
-import { correctionContext, reviewCorrection, commitCorrection, correctionHistory, recoverCorrection } from "../services/accountingDocuments/corrections";
+import { correctionContext, reviewCorrection, commitCorrection, correctionHistory, recoverCorrection, discoverCorrections, terminateCorrectionAttempt } from "../services/accountingDocuments/corrections";
 
-import { paymentContext, savePaymentConfiguration, listPayments, previewPayment, postPayment, recoverPayment } from '../services/accountingDocuments/payments';
+import { paymentContext, savePaymentConfiguration, listPayments, previewPayment, postPayment, recoverPayment, discoverPayments, terminatePaymentAttempt } from '../services/accountingDocuments/payments';
 import { createClaims, listClaims, confirmReceipt, cancelClaim } from '../services/creditTracking/service';
 import type { Queryable } from '../services/accountingDocuments/core';
 import { appendConditionalReplacement } from '../services/accountingDocuments/conditionalReplacements';
@@ -101,6 +101,8 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
     res.json({data:await recoverBankImport(company,actor,String(req.params.requestId))});
   });
   router.put('/accounting-payments/configuration',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await savePaymentConfiguration(company,actor,req.body)});});
+  router.get('/accounting-payments/operations',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await discoverPayments(company,actor)});});
+  router.post('/accounting-payments/operations/:requestId/no-effect',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await terminatePaymentAttempt(company,actor,String(req.params.requestId),req.body)});});
   router.get('/accounting-payments/operations/:requestId',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await recoverPayment(company,actor,String(req.params.requestId))});});
   router.get('/accounting-payments',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await listPayments(company,actor)});});
   router.post('/accounting-payments/review',async(req,res)=>{const {company,actor}=ids(req);res.json({data:await previewPayment(company,actor,req.body)});});
@@ -132,6 +134,11 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
   router.get('/accounting-documents/:id/correction-context',async(req,res)=>{
     const {company,actor,id}=ids(req);res.json({data:await correctionContext(company,actor,id)});
   });
+  router.get('/accounting-documents/:id/corrections/operations',async(req,res)=>{
+    const {company,actor,id}=ids(req);if(Object.keys(req.query).length)fail(400,'INVALID_REQUEST_SHAPE');
+    res.json({data:await discoverCorrections(company,actor,id)});
+  });
+  router.post('/accounting-documents/:id/corrections/operations/:requestId/no-effect',async(req,res)=>{const {company,actor,id}=ids(req);res.json({data:await terminateCorrectionAttempt(company,actor,id,String(req.params.requestId),req.body)});});
   router.get('/accounting-documents/:id/corrections/operations/:requestId',async(req,res)=>{
     const {company,actor,id}=ids(req);res.json({data:await recoverCorrection(company,actor,id,String(req.params.requestId))});
   });
@@ -235,6 +242,7 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
   });
   router.use(((error:any,_req:any,res:any,_next:any)=>{
     const databaseCode=error.cause?.code??error.code;
+    if(error.correctionAttemptAdmitted===true){const status=error instanceof DraftError?error.status:error instanceof CanonicalPostingError?(error.code.startsWith('authorization')?403:409):databaseCode==='23505'?409:500;res.status(status).json({error:{code:'CORRECTION_OUTCOME_UNCONFIRMED',correction_attempt:'admitted',message:'This correction attempt remains unresolved. Check its original outcome before continuing.'}});return;}
     if(error instanceof DraftError) {
       const labels:Record<string,string>={"/invoice_number":"Document number","/customer_id":"Customer or supplier",
         "/due_date":"Due date","/issue_date":"Document date","/payment_terms":"Payment terms","/posting_account_id":"Document account",
@@ -286,6 +294,8 @@ export function createAccountingRouter(auth:RequestHandler=requireAuth,testPostH
         CONDITIONAL_REPLACEMENT_IDENTITY_INVALID:"A replacement record failed its integrity check. Nothing was changed.",
         CONDITIONAL_TERMS_INVALID:"Check the replacement terms: a whole-penny discount above zero, and a payment deadline on or after the agreement date.",
         CONDITIONAL_EVIDENCE_TERMS_MISMATCH:"The receipt belongs to different agreement terms. Capture or select matching evidence before saving.",
+        CORRECTION_ATTEMPT_UNRESOLVED:"Find and resolve your pending correction before reviewing another correction.",
+        CORRECTION_ATTEMPT_TERMINATED:"This request is permanently closed with no effect. Check its recorded status before starting a fresh review.",
         CORRECTION_REVIEW_STALE:"This document, its payments or accounting setup changed after review. Refresh and review the correction again.",
         CORRECTION_BELOW_PAID:"The corrected total cannot be less than payments already applied. Review the payment and refund history first.",
         CORRECTION_CHILD_CREDITS:"This document already has a linked credit. Corrections are not yet supported for this case.",

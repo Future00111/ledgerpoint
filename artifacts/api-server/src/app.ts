@@ -10,6 +10,7 @@ import {
   getClerkProxyHost,
 } from "./middlewares/clerkProxyMiddleware";
 import router from "./routes";
+import { capabilityRouter } from "./routes/health";
 import { logger, httpLogSerializers } from "./lib/logger";
 import { verifyDraftBody, draftParserErrors } from "./services/financialDrafts/jsonBoundary";
 import { RejectedOriginError, safeAppErrors } from "./security/appErrors";
@@ -79,6 +80,9 @@ app.use(cookieParser());
 app.use(express.json({ limit: "10mb", verify: verifyDraftBody }));
 app.use(draftParserErrors);
 app.use(express.urlencoded({ extended: false, limit: "100kb", parameterLimit: 100 }));
+
+// Public deployment capability contains no actor, company or payroll data.
+app.use("/api", capabilityRouter);
 
 // Resolve publishable key from request host (supports custom domains)
 app.use(

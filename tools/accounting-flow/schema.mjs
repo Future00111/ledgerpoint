@@ -14,7 +14,7 @@ export function exportSchema() {
   return execFileSync('pnpm',['--filter','@workspace/db','exec','drizzle-kit','export',
     '--schema=./src/schema/index.ts','--dialect=postgresql'],{cwd:root,env,encoding:'utf8',maxBuffer:4e6});
 }
-export async function installSchema(admin,sql,{includeAmendments=false}={}) {
+export async function installSchema(admin,sql,{includeAmendments=false,includePayRevisions=false}={}) {
   // Caller has already proved its Unix-socket identity. This never opens a connection.
   const migrationInputs = loadMigrationInputs(root); // Verify every source before BEGIN; use these exact bytes below.
   const requireEmptySchema = async () => {
@@ -62,10 +62,19 @@ export async function installSchema(admin,sql,{includeAmendments=false}={}) {
       if(!(await admin.query('SELECT 1 FROM pg_constraint WHERE conname=$1',[match[2]])).rowCount) await admin.query(match[0]);
     }
     await admin.query(migrationInputs['accounting-documents']);
+    await admin.query(migrationInputs['employee-pay-records']);
+    await admin.query(migrationInputs['employee-pay-create']);
+    await admin.query(migrationInputs['personal-tax-preparations']);
+    await admin.query(migrationInputs['personal-tax-create']);
+    await admin.query(migrationInputs['employee-bank-details']);
     await admin.query(migrationInputs['accounting-chart']);
     await admin.query(migrationInputs['accounting-payments']);
+    await admin.query(migrationInputs['operation-recovery']);
+    await admin.query(migrationInputs['correction-operation-recovery']);
     await admin.query(migrationInputs['credit-tracking']);
     await admin.query(migrationInputs['document-intake']);
+    await admin.query(migrationInputs['durable-jobs']);
+    await admin.query(migrationInputs['durable-job-execution']);
     await admin.query(migrationInputs['paid-credit-operations']);
     await admin.query(migrationInputs['bank-imports']);
     await admin.query(migrationInputs['bank-openings']);
@@ -113,7 +122,8 @@ export async function installSchema(admin,sql,{includeAmendments=false}={}) {
       'ledgerly_canonical_journal_relations_guard','ledgerly_accounting_audit_events_guard',
       'ledgerly_accounting_posting_effects_guard') AND tgenabled='A'`);
     if(immutable.rows[0].n!==5) throw Error('Canonical immutable guards not intact');
-    await recordInstalledMigrationHistory(admin, migrationInputs, { includeAmendments });
+    if (includePayRevisions) await admin.query(migrationInputs['pay-run-draft-revisions']);
+    await recordInstalledMigrationHistory(admin, migrationInputs, { includeAmendments, includePayRevisions });
     await admin.query('COMMIT');
   } catch(error) {await admin.query('ROLLBACK');throw error;}
 }
