@@ -42,6 +42,11 @@ export function RevisionReview({companyId,onSessionExpired}) {
         const difference = key => formatDraftPence(BigInt(newer.review_breakdown.totals[key]) - BigInt(older.review_breakdown.totals[key]));
         value.netEffects = netPayEffects(older.review_breakdown.totals, newer.review_breakdown.totals);
         value.comparison = `Change from revision ${older.revision_number} to ${newer.revision_number}: gross pay ${difference('gross')}, net pay ${difference('net')}.`;
+        const previousCount = older.review_breakdown.totals.line_count;
+        const currentCount = newer.review_breakdown.totals.line_count;
+        if (previousCount !== currentCount) {
+          value.comparison += ` Employee count changed from ${previousCount} to ${currentCount}.`;
+        }
       }
       if (token.isCurrent()) setResult(value);
     } catch { if (token.isCurrent()) setMessage('The draft could not be loaded. Check the revision ID and your company access.'); }

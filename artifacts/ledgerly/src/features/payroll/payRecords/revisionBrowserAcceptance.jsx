@@ -35,7 +35,7 @@ async function exercise() {
   button('Previous revision').click();
   await wait(()=>document.body.innerText.includes('Revision 1 · Superseded'));
   if (button('Previous revision') || !document.body.innerText.includes('No employee lines in this revision.')) throw Error('First revision mismatch');
-  const firstChange = 'Change from revision 1 to 2: gross pay £90,071,992,550,909.93, net pay £90,071,992,549,859.74.';
+  const firstChange = 'Change from revision 1 to 2: gross pay £90,071,992,550,909.93, net pay £90,071,992,549,859.74. Employee count changed from 0 to 2.';
   if (!document.body.innerText.includes(firstChange) || !document.body.innerText.includes('PAYE: -£701.00') ||
       !document.body.innerText.includes('Rounding: -£0.03')) throw Error('Backward comparison mismatch');
   button('Next revision').click();
@@ -43,12 +43,13 @@ async function exercise() {
   if (!document.body.innerText.includes(firstChange)) throw Error('Forward comparison mismatch');
   button('Open current revision').click();
   await wait(()=>document.body.innerText.includes('Revision 4 · Current at lookup') && input.value === latest);
-  if (!document.body.innerText.includes('Change from revision 2 to 4: gross pay -£90,071,992,550,909.93, net pay -£90,071,992,549,859.74.')) throw Error('Current revision comparison mismatch');
+  if (!document.body.innerText.includes('Change from revision 2 to 4: gross pay -£90,071,992,550,909.93, net pay -£90,071,992,549,859.74. Employee count changed from 2 to 0.')) throw Error('Current revision comparison mismatch');
   if (button('Open current revision') || document.body.innerText.includes(lineIds[0])) throw Error('Old draft remained visible');
   if (!document.body.innerText.includes('Approval requires at least one employee line.')) throw Error('Missing empty revision status');
   if (button('Next revision')) throw Error('Unexpected successor');
   button('Previous revision').click();
   await wait(()=>document.body.innerText.includes('Revision 3 · Superseded'));
+  if (document.body.innerText.includes('Employee count changed')) throw Error('Unexpected count change between empty revisions');
   if (button('Open current revision') || !button('Next revision')) throw Error('Duplicate current revision link');
   button('Clear revision').click();
   await wait(()=>!document.querySelector('table') && input.value === '');
