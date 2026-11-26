@@ -31,13 +31,19 @@ async function exercise() {
     !lines[1].innerText.includes('Student loan £0.00') || !lines[1].innerText.includes('£2,450.84') ||
     !table.querySelector('tfoot').innerText.includes('Priority order £50.00') ||
     table.querySelector('tfoot tr td:last-child')?.textContent !== '£90,071,992,549,859.74') throw Error('Revision mismatch');
+  if (document.body.innerText.includes('Change from revision')) throw Error('Unexpected comparison on direct lookup');
   button('Previous revision').click();
   await wait(()=>document.body.innerText.includes('Revision 1 · Superseded'));
   if (button('Previous revision') || !document.body.innerText.includes('No employee lines in this revision.')) throw Error('First revision mismatch');
+  const firstChange = 'Change from revision 1 to 2: gross pay £90,071,992,550,909.93, net pay £90,071,992,549,859.74.';
+  if (!document.body.innerText.includes(firstChange) || !document.body.innerText.includes('PAYE: -£701.00') ||
+      !document.body.innerText.includes('Rounding: -£0.03')) throw Error('Backward comparison mismatch');
   button('Next revision').click();
   await wait(()=>document.body.innerText.includes('Revision 2 · Superseded') && input.value === revision);
+  if (!document.body.innerText.includes(firstChange)) throw Error('Forward comparison mismatch');
   button('Open current revision').click();
   await wait(()=>document.body.innerText.includes('Revision 4 · Current at lookup') && input.value === latest);
+  if (!document.body.innerText.includes('Change from revision 2 to 4: gross pay -£90,071,992,550,909.93, net pay -£90,071,992,549,859.74.')) throw Error('Current revision comparison mismatch');
   if (button('Open current revision') || document.body.innerText.includes(lineIds[0])) throw Error('Old draft remained visible');
   if (!document.body.innerText.includes('Approval requires at least one employee line.')) throw Error('Missing empty revision status');
   if (button('Next revision')) throw Error('Unexpected successor');
