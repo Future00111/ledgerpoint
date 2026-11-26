@@ -158,3 +158,36 @@ test('dated employee payslips carry the eligible HMRC NI examples through to tak
   }
   assert.equal(checked, 892);
 });
+
+test('dated notices start and stop the workbook deduction on the designated payday', () => {
+  const workbook = JSON.parse(readFileSync(new URL('./fixtures/hmrc-student-loans-2026-27-v1.0.json', import.meta.url)));
+  const paydays = {
+    weekly: ['2026-04-10', '2026-04-17', '2026-04-24'],
+    fortnightly: ['2026-04-17', '2026-05-01', '2026-05-15'],
+    four_weekly: ['2026-05-01', '2026-05-29', '2026-06-26'],
+    monthly: ['2026-04-30', '2026-05-29', '2026-06-30'],
+  };
+  assert.equal(workbook.cases.length, 130);
+  for (const { id, input, expected } of workbook.cases) {
+    const { frequency, plan, payMinor } = input;
+    const dates = paydays[frequency];
+    const postgraduate = plan === 'postgraduate';
+    const prefix = postgraduate ? 'PGL' : 'SL';
+    const start = notice(plan, prefix + '1', dates[0], dates[1]);
+    const stop = notice(plan, prefix + '2', dates[1], dates[2]);
+    for (const [index, paymentDate] of dates.entries()) {
+      const active = index === 1;
+      const deduction = active ? expected.deductionMinor : '0';
+      // NT and category C isolate the loan's effect on employee take-home pay.
+      const { payslip, timing } = calculateDatedLoanPayslipDraft({
+        grossHistory: Array(index + 1).fill(payMinor), taxCodes: 'NT', niCategory: 'C',
+        noticeContext: { ...context, frequency, plan, payMinor, paymentDate, notices: index ? [start, stop] : [start] },
+      });
+      const label = id + ' on ' + paymentDate;
+      assert.equal(timing.instructionActive, active, label);
+      assert.equal(payslip.studentLoanMinor, postgraduate ? '0' : deduction, label);
+      assert.equal(payslip.postgraduateLoanMinor, postgraduate ? deduction : '0', label);
+      assert.equal(payslip.netMinor, String(BigInt(payMinor) - BigInt(deduction)), label);
+    }
+  }
+});
