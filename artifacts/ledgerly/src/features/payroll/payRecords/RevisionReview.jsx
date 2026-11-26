@@ -37,6 +37,11 @@ export function RevisionReview({companyId,onSessionExpired}) {
       if (response.status !== 200) throw Error();
       const value = validatedReview(await response.json(),revision,true);
       if ((expectedRun && value.run_id !== expectedRun) || (expectedNumber && value.revision_number !== expectedNumber)) throw Error();
+      if (expectedRun && result) {
+        const [older,newer] = result.revision_number < value.revision_number ? [result,value] : [value,result];
+        const difference = key => formatDraftPence(BigInt(newer.review_breakdown.totals[key]) - BigInt(older.review_breakdown.totals[key]));
+        value.comparison = `Change from revision ${older.revision_number} to ${newer.revision_number}: gross pay ${difference('gross')}, net pay ${difference('net')}.`;
+      }
       if (token.isCurrent()) setResult(value);
     } catch { if (token.isCurrent()) setMessage('The draft could not be loaded. Check the revision ID and your company access.'); }
     finally { if (token.isCurrent()) setBusy(false); }
@@ -56,6 +61,7 @@ export function RevisionReview({companyId,onSessionExpired}) {
         {result.next_revision_id && <Button variant="outline" onClick={()=>read(result.next_revision_id,result.run_id,result.revision_number+1)}>Next revision</Button>}
         {!result.is_current_revision && result.next_revision_id !== result.current_revision_id && <Button variant="outline" onClick={()=>read(result.current_revision_id,result.run_id)}>Open current revision</Button>}
       </nav>
+      {result.comparison && <p>{result.comparison}</p>}
       <p>Period {result.period_start} to {result.period_end} · Payday {result.payday}</p>
       <p>Prepared by {result.prepared_by} · <time dateTime={result.prepared_at}>{result.prepared_at.slice(0,10)} {result.prepared_at.slice(11,19)} UTC</time></p>
       <p>{approvalAvailability(result)}</p>
