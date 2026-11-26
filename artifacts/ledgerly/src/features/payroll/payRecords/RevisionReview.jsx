@@ -5,7 +5,10 @@ import {recordId,requestScope} from './model.mjs';
 import {approvalAvailability,validatedReview,formatDraftPence,deductionNames,adjustmentNames} from './revisionReview.mjs';
 
 function amounts(values,names) {
-  return Object.entries(values).map(([key,value]) => <div key={key}>{names[key]} {formatDraftPence(value)}</div>);
+  return Object.entries(values).map(([key,value]) => {
+    const refund = key === 'paye' && value.startsWith('-');
+    return <div key={key}>{refund ? 'PAYE refund' : names[key]} {formatDraftPence(refund ? value.slice(1) : value)}</div>;
+  });
 }
 function Cells({row}) {
   return <><td>{formatDraftPence(row.gross)}</td><td>{amounts(row.deductions,deductionNames)}</td>
