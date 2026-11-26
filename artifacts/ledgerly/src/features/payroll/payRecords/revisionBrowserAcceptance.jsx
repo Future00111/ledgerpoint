@@ -36,7 +36,8 @@ async function exercise() {
   await wait(()=>document.body.innerText.includes('Revision 1 · Superseded'));
   if (button('Previous revision') || !document.body.innerText.includes('No employee lines in this revision.')) throw Error('First revision mismatch');
   const firstChange = 'Change from revision 1 to 2: gross pay £90,071,992,550,909.93, net pay £90,071,992,549,859.74.';
-  if (!document.body.innerText.includes(firstChange)) throw Error('Backward comparison mismatch');
+  if (!document.body.innerText.includes(firstChange) || !document.body.innerText.includes('PAYE: -£701.00') ||
+      !document.body.innerText.includes('Rounding: -£0.03')) throw Error('Backward comparison mismatch');
   button('Next revision').click();
   await wait(()=>document.body.innerText.includes('Revision 2 · Superseded') && input.value === revision);
   if (!document.body.innerText.includes(firstChange)) throw Error('Forward comparison mismatch');

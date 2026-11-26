@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {approvalAvailability,validatedReview,formatDraftPence} from './revisionReview.mjs';
+import {approvalAvailability,validatedReview,netPayEffects,formatDraftPence} from './revisionReview.mjs';
 
 const id = '13b008c3-f6fa-4973-a356-b6e4af7adbde';
 const money = {gross:'101',net:'99',deductions:{paye:'1'},adjustments:{rounding:'-1'}};
@@ -72,4 +72,15 @@ test('approval availability distinguishes superseded, empty and unqualified draf
   assert.equal(approvalAvailability({...draft,is_current_revision:false}),'Approval unavailable for superseded revisions.');
   assert.equal(approvalAvailability({...draft,review_breakdown:{lines:[]}}),'Approval requires at least one employee line.');
   assert.equal(approvalAvailability(draft),'Approval unavailable until the payroll calculations are qualified.');
+});
+
+
+test('net effects include refunds, removed deductions and signed adjustments at penny precision', () => {
+  const before = {deductions:{paye:'9007199254740993',student_loan:'100'},adjustments:{rounding:'-1'}};
+  const after = {deductions:{paye:'-1',employee_ni:'50'},adjustments:{rounding:'-1',correction:'-2'}};
+  assert.deepEqual(netPayEffects(before, after), [
+    {label:'PAYE',pence:9007199254740994n}, {label:'Employee NI',pence:-50n},
+    {label:'Student loan',pence:100n}, {label:'Correction',pence:-2n},
+  ]);
+  assert.deepEqual(netPayEffects(after, after), []);
 });
