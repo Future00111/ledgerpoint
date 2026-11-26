@@ -7,7 +7,7 @@ import { pool, assertIsolatedInvoiceDemoDatabase, isInvoiceDemoModeEnabled } fro
 async function startServer() {
   const checkOnly = process.argv.slice(2).includes('--check-amendment-schema');
   await assertIsolatedInvoiceDemoDatabase();
-  if (checkOnly || process.argv.slice(2).includes('--require-amendment-schema')) {
+  if (process.env.NODE_ENV === 'production' || checkOnly || process.argv.slice(2).includes('--require-amendment-schema')) {
     try {
       await checkAmendmentRelease(pool);
     } catch (error) {

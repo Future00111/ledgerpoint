@@ -448,7 +448,9 @@ test('populated backup rehearses the amendment upgrade, rollback, retry and rest
         cwd:process.cwd(),encoding:'utf8',timeout:15000,env:releaseEnv(database,0)});
       return {status,log:stdout+stderr};
     };
-    for (const args of [probeArgs,releaseArgs]) {
+    const standardArgs = ['--enable-source-maps','artifacts/api-server/dist/index.mjs'];
+    assert.equal(command.env.NODE_ENV,'production');
+    for (const args of [probeArgs,releaseArgs,standardArgs]) {
       const refused = probe(targetDb,args);
       assert.equal(refused.status,1,refused.log);
       assert.match(refused.log,/MIGRATION_HISTORY_INCOMPATIBLE/);
@@ -540,6 +542,17 @@ test('populated backup rehearses the amendment upgrade, rollback, retry and rest
     assertSameFingerprint(repaired,await fingerprintDatabase(restoredRepair));
     const restoredProbe=probe(restoredRepairDb,probeArgs);
     assert.equal(restoredProbe.status,0,restoredProbe.log);
+    await restoredRepair.query('ALTER FUNCTION public.conditional_remaining_money(jsonb,jsonb) RENAME TO temporarily_missing_remaining_money');
+    try {
+      for (const args of [standardArgs,releaseArgs]) {
+        const missing = probe(restoredRepairDb,args);
+        assert.equal(missing.status,1,missing.log);
+        assert.match(missing.log,/CORRECTION_SCHEMA_INCOMPLETE/);
+        assert.doesNotMatch(missing.log,/Server listening/);
+      }
+    } finally {
+      await restoredRepair.query('ALTER FUNCTION public.temporarily_missing_remaining_money(jsonb,jsonb) RENAME TO conditional_remaining_money');
+    }
     const ready = probe(restoredDb,probeArgs);
     assert.equal(ready.status,0,ready.log);
     assert.match(ready.log,/Amendment schema release check passed/);
@@ -551,19 +564,21 @@ test('populated backup rehearses the amendment upgrade, rollback, retry and rest
     await once(temporary,'listening');
     const port = temporary.address().port;
     await new Promise(resolve=>temporary.close(resolve));
-    const service = spawn(process.execPath,releaseArgs,{env:releaseEnv(restoredDb,port),stdio:['ignore','pipe','pipe']});
-    const stopped = once(service,'exit');
-    let output = '';
-    service.stdout.on('data',chunk=>{output += chunk;});
-    service.stderr.on('data',chunk=>{output += chunk;});
-    try {
-      const deadline = Date.now()+15000;
-      while (!output.includes('Server listening') && service.exitCode === null && Date.now()<deadline)
-        await new Promise(resolve=>setTimeout(resolve,25));
-      assert.ok(output.includes('Server listening'),output);
-      const connection = createConnection({host:'127.0.0.1',port});
-      try { await once(connection,'connect'); } finally { connection.destroy(); }
-    } finally { service.kill(); await stopped; }
+    for (const args of [releaseArgs,standardArgs]) {
+      const service = spawn(process.execPath,args,{env:releaseEnv(restoredDb,port),stdio:['ignore','pipe','pipe']});
+      const stopped = once(service,'exit');
+      let output = '';
+      service.stdout.on('data',chunk=>{output += chunk;});
+      service.stderr.on('data',chunk=>{output += chunk;});
+      try {
+        const deadline = Date.now()+15000;
+        while (!output.includes('Server listening') && service.exitCode === null && Date.now()<deadline)
+          await new Promise(resolve=>setTimeout(resolve,25));
+        assert.ok(output.includes('Server listening'),output);
+        const connection = createConnection({host:'127.0.0.1',port});
+        try { await once(connection,'connect'); } finally { connection.destroy(); }
+      } finally { service.kill(); await stopped; }
+    }
     await recovered.query('ALTER TABLE public.accounting_document_amendments DISABLE TRIGGER accounting_amendment_immutable');
     try {
       const broken = probe(restoredDb,releaseArgs);
