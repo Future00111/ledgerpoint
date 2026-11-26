@@ -1,7 +1,7 @@
 import test from 'node:test';
 import express from 'express';
 import type { AddressInfo } from 'node:net';
-import healthRouter from '../../../routes/health';
+import {capabilityRouter} from '../../../routes/health';
 import { createCompaniesRouter } from '../../../routes/companies';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
@@ -210,7 +210,7 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
     } finally { await admin.query('ROLLBACK'); await contender.end(); }
     await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES ($1,$2,'revision-owner','owner',true)",[randomUUID(),company]);
     const app = express();
-    app.use('/api',healthRouter);
+    app.use('/api',capabilityRouter);
     const browserCookie = randomUUID();
     await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES ($1,$2,'browser-reviewer','payroll_approver',true)",[randomUUID(),company]);
     app.use('/api/companies',createCompaniesRouter((req,res,next) => {
