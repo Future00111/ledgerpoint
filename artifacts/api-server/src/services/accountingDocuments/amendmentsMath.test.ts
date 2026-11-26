@@ -48,5 +48,5 @@ test('schema absence preserves originals; partial schema and detached amendment 
   for(const state of [{amendments:null,heads:'heads'},{amendments:'amendments',heads:null}]) await assert.rejects(()=>amendmentSchema({query:async()=>({rows:[state]})} as any),(e:any)=>e.code==='CORRECTION_SCHEMA_INCOMPLETE');
   assert.equal(await amendmentSchema({query:async()=>({rows:[{amendments:null,heads:null}]})} as any),false);
   const original=row();const absent=await amendmentHistory({query:async()=>({rows:[{amendments:null,heads:null}]})} as any,id,original);assert.equal(absent.available,false);assert.equal(absent.current,original);
-  await assert.rejects(()=>amendmentHistory({query:async(sql:string)=>({rows:sql.includes('to_regclass')?[{amendments:'a',heads:'h'}]:sql.includes('FROM accounting_document_amendment_heads')?[{sequence:1,current_revision:id}]:[]})} as any,id,original),(e:any)=>e.code==='CORRECTION_HISTORY_INVALID');
+  await assert.rejects(()=>amendmentHistory({query:async(sql:string)=>({rows:sql.includes('to_regclass')?[{amendments:'a',heads:'h',compatible:true}]:sql.includes('FROM accounting_document_amendment_heads')?[{sequence:1,current_revision:id}]:[]})} as any,id,original),(e:any)=>e.code==='CORRECTION_HISTORY_INVALID');
 });

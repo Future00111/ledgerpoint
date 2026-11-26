@@ -197,3 +197,31 @@ test('durable execution adds independently pinned immutable event/outbox history
  assert.ok(read('tools/accounting-flow/schema.mjs').toString().includes("await admin.query(migrationInputs['durable-job-execution']);"));
  assert.equal(/ALTER TABLE public\.(durable_jobs|durable_job_events|durable_outbox)\b/.test(sql),false);
 });
+
+for (const includeAmendments of [false,true]) {
+  test('every recorded dependency matches its reviewed source manifest, amendments='+includeAmendments, () => {
+    const manifest = registry();
+    const inputs = loadMigrationInputs(root);
+    const history = expectedMigrationHistory(inputs,{includeAmendments});
+    const installed = new Set(history.map(row=>row.id));
+    for (const record of history) {
+      const declared = record.id === manifest.securityOverlay.id ? ['w03-invoice-drafts']
+        : manifest.migrations.find(item=>item.id === record.id).dependencies;
+      assert.deepEqual(record.dependencies,declared,record.id);
+      assert.ok(record.dependencies.every(id=>installed.has(id)),record.id);
+    }
+  });
+}
+
+test('old disposable history has a distinct diagnosis only when all prior edges and hashes match', () => {
+  const expected = expectedMigrationHistory(loadMigrationInputs(root));
+  const rows = structuredClone(expected);
+  for (const [id,prior] of [['conditional-discount-replacements','conditional-discount-compensations'],
+    ['conditional-discount-cash-reversal','conditional-discount-replacements'],
+    ['conditional-discount-replacement-observations','conditional-discount-cash-reversal']]) {
+    rows.find(row=>row.id === id).dependencies = [prior];
+  }
+  assert.throws(()=>validateInstalledMigrationHistory(rows,expected),{code:'MIGRATION_HISTORY_LEGACY_DEPENDENCIES'});
+  rows[0].sha256 = '0'.repeat(64);
+  assert.throws(()=>validateInstalledMigrationHistory(rows,expected),{code:'MIGRATION_HISTORY_INCOMPATIBLE'});
+});
