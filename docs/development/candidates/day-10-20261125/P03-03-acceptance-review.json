@@ -59,5 +59,15 @@
     "successfulSteps": 20,
     "review": "Independent integration review approved. All 12 implementation and test files match the reviewed PR 35 candidate. The workflow change adds the sprint target to the existing regression.",
     "decision": "Ready for owner-authorized integration into the sprint branch. Formal queue acceptance pending."
+  },
+  "postMergeQueueReview": {
+    "merge": "d59815df0781bfb39fd4d04a2bb83069c4ba19c3",
+    "testedTree": "022a075aa7832af78776953d9592bba5288b408e",
+    "workflowRun": 45819868730,
+    "queueRevision": 972,
+    "catalogDigest": "e2062b766ab4d6c1925cec45996df85511974cc96a5873b02adbfe7392a3efbc",
+    "result": "Merged evidence verified. Hydrated queue reports P03-03 pending and eligible. Standard claim selects higher-priority P02-04. No formal P03-03 acceptance transition recorded.",
+    "nextClaim": "P02-04",
+    "nextCandidate": "PR 35 includes session-expiry handling for employee bank lookup that is absent from the sprint baseline. Recover and review the existing privacy changes against sprint before starting replacement implementation."
   }
 }
