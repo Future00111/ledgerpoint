@@ -22,5 +22,24 @@
     "existingBusinessTablesCompared": 62,
     "newParentClosures": 0
   },
-  "scope": "Review of the pinned disposable amendment upgrade and release rehearsal. Production was not exercised."
+  "scope": "Review of the pinned disposable amendment upgrade and release rehearsal. Production was not exercised.",
+  "followUpReview": {
+    "date": "2026-11-26",
+    "candidate": "4581971497e1bdfd1b5274ecb11b4cfd7613e27e",
+    "workflowRun": 45691236397,
+    "job": 139476924666,
+    "verified": "The populated rehearsal passed with postedInvoiceVerified and legacyForwardFixVerified. The forward repair preserved original history and business records through restore.",
+    "decision": "Keep P03-03 pending after independent source review.",
+    "remaining": [
+      {
+        "finding": "The API package start command omits both schema flags. NODE_ENV=production alone does not invoke checkAmendmentRelease before listen.",
+        "test": "Start the built API without CLI flags in production mode on a disposable database with incompatible migration history. Require a schema error and exit before listen. Confirm compatible restored data permits startup."
+      },
+      {
+        "finding": "Matching migration receipts and amendment-table checks do not establish the presence of required conditional-discount functions, including public.conditional_remaining_money(jsonb,jsonb).",
+        "test": "Remove a required function from a disposable restored copy while retaining migration history. Require the release check to reject the copy before listen, and verify the healthy control."
+      }
+    ],
+    "evidenceType": "The two findings are from source inspection. Run 193 covers the earlier populated upgrade and forward repair."
+  }
 }
