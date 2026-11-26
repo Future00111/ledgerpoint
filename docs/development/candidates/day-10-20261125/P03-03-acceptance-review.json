@@ -47,5 +47,17 @@
     "workflowRun": 45811696606,
     "verified": "Independent review and successful disposable regression. Both production startup paths refused incompatible history and a missing commercial-credit function before listening, and accepted connections on a healthy restored copy.",
     "scope": "Resolves both startup findings on draft PR 35. Parent queue acceptance is separate."
+  },
+  "integrationReview": {
+    "pullRequest": 37,
+    "head": "0c8ba4f5d5c6bff5ace2bc728edd1752291d7b16",
+    "base": "6b3cfbc7c654a4f6961d2846bd145c1ffd2597bc",
+    "testedMergePreview": "7949f594c04743462bbd59397ee06aa47af29849",
+    "headAndTestedTree": "022a075aa7832af78776953d9592bba5288b408e",
+    "workflowRun": 45819868730,
+    "job": 139909046326,
+    "successfulSteps": 20,
+    "review": "Independent integration review approved. All 12 implementation and test files match the reviewed PR 35 candidate. The workflow change adds the sprint target to the existing regression.",
+    "decision": "Ready for owner-authorized integration into the sprint branch. Formal queue acceptance pending."
   }
 }
