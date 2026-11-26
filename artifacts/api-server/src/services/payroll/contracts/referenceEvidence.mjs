@@ -21,7 +21,7 @@ function validExample(example, dimension) {
 }
 
 // PAYE references include cumulative examples and retain workbook row sequences.
-// Preserve that lineage without inferring calculation rules from row order.
+// Workbook row lineage is distinct from the opening balances of a period-one example.
 function validPayeSequences(corpus) {
   const workbooks = corpus.source?.workbooks;
   if (!Array.isArray(workbooks) || workbooks.length === 0
@@ -42,6 +42,12 @@ function validPayeSequences(corpus) {
         || example.input.frequency !== prior.input.frequency
         || example.input.week1Month1 !== prior.input.week1Month1
         || example.sourceRow <= prior.sourceRow)) return false;
+    const {input, expected} = example;
+    const opening = input.period === 1 ? null : prior;
+    if (input.week1Month1 === 'WM1' && input.period !== 1) return false;
+    if (input.period > 1 && (!opening || input.period !== opening.input.period + 1)) return false;
+    if (BigInt(input.taxablePayToDateMinor) !== BigInt(opening?.input.taxablePayToDateMinor ?? '0') + BigInt(input.grossPayMinor)
+      || BigInt(expected.taxDueToDateMinor) !== BigInt(opening?.expected.taxDueToDateMinor ?? '0') + BigInt(expected.taxDueMinor)) return false;
     previous.set(example.sequenceId, example);
   }
   return true;

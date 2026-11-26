@@ -146,3 +146,18 @@ test('registered reference identity rejects substituted valid hashes and source 
     assert.throws(() => validatePayrollReferenceEvidence(r, corpora), /INVALID_PAYROLL_REFERENCE_EVIDENCE/);
   }
 });
+
+test('PAYE reference periods reconcile to their own opening balances in exact pence', () => {
+  const path = registry.cases.find(row => row.referenceFixtures?.region).referenceFixtures.path;
+  for (const change of [
+    rows => { rows.find(r => r.input.period === 2).input.period = 3; },
+    rows => { rows.find(r => r.input.period === 2).input.taxablePayToDateMinor = '1'; },
+    rows => { rows.find(r => r.input.period === 2).expected.taxDueToDateMinor = '1'; },
+    rows => { rows.find(r => r.input.week1Month1 === 'WM1').input.period = 2; },
+    rows => { rows.find(r => r.input.period === 1 && r.previousExampleId).expected.taxDueToDateMinor = '1'; },
+  ]) {
+    const altered = structuredClone(corpora);
+    change(altered[path].cases);
+    assert.throws(() => validatePayrollReferenceEvidence(registry,altered), /INVALID_PAYROLL_REFERENCE_EVIDENCE/);
+  }
+});
