@@ -41,5 +41,11 @@
       }
     ],
     "evidenceType": "The two findings are from source inspection. Run 193 covers the earlier populated upgrade and forward repair."
+  },
+  "startupVerification": {
+    "candidate": "e0500b1209d191ee53874044f8f97cc01a44e874",
+    "workflowRun": 45811696606,
+    "verified": "Independent review and successful disposable regression. Both production startup paths refused incompatible history and a missing commercial-credit function before listening, and accepted connections on a healthy restored copy.",
+    "scope": "Resolves both startup findings on draft PR 35. Parent queue acceptance is separate."
   }
 }
