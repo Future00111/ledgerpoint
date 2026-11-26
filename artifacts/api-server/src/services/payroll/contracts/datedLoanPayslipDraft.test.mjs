@@ -1,4 +1,6 @@
 import test from 'node:test';
+import { readFileSync } from 'node:fs';
+import { selectNiReference } from './niReference.mjs';
 import assert from 'node:assert/strict';
 import { calculateDatedLoanPayslipDraft } from './datedLoanPayslipDraft.mjs';
 import { calculateMonthlyEmployeeDraft } from './employeeMonthOneDraft.mjs';
@@ -133,4 +135,26 @@ test('protected pay rejects incomplete, inconsistent and unaffordable order inpu
   }
   assert.throws(() => calculateDatedLoanPayslipDraft({ ...input, noticeContext: { ...noticeContext, protectedEarnings: false },
     priorityOrder: { deductionMinor: '0', protectedLevelMinor: '0' } }), RangeError);
+});
+
+
+test('dated employee payslips carry the eligible HMRC NI examples through to take-home pay', () => {
+  const pack = JSON.parse(readFileSync(new URL('./fixtures/hmrc-ni-2026-27-v1.0.json', import.meta.url)));
+  const firstPayday = { weekly: '2026-04-10', fortnightly: '2026-04-17', four_weekly: '2026-05-01', monthly: '2026-04-30' };
+  let checked = 0;
+  for (const row of pack.cases) {
+    if (!selectNiReference(pack, row.id, '2026-27').ok) continue;
+    const { frequency, category, grossPayMinor } = row.input;
+    const { payslip } = calculateDatedLoanPayslipDraft({
+      grossHistory: [grossPayMinor], taxCodes: 'BR', niCategory: category,
+      noticeContext: { ...context, plan: 'plan_1', notices: [], frequency,
+        payMinor: grossPayMinor, paymentDate: firstPayday[frequency] },
+    });
+    assert.equal(payslip.employeeNiMinor, row.expected.employeeNiMinor, row.id);
+    assert.equal(payslip.employerNiMinor, row.expected.employerNiMinor, row.id);
+    const net = BigInt(grossPayMinor) - BigInt(payslip.payeMinor) - BigInt(row.expected.employeeNiMinor);
+    assert.equal(payslip.netMinor, String(net), row.id);
+    checked++;
+  }
+  assert.equal(checked, 892);
 });
