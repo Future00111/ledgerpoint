@@ -1,0 +1,19 @@
+{
+  "status": "offline_reference_only",
+  "employment": "Synthetic regular employee in England, not a director, one monthly employment, zero opening year-to-date balances.",
+  "paymentDate": "2026-04-30",
+  "taxYear": "2026-27",
+  "frequency": "monthly",
+  "period": 1,
+  "taxCode": "999L",
+  "niCategory": "A",
+  "basis": "One ordinary cash payment. Gross, taxable and Class 1 earnings coincide. No pension deduction, salary sacrifice, loan instruction, benefits, other payments or adjustments.",
+  "grossMinor": "250000",
+  "payeMinor": "33320",
+  "employeeNiMinor": "11616",
+  "employerNiMinor": "31245",
+  "netMinor": "205064",
+  "payeExampleId": "hmrc-paye-2026-27-rest_of_uk-Large_code_mthly-row-6",
+  "niSource": "https://www.gov.uk/guidance/rates-and-thresholds-for-employers-2026-to-2027",
+  "provenance": "Gross and PAYE come from HMRC PAYE test data v1.1. Category A and employment details are scenario assumptions. Both NI amounts are independently worked from the published thresholds and rates; net is derived. This combined case is an authored reference, not an HMRC-issued payslip."
+}

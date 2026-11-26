@@ -5,6 +5,7 @@ import { payRecordsClient } from './client.mjs';
 import { buildIntent, formatSalary, payrollPermissions } from './model.mjs';
 import { PayExportButton } from './PayExportButton';
 import { useSensitiveEntry } from './useSensitiveEntry';
+import { RevisionReview } from './RevisionReview';
 import { BankDetailsLookup } from './BankDetailsLookup';
 
 const blankForm = () => ({ employee: '', date: '', salary: '' });
@@ -18,7 +19,7 @@ export function PayRecordsWorkspace(props) {
   return <ScopedPayRecords key={JSON.stringify([actorId, companyId, role])} {...props} />;
 }
 
-function ScopedPayRecords({ companyId, companyName, actorId, role, client = payRecordsClient, bankClient, onRefreshAccess }) {
+function ScopedPayRecords({ companyId, companyName, actorId, role, client = payRecordsClient, bankClient, onRefreshAccess, revisionReviewEnabled = false }) {
   const canPrepare = payrollPermissions(role).prepare;
   const { id, form, attempt, phase, lookupId, record, message, validation, busy, locked, save, lookup, fresh, update, changeLookup, denyAccess } =
     useSensitiveEntry({ companyId, role, client, canPrepare, blankForm, buildIntent, savedMessage: 'Pay record saved.' });
@@ -60,6 +61,7 @@ function ScopedPayRecords({ companyId, companyName, actorId, role, client = payR
         {record && <PayExportButton key={record.id} companyId={companyId} record={record} role={role} client={client} onDenied={denyAccess} />}
       </section>
     </div>
+    {revisionReviewEnabled && phase !== 'blocked' && ['owner','payroll_approver'].includes(role) && <RevisionReview companyId={companyId} onSessionExpired={denyAccess} />}
     {phase !== 'blocked' && <BankDetailsLookup companyId={companyId} actorId={actorId} role={role} client={bankClient} onSessionExpired={denyAccess} />}
   </div>;
 }
