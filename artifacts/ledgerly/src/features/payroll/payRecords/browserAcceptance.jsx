@@ -27,7 +27,7 @@ window.fetch = async (url, options = {}) => {
   if (target.pathname.endsWith('/payroll-run-revisions/'+reviewId)) {
     reviewReads++;
     if (actor !== fixture.owner || !target.pathname.startsWith('/api/companies/'+fixture.company+'/')) throw Error('Review scope');
-    const amounts = {gross:'9007199254740993',net:'9007199254740989',deductions:{paye:'3'},adjustments:{rounding:'-1'}};
+    const amounts = {gross:'9007199254740993',net:'9007199254740995',deductions:{paye:'-3'},adjustments:{rounding:'-1'}};
     if (reviewReads === 2) await new Promise(resolve => { releaseReview = resolve; });
     return Response.json({run_id:reviewRun,revision_id:reviewId,revision_number:2,period_start:'2026-10-01',
       period_end:'2026-10-31',payday:'2026-10-30',currency:'GBP',rules_version:'synthetic',prepared_by:'synthetic-preparer',prepared_at:'2026-10-30T10:00:00.000Z',is_current_revision:false,current_revision_id:currentRevision,
@@ -82,8 +82,12 @@ async function exercise() {
   if (reviewReads !== 0) throw Error('Unexpected automatic review');
   fill(revisionInput,reviewId);
   (await ready('Load draft revision')).click();
-  await wait(() => text().includes('Superseded') && text().includes('£90,071,992,547,409.89')
+  await wait(() => text().includes('Superseded') && text().includes('£90,071,992,547,409.95')
     && text().includes('-£0.01') && text().includes('Total (1 line'), 'draft review');
+  const table = document.querySelector('#revision-title')?.closest('section')?.querySelector('table');
+  for (const selector of ['tbody tr', 'tfoot tr']) {
+    if (!table?.querySelector(selector)?.innerText.includes('PAYE refund £0.03')) throw Error('Missing PAYE refund');
+  }
   (await ready('Clear revision')).click();
   await wait(() => !text().includes('Superseded') && revisionInput.value === '', 'cleared draft review');
   if (reviewReads !== 1) throw Error('Unexpected review request count');
