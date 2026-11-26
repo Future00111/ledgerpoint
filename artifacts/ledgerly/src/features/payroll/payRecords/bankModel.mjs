@@ -17,7 +17,7 @@ export function validateBankDetails(value, role) {
 }
 
 /** One actor/company/role mount owns this controller. No storage, shared cache or automatic reads. */
-export function createBankLookup({ companyId, role, client }) {
+export function createBankLookup({ companyId, role, client, onSessionExpired }) {
   const listeners = new Set(), scope = requestScope();
   const empty = () => Object.freeze({ employeeId: '', status: 'idle', result: null });
   let state = empty(), active = true;
@@ -45,6 +45,7 @@ export function createBankLookup({ companyId, role, client }) {
         if (active && token.isCurrent()) publish({ employeeId: employee, status: 'ready', result });
       } catch (error) {
         if (!active || !token.isCurrent()) return;
+        if (error?.status === 401) onSessionExpired?.();
         const denied = [401, 403, 404].includes(error?.status);
         publish({ employeeId: denied ? '' : employee, status: denied ? 'unavailable' : 'failed', result: null });
       }

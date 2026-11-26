@@ -6,10 +6,57 @@ import { journalLines } from './documentJournal';
 import { prepareConditionalOriginal, verifiedOriginal } from './conditionalDiscount';
 
 export async function amendmentSchema(q: Queryable): Promise<boolean> {
-  const row = (await q.query(`SELECT to_regclass('public.accounting_document_amendments') amendments,
-    to_regclass('public.accounting_document_amendment_heads') heads`)).rows[0];
+  const row = (await q.query(`WITH relations AS (
+    SELECT to_regclass('public.accounting_document_amendments') amendments,
+           to_regclass('public.accounting_document_amendment_heads') heads
+  )
+  SELECT amendments, heads, NOT EXISTS (
+    SELECT 1 FROM (VALUES
+      (true, 'id', 'uuid'::regtype),
+      (true, 'company_id', 'uuid'::regtype),
+      (true, 'document_id', 'uuid'::regtype),
+      (true, 'sequence', 'integer'::regtype),
+      (true, 'previous_revision', 'uuid'::regtype),
+      (true, 'revision', 'uuid'::regtype),
+      (true, 'request_id', 'uuid'::regtype),
+      (true, 'request_hash', 'text'::regtype),
+      (true, 'review_token', 'text'::regtype),
+      (true, 'actor_id', 'text'::regtype),
+      (true, 'reason', 'text'::regtype),
+      (true, 'effective_date', 'date'::regtype),
+      (true, 'origin_journal_id', 'uuid'::regtype),
+      (true, 'journal_id', 'uuid'::regtype),
+      (true, 'financial_context_hash', 'text'::regtype),
+      (true, 'before_source', 'jsonb'::regtype),
+      (true, 'after_source', 'jsonb'::regtype),
+      (true, 'before_money', 'jsonb'::regtype),
+      (true, 'after_money', 'jsonb'::regtype),
+      (true, 'delta_money', 'jsonb'::regtype),
+      (true, 'after_tax_context', 'jsonb'::regtype),
+      (true, 'created_at', 'timestamptz'::regtype),
+      (false, 'company_id', 'uuid'::regtype),
+      (false, 'document_id', 'uuid'::regtype),
+      (false, 'current_revision', 'uuid'::regtype),
+      (false, 'sequence', 'integer'::regtype)
+    ) expected(is_history,column_name,column_type)
+    LEFT JOIN pg_catalog.pg_attribute a
+      ON a.attrelid = CASE WHEN expected.is_history THEN relations.amendments ELSE relations.heads END
+      AND a.attname = expected.column_name AND a.attnum > 0 AND NOT a.attisdropped
+    WHERE a.atttypid IS DISTINCT FROM expected.column_type OR a.attnotnull IS DISTINCT FROM true
+  ) AND NOT EXISTS (
+    SELECT 1 FROM (VALUES
+      (relations.amendments, 'accounting_amendment_immutable', 'public.accounting_amendment_immutable()', 27),
+      (relations.amendments, 'accounting_amendment_no_truncate', 'public.accounting_amendment_immutable()', 34),
+      (relations.heads, 'accounting_amendment_head_guard', 'public.accounting_amendment_head_guard()', 31),
+      (relations.heads, 'accounting_amendment_head_no_truncate', 'public.accounting_amendment_head_guard()', 34)
+    ) expected(relation_id,trigger_name,function_name,event_mask)
+    LEFT JOIN pg_catalog.pg_trigger t ON t.tgrelid=expected.relation_id AND t.tgname=expected.trigger_name
+    WHERE t.tgenabled IS DISTINCT FROM 'A' OR t.tgtype IS DISTINCT FROM expected.event_mask
+      OR t.tgfoid IS DISTINCT FROM to_regprocedure(expected.function_name)::oid
+      OR t.tgqual IS NOT NULL OR t.tgnargs IS DISTINCT FROM 0 OR cardinality(t.tgattr) > 0
+  ) AS compatible FROM relations`)).rows[0];
   if (!row.amendments && !row.heads) return false;
-  if (!row.amendments || !row.heads) fail(503, 'CORRECTION_SCHEMA_INCOMPLETE');
+  if (!row.amendments || !row.heads || !row.compatible) fail(503, 'CORRECTION_SCHEMA_INCOMPLETE');
   return true;
 }
 

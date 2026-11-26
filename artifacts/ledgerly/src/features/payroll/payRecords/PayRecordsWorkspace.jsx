@@ -5,6 +5,7 @@ import { payRecordsClient } from './client.mjs';
 import { buildIntent, formatSalary, payrollPermissions } from './model.mjs';
 import { PayExportButton } from './PayExportButton';
 import { useSensitiveEntry } from './useSensitiveEntry';
+import { RevisionReview } from './RevisionReview';
 import { BankDetailsLookup } from './BankDetailsLookup';
 
 const blankForm = () => ({ employee: '', date: '', salary: '' });
@@ -60,7 +61,8 @@ function ScopedPayRecords({ companyId, companyName, actorId, role, client = payR
         {record && <PayExportButton key={record.id} companyId={companyId} record={record} role={role} client={client} onDenied={denyAccess} />}
       </section>
     </div>
-    <BankDetailsLookup companyId={companyId} actorId={actorId} role={role} client={bankClient} />
+    {phase !== 'blocked' && ['owner','payroll_approver'].includes(role) && <RevisionReview companyId={companyId} onSessionExpired={denyAccess} />}
+    {phase !== 'blocked' && <BankDetailsLookup companyId={companyId} actorId={actorId} role={role} client={bankClient} onSessionExpired={denyAccess} />}
   </div>;
 }
 

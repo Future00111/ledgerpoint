@@ -1926,6 +1926,7 @@ test('isolated Chromium: unpaid and partial discounts, fully paid credit/refund 
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'discount-rule-browser-'));
  const root=process.cwd(),entry=path.join(dir,'entry.jsx'),bundle=path.join(dir,'bundle.js');
  const server=express();server.use(express.json());let browser:ReturnType<typeof cp.spawn>|undefined;
+ let browserClosed:Promise<void>|undefined;
  const reportId=randomUUID();let stage='browser startup',report:(value:any)=>void=()=>{};
  server.post('/browser-result',(req,res)=>{if(req.body?.id!==reportId){res.sendStatus(409);return;}stage=String(req.body.stage??stage);res.json({ok:true});if(typeof req.body.passed==='boolean')report(req.body);});
  const fixture=server.listen(0,'127.0.0.1');await new Promise<void>(r=>fixture.once('listening',r));
@@ -1935,6 +1936,7 @@ test('isolated Chromium: unpaid and partial discounts, fully paid credit/refund 
   server.get('/bundle.js',(_req,res)=>res.type('js').send(fs.readFileSync(bundle,'utf8')));
   server.get('/',(_req,res)=>res.type('html').send('<!doctype html><html><head><meta charset="utf-8"><title>Synthetic discount UI</title></head><body><div id="root"></div><script src="/bundle.js"></script></body></html>'));
   browser=cp.spawn('chromium',['--headless','--disable-gpu','--no-first-run','--disable-background-networking','--user-data-dir='+path.join(dir,'profile'),'http://127.0.0.1:'+(fixture.address() as any).port],{stdio:['ignore','pipe','pipe']});
+  browserClosed=new Promise<void>(resolve=>browser!.once('close',()=>resolve()));
   let stderr='';browser.stdout!.resume();browser.stderr!.on('data',chunk=>stderr=(stderr+chunk).slice(-4000));
   const acceptance=await new Promise<any>((resolve,reject)=>{
    const finish=(error:Error|null,value?:any)=>{clearTimeout(timer);report=()=>{};browser!.off('error',failed);browser!.off('exit',exited);error?reject(error):resolve(value);};
@@ -1946,10 +1948,29 @@ test('isolated Chromium: unpaid and partial discounts, fully paid credit/refund 
   console.log('DISCOUNT_RULE_BROWSER_ACCEPTANCE',JSON.stringify({syntheticReadOnly:true,actualComponents:true,unpaidAndPartial:true,fullyPaidCreditOnly:true,excessRefused:true,financialPosting:false,realClerk:false}));
  } finally {
   report=()=>{};
-  if(browser?.pid&&browser.exitCode===null&&browser.signalCode===null)await new Promise<void>(resolve=>{
-   const timer=setTimeout(()=>browser?.kill('SIGKILL'),5000);browser!.once('exit',()=>{clearTimeout(timer);resolve();});browser!.kill('SIGTERM');
-  });
-  fixture.closeAllConnections();await new Promise<void>(r=>fixture.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});
+  let killTimer:ReturnType<typeof setTimeout>|undefined;
+  let closeDeadline:ReturnType<typeof setTimeout>|undefined;
+  try {
+   if(browserClosed){
+    if(browser?.pid && browser.exitCode===null && browser.signalCode===null){
+     browser.kill('SIGTERM');
+     killTimer=setTimeout(()=>{
+      if(browser?.exitCode===null && browser.signalCode===null)browser.kill('SIGKILL');
+     },5000);
+    }
+    await Promise.race([browserClosed,new Promise<never>((_,reject)=>{
+     closeDeadline=setTimeout(()=>reject(Error('Discount browser did not close within 10 seconds')),10000);
+    })]);
+   }
+  } finally {
+   clearTimeout(killTimer);clearTimeout(closeDeadline);
+   browser?.stdout?.destroy();browser?.stderr?.destroy();
+   const fixtureClosed=new Promise<void>(resolve=>fixture.close(()=>resolve()));
+   fixture.closeAllConnections();
+   await fixtureClosed;
+   // Chromium helpers may finish writing profile files just after the browser closes.
+   await fs.promises.rm(dir,{recursive:true,force:true,maxRetries:6,retryDelay:100});
+  }
  }
 });
 
@@ -2619,7 +2640,22 @@ const wait=async(fn,label)=>{await fetch('/progress',{method:'POST',headers:{'Co
   const result=await Promise.race([acceptance,failure]);assert.equal(result.passed,true,JSON.stringify({...result,stage}));assert.equal(result.refreshes,1);
   assert.equal(posts,0);assert.equal(lists,2);assert.equal(reads,1);assert.equal(pageLoads,2);assert.deepEqual(await snapshot(),before);
   console.log('CORRECTION_DISCOVERY_BROWSER_ACCEPTANCE',JSON.stringify({kind,actualComponents:true,nativeApi:true,missingLocator:true,explicitSelection:true,freshReceipt:true,actualReload:true,parentRefreshes:1,posts:0,browserStorageEmpty:true,realClerk:false}));
- }finally{clearTimeout(timer);report=()=>{};if(browser?.pid&&browser.exitCode===null&&browser.signalCode===null)await new Promise<void>(resolve=>{const force=setTimeout(()=>browser?.kill('SIGKILL'),5000);browser!.once('exit',()=>{clearTimeout(force);resolve();});browser!.kill('SIGTERM');});listener.closeAllConnections();await new Promise<void>(r=>listener.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});}
+ } finally {
+  clearTimeout(timer);
+  report=()=>{};
+  if(browser?.pid && browser.exitCode===null && browser.signalCode===null) {
+   await new Promise<void>(resolve=>{
+    const force=setTimeout(()=>browser?.kill('SIGKILL'),5000);
+    browser!.once('exit',()=>{clearTimeout(force);resolve();});
+    browser!.kill('SIGTERM');
+   });
+  }
+  const closed=new Promise<void>(resolve=>listener.close(()=>resolve()));
+  listener.closeAllConnections();
+  await closed;
+  // Chromium helpers can still write profile files briefly after the main process exits.
+  await fs.promises.rm(dir,{recursive:true,force:true,maxRetries:6,retryDelay:100});
+ }
 });
 
 registerCorrectionAdmissionJourney({fixture,create,post,source,request,admin,actor,readOnly,socket});

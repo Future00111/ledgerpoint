@@ -10,10 +10,10 @@ export function BankDetailsLookup(props) {
   return <ScopedBankDetails key={JSON.stringify([actorId, companyId, role])} {...props} />;
 }
 
-function ScopedBankDetails({ companyId, role, client = bankDetailsClient }) {
+function ScopedBankDetails({ companyId, role, client = bankDetailsClient, onSessionExpired }) {
   const employeeInput = useRef(null);
   const controller = useRef(null);
-  if (!controller.current) controller.current = createBankLookup({ companyId, role, client });
+  if (!controller.current) controller.current = createBankLookup({ companyId, role, client, onSessionExpired });
   const lookup = controller.current;
   const state = useSyncExternalStore(lookup.subscribe, lookup.getSnapshot, lookup.getSnapshot);
   useEffect(() => { lookup.activate(); return lookup.dispose; }, [lookup]);
