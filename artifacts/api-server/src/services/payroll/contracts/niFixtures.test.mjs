@@ -6,6 +6,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { validateCaseRegistry } from '../../tax/contracts/caseRegistry.mjs';
 import { selectNiReference } from './niReference.mjs';
+import { calculateDirectorNiDraft, calculateWeeklyNiDraft, reconcileDirectorNiDraft } from "./employeeMonthOneDraft.mjs";
 const fixture = JSON.parse(readFileSync(new URL('./fixtures/hmrc-ni-2026-27-v1.0.json', import.meta.url)));
 const registry = JSON.parse(readFileSync(new URL('../../../../../../docs/development/tax-payroll-supported-cases.json', import.meta.url)));
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -74,4 +75,41 @@ test('NI reference pack is linked without promoting the case register or claimin
   assert.equal(fixture.effectiveFrom,'2026-04-06');assert.equal(fixture.effectiveTo,'2027-04-05');
   assert.ok(fixture.limitations.some(x=>x.includes('Directors')));
   assert.ok(registry.cases.every(c=>c.status!=='supported'));
+});
+
+test('draft NI reproduces all numeric 2026–27 director workbook rows by stage', () => {
+  const script = fileURLToPath(new URL('./import_hmrc_director_fixtures.py', import.meta.url));
+  const { cases } = JSON.parse(execFileSync('python', ['-B', script]));
+  const weeklyHistory = new Map();
+  let matched = 0, instructions = 0;
+  for (const { id, input, stage, expected, sourceSheet } of cases) {
+    const { category, grossPayMinor, period } = input;
+    const appointmentWeek = { A: 1, M: 5 }[category];
+    let actual;
+    if (stage === 'weekly_employee_basis') {
+      if (!weeklyHistory.has(sourceSheet)) weeklyHistory.set(sourceSheet, { gross: [], employee: 0n, employer: 0n });
+      const history = weeklyHistory.get(sourceSheet);
+      history.gross.push(grossPayMinor);
+      if (expected === null) {
+        assert.equal(period, 52, id);
+        instructions++;
+        continue;
+      }
+      actual = calculateWeeklyNiDraft(grossPayMinor, category);
+      history.employee += BigInt(actual.employeeNiMinor);
+      history.employer += BigInt(actual.employerNiMinor);
+    } else if (stage === 'year_end_reconciliation') {
+      const history = weeklyHistory.get(sourceSheet);
+      actual = reconcileDirectorNiDraft(history.gross, category, appointmentWeek, {
+        employeeNiMinor: String(history.employee), employerNiMinor: String(history.employer),
+      });
+    } else {
+      assert.ok(['annual_method_total', 'annualised_year_end_total'].includes(stage), id);
+      actual = calculateDirectorNiDraft([grossPayMinor], category, appointmentWeek);
+    }
+    assert.deepEqual(actual, expected, id);
+    matched++;
+  }
+  assert.equal(matched, 108);
+  assert.equal(instructions, 2);
 });

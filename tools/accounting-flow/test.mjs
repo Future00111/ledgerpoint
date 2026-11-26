@@ -50,6 +50,11 @@ try {
   await admin.query(`REVOKE TEMPORARY ON DATABASE ${canonicalDatabase} FROM PUBLIC`);await admin.end();
   admin=new Client({host:socket,port,user:'w03_bootstrap',database:canonicalDatabase,password:()=>'',ssl:false});
   await admin.connect();await installSchema(admin,exportSchema(),{includeAmendments:true});await admin.end();admin=null;
+  const revisionDatabase = 'ledgerly_revision_test_' + runId.replaceAll('-', '');
+  admin=new Client({host:socket,port,user:'w03_bootstrap',database:'postgres',password:()=>'',ssl:false});
+  await admin.connect();
+  await admin.query(`CREATE DATABASE ${revisionDatabase} TEMPLATE ledgerly_accounting_flow_test`);
+  await admin.end(); admin=null;
   const testEnv={...env,NODE_ENV:'test',NODE_PATH:root+'/artifacts/api-server/node_modules',
     ACCOUNTING_FLOW_TEST_SOCKET:socket,
     DATABASE_URL:`postgresql://ledgerly_api@localhost/ledgerly_accounting_flow_test?host=${encodeURIComponent(socket)}&port=${port}`};
@@ -62,6 +67,7 @@ try {
     ['src/services/accountingDocuments/integration.test.ts','accounting-flow.test.cjs'],
     ['src/services/accountingDocuments/conditionalDiscount.integration.test.ts','conditional-discount-flow.test.cjs'],
     ['src/services/accountingDocuments/conditionalDiscount.test.ts','conditional-discount-unit.test.cjs'],
+    ['src/services/payroll/revisions/storage.integration.test.ts','revision-storage.test.cjs'],
     ['src/security/integration.test.ts','security-flow.test.cjs'],
     ['src/services/accountingDocuments/corrections.integration.test.ts','corrections-flow.test.cjs'],
     ['src/services/accountingDocuments/vatCoverage.integration.test.ts','vat-coverage-flow.test.cjs'],
@@ -72,7 +78,8 @@ try {
       '--bundle','--platform=node','--format=cjs','--external:pg','--external:@clerk/express',
       '--external:pino','--external:pino-http','--external:pino-pretty','--external:thread-stream',
       '--outfile=../../generated-artifacts/'+output],{cwd:root,stdio:'inherit'});
-    const suiteEnv=output==='canonical-posting-flow.test.cjs' ? {...testEnv,
+    const suiteEnv=output==='revision-storage.test.cjs' ? {...testEnv, REVISION_TEST_DATABASE:revisionDatabase,
+      DATABASE_URL:`postgresql://ledgerly_api@localhost/${revisionDatabase}?host=${encodeURIComponent(socket)}&port=${port}`} : output==='canonical-posting-flow.test.cjs' ? {...testEnv,
       DATABASE_URL:`postgresql://ledgerly_api@localhost/${canonicalDatabase}?host=${encodeURIComponent(socket)}&port=${port}`,
       LEDGERLY_CANONICAL_TEST_DATABASE_NAME:canonicalDatabase,
       LEDGERLY_CANONICAL_TEST_RUN_ID:runId,
