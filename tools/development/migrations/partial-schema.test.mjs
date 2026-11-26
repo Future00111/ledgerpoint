@@ -564,8 +564,8 @@ test('populated backup rehearses the amendment upgrade, rollback, retry and rest
     await once(temporary,'listening');
     const port = temporary.address().port;
     await new Promise(resolve=>temporary.close(resolve));
-    for (const args of [releaseArgs,standardArgs]) {
-      const service = spawn(process.execPath,args,{env:releaseEnv(restoredDb,port),stdio:['ignore','pipe','pipe']});
+    const verifyStartup = async (database,args,expectedCapability) => {
+      const service = spawn(process.execPath,args,{env:releaseEnv(database,port),stdio:['ignore','pipe','pipe']});
       const stopped = once(service,'exit');
       let output = '';
       service.stdout.on('data',chunk=>{output += chunk;});
@@ -577,8 +577,13 @@ test('populated backup rehearses the amendment upgrade, rollback, retry and rest
         assert.ok(output.includes('Server listening'),output);
         const connection = createConnection({host:'127.0.0.1',port});
         try { await once(connection,'connect'); } finally { connection.destroy(); }
+        const response = await fetch('http://127.0.0.1:'+port+'/api/capabilities/pay-revision-review');
+        assert.equal(response.status,200);
+        assert.equal(response.headers.get('cache-control'),'no-store');
+        assert.deepEqual(await response.json(),{enabled:expectedCapability});
       } finally { service.kill(); await stopped; }
-    }
+    };
+    for (const args of [releaseArgs,standardArgs]) await verifyStartup(restoredDb,args,false);
     await recovered.query('ALTER TABLE public.accounting_document_amendments DISABLE TRIGGER accounting_amendment_immutable');
     try {
       const broken = probe(restoredDb,releaseArgs);
@@ -627,6 +632,7 @@ test('populated backup rehearses the amendment upgrade, rollback, retry and rest
     const payProbe = [...probeArgs,'--require-pay-revision-schema'];
     const compatible = probe(payrollRestoredDb,payProbe);
     assert.equal(compatible.status,0,compatible.log);
+    await verifyStartup(payrollRestoredDb,[...standardArgs,'--require-pay-revision-schema'],true);
     const oldProfile = probe(restoredDb,payProbe);
     assert.equal(oldProfile.status,1,oldProfile.log);
     assert.match(oldProfile.log,/MIGRATION_HISTORY_INCOMPATIBLE/);

@@ -100,6 +100,7 @@ router.use(auth);
 
 router.get("/:id/payroll-run-revisions/:revisionId", async (req: Request, res: Response) => {
   if (req.method !== "GET") { res.set("Allow", "GET").status(405).end(); return; }
+  if (req.app.locals.payRevisionReviewEnabled !== true) { res.status(404).end(); return; }
   try {
     const history = req.query.history === 'adjacent';
     if (Object.keys(req.query).length !== (history ? 1 : 0)) throw new SensitiveAccessError("SENSITIVE_REQUEST_INVALID");

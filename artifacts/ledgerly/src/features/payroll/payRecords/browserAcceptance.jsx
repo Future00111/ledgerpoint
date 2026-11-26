@@ -20,6 +20,9 @@ let reviewReads = 0;
 const exportStatuses = [];
 window.fetch = async (url, options = {}) => {
   const target = new URL(url, location.href);
+  if (target.origin === location.origin && target.pathname === '/api/capabilities/pay-revision-review') {
+    return Response.json({enabled:true});
+  }
   if (target.origin !== location.origin || !target.pathname.startsWith('/api/companies/')) throw Error('Unexpected browser request');
   if (target.pathname.endsWith('/payroll-run-revisions/'+reviewId)) {
     reviewReads++;
@@ -53,7 +56,7 @@ window.fetch = async (url, options = {}) => {
 };
 const mount = (companyId, actorId, role) => {
   actor = actorId;
-  root.render(<PayRecordsWorkspace revisionReviewEnabled companyId={companyId} companyName="Synthetic payroll company" actorId={actorId} role={role}/>);
+  root.render(<PayRecordsWorkspace companyId={companyId} companyName="Synthetic payroll company" actorId={actorId} role={role}/>);
 };
 const wait = async (read, stage) => {
   for (let i = 0; i < 250; i++) {

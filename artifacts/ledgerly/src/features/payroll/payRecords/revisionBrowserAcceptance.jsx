@@ -5,7 +5,7 @@ import {PayRecordsWorkspace} from './PayRecordsWorkspace';
 
 const {company,revision,latest,lineIds} = window.revisionFixture;
 const root = createRoot(document.getElementById('root'));
-root.render(<PayRecordsWorkspace revisionReviewEnabled companyId={company} actorId="browser-reviewer" role="payroll_approver"/>);
+root.render(<PayRecordsWorkspace companyId={company} actorId="browser-reviewer" role="payroll_approver"/>);
 const wait = async read => {
   for (let attempt=0; attempt<200; attempt++) {
     const value = read();

@@ -11,6 +11,7 @@ async function startServer() {
   if (process.env.NODE_ENV === 'production' || checkOnly || requirePayRevisions || process.argv.slice(2).includes('--require-amendment-schema')) {
     try {
       await checkAmendmentRelease(pool, requirePayRevisions);
+      app.locals.payRevisionReviewEnabled = requirePayRevisions;
     } catch (error) {
       const code = error instanceof Error && 'code' in error ? error.code : undefined;
       const reason = ['MIGRATION_HISTORY_INCOMPATIBLE','MIGRATION_HISTORY_LEGACY_DEPENDENCIES','CORRECTION_SCHEMA_INCOMPLETE','PAY_REVISION_SCHEMA_INCOMPLETE']
