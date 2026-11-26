@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { build as esbuild } from "esbuild";
 import esbuildPluginPino from "esbuild-plugin-pino";
+import { expectedMigrationHistory, loadMigrationInputs } from '../../tools/development/migrations/registry.mjs';
 import { rm } from "node:fs/promises";
 
 // Plugins (e.g. 'esbuild-plugin-pino') may use `require` to resolve dependencies
@@ -15,6 +16,8 @@ async function buildAll() {
   await rm(distDir, { recursive: true, force: true });
 
   await esbuild({
+    define: { __AMENDMENT_MIGRATION_HISTORY__: JSON.stringify(expectedMigrationHistory(
+      loadMigrationInputs(path.resolve(artifactDir, '../..')), {includeAmendments:true})) },
     entryPoints: [path.resolve(artifactDir, "src/index.ts")],
     platform: "node",
     bundle: true,
