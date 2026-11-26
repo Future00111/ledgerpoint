@@ -1709,6 +1709,7 @@ test("Chromium personal tax entry retries a committed input, downloads its audit
   await addMember(f.company, preparer, 'personal_tax_preparer');
   await addMember(f.company, submitter, 'personal_tax_submitter');
   await addMember(other.company, submitter, 'personal_tax_submitter');
+  await addMember(other.company, preparer, 'personal_tax_preparer');
   await runPayrollBrowser('taxBrowserAcceptance.jsx', {company:f.company, other:other.company, preparer, submitter, taxpayer});
   const rows = await storedTaxInputs(f.company);
   assert.equal(rows.length, 1);
@@ -1717,7 +1718,7 @@ test("Chromium personal tax entry retries a committed input, downloads its audit
   assert.equal((await taxCreationAudits(f.company)).length, 1);
   assert.equal((await taxPrepareAudits(f.company)).length, 2);
   const exports = (await sensitiveAudit(f.company)).filter(row => row.capability === 'personal_tax.export');
-  assert.deepEqual(exports.map(row => row.actor_id), [preparer]);
+  assert.deepEqual(exports.map(row => row.actor_id), [preparer, preparer]);
   assert.ok((await taxReadAudits(f.company)).some(row => row.actor_id === submitter));
 });
 
