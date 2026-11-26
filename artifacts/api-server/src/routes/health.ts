@@ -8,4 +8,10 @@ router.get("/healthz", (_req, res) => {
   res.json(data);
 });
 
+// Reports server readiness only. Revision reads separately require company-scoped authorisation.
+export const capabilityRouter = Router();
+capabilityRouter.get("/capabilities/pay-revision-review", (req, res) => {
+  res.set("Cache-Control", "no-store").json({enabled:req.app.locals.payRevisionReviewEnabled === true});
+});
+
 export default router;

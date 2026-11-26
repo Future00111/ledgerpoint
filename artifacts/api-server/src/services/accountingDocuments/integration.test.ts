@@ -2312,7 +2312,7 @@ const button=text=>[...document.querySelectorAll('button')].find(b=>b.textConten
     const timer=setTimeout(()=>browser?.kill('SIGKILL'),5000);
     browser!.once('exit',()=>{clearTimeout(timer);resolve();});browser!.kill('SIGTERM');
   });
-  listener.closeAllConnections();await new Promise<void>(r=>listener.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});
+  listener.closeAllConnections();await new Promise<void>(r=>listener.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true,maxRetries:6,retryDelay:100});
  }
 });
 

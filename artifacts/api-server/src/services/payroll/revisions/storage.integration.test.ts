@@ -1,6 +1,7 @@
 import test from 'node:test';
 import express from 'express';
 import type { AddressInfo } from 'node:net';
+import {capabilityRouter} from '../../../routes/health';
 import { createCompaniesRouter } from '../../../routes/companies';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
@@ -209,6 +210,7 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
     } finally { await admin.query('ROLLBACK'); await contender.end(); }
     await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES ($1,$2,'revision-owner','owner',true)",[randomUUID(),company]);
     const app = express();
+    app.use('/api',capabilityRouter);
     const browserCookie = randomUUID();
     await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES ($1,$2,'browser-reviewer','payroll_approver',true)",[randomUUID(),company]);
     app.use('/api/companies',createCompaniesRouter((req,res,next) => {
@@ -227,6 +229,13 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
         assert.equal(response.headers.get('cache-control'),'no-store');
         return response;
       };
+      const availability = () => fetch(origin+'/api/capabilities/pay-revision-review');
+      const disabled = await availability();
+      assert.equal(disabled.headers.get('cache-control'),'no-store');
+      assert.deepEqual(await disabled.json(),{enabled:false});
+      assert.equal((await review(company,second,actor)).status,404);
+      app.locals.payRevisionReviewEnabled = true;
+      assert.deepEqual(await (await availability()).json(),{enabled:true});
       for (const identity of [actor,'revision-owner']) {
         const response = await review(company,second,identity);
         assert.equal(response.status,200);

@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import PageHeader from '@/components/workspace/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,7 +20,26 @@ export function PayRecordsWorkspace(props) {
   return <ScopedPayRecords key={JSON.stringify([actorId, companyId, role])} {...props} />;
 }
 
-function ScopedPayRecords({ companyId, companyName, actorId, role, client = payRecordsClient, bankClient, onRefreshAccess, revisionReviewEnabled = false }) {
+function ScopedPayRecords({ companyId, companyName, actorId, role, client = payRecordsClient, bankClient, onRefreshAccess }) {
+  const reviewRole = role === 'owner' || role === 'payroll_approver';
+  const [serverReviewEnabled,setServerReviewEnabled] = useState(false);
+  useEffect(() => {
+    if (!reviewRole) return;
+    const controller = new AbortController();
+    async function discover() {
+      try {
+        const response = await fetch('/api/capabilities/pay-revision-review',{
+          credentials:'same-origin',cache:'no-store',redirect:'error',signal:controller.signal
+        });
+        const enabled = response.status === 200 && (await response.json())?.enabled === true;
+        if (!controller.signal.aborted) setServerReviewEnabled(enabled);
+      } catch {
+        if (!controller.signal.aborted) setServerReviewEnabled(false);
+      }
+    }
+    discover();
+    return () => controller.abort();
+  },[reviewRole]);
   const canPrepare = payrollPermissions(role).prepare;
   const { id, form, attempt, phase, lookupId, record, message, validation, busy, locked, save, lookup, fresh, update, changeLookup, denyAccess } =
     useSensitiveEntry({ companyId, role, client, canPrepare, blankForm, buildIntent, savedMessage: 'Pay record saved.' });
@@ -61,7 +81,7 @@ function ScopedPayRecords({ companyId, companyName, actorId, role, client = payR
         {record && <PayExportButton key={record.id} companyId={companyId} record={record} role={role} client={client} onDenied={denyAccess} />}
       </section>
     </div>
-    {revisionReviewEnabled && phase !== 'blocked' && ['owner','payroll_approver'].includes(role) && <RevisionReview companyId={companyId} onSessionExpired={denyAccess} />}
+    {serverReviewEnabled && phase !== 'blocked' && reviewRole && <RevisionReview companyId={companyId} onSessionExpired={denyAccess} />}
     {phase !== 'blocked' && <BankDetailsLookup companyId={companyId} actorId={actorId} role={role} client={bankClient} onSessionExpired={denyAccess} />}
   </div>;
 }
