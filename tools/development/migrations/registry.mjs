@@ -34,6 +34,7 @@ const prerequisites = new Map([
   ['personal-tax-preparations', ['accounting-documents']],
   ['personal-tax-create', ['personal-tax-preparations']],
   ['employee-bank-details', ['accounting-documents']],
+  ['pay-run-draft-revisions', ['employee-pay-create','canonical-security-overlay']],
 ]);
 export const migrationOrder = Object.freeze([...prerequisites.keys()]);
 const fail = code => { throw Object.assign(new Error(code), { code }); };
@@ -77,9 +78,9 @@ export function loadMigrationInputs(root) {
 }
 
 // This attests installed history only; schema controls require separate verification.
-export function expectedMigrationHistory(inputs, { includeAmendments = false } = {}) {
-  return [...migrationOrder.filter(id => includeAmendments || !['accounting-document-amendments','conditional-discount-corrected-observations','conditional-discount-commercial-credits'].includes(id)),
-    'canonical-security-overlay'].map(id => ({ id, sha256: sha256(Buffer.from(inputs[id])), contract_version: 1,
+export function expectedMigrationHistory(inputs, { includeAmendments = false, includePayRevisions = false } = {}) {
+  return [...migrationOrder.filter(id => id !== 'pay-run-draft-revisions').filter(id => includeAmendments || !['accounting-document-amendments','conditional-discount-corrected-observations','conditional-discount-commercial-credits'].includes(id)),
+    'canonical-security-overlay', ...(includePayRevisions ? ['pay-run-draft-revisions'] : [])].map(id => ({ id, sha256: sha256(Buffer.from(inputs[id])), contract_version: 1,
       dependencies: id === 'canonical-security-overlay' ? ['w03-invoice-drafts'] : [...prerequisites.get(id)] }));
 }
 // Earlier disposable installers recorded these three edges from list order.

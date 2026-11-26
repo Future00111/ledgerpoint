@@ -283,6 +283,16 @@
         "accounting-documents"
       ],
       "sha256": "6d26ebe54286b1ab3f6099015146da6fb8586e2b71f2844cf7d077fac4a7ecd7"
+    },
+    {
+      "id": "pay-run-draft-revisions",
+      "path": "lib/db/migrations/pay-run-draft-revisions.review.sql",
+      "contractVersion": 1,
+      "dependencies": [
+        "employee-pay-create",
+        "canonical-security-overlay"
+      ],
+      "sha256": "c41c94521f72f0d29270991742880753a028301898afa4891d7029c7cca1727e"
     }
   ],
   "securityOverlay": {
