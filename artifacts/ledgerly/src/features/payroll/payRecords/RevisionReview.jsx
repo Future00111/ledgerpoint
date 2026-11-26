@@ -2,7 +2,7 @@ import {useLayoutEffect,useRef,useState} from 'react';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {recordId,requestScope} from './model.mjs';
-import {validatedReview,formatDraftPence,deductionNames,adjustmentNames} from './revisionReview.mjs';
+import {approvalAvailability,validatedReview,formatDraftPence,deductionNames,adjustmentNames} from './revisionReview.mjs';
 
 function amounts(values,names) {
   return Object.entries(values).map(([key,value]) => <div key={key}>{names[key]} {formatDraftPence(value)}</div>);
@@ -54,6 +54,8 @@ export function RevisionReview({companyId,onSessionExpired}) {
         {!result.is_current_revision && result.next_revision_id !== result.current_revision_id && <Button variant="outline" onClick={()=>read(result.current_revision_id,result.run_id)}>Open current revision</Button>}
       </nav>
       <p>Period {result.period_start} to {result.period_end} · Payday {result.payday}</p>
+      <p>Prepared by {result.prepared_by} · <time dateTime={result.prepared_at}>{result.prepared_at.slice(0,10)} {result.prepared_at.slice(11,19)} UTC</time></p>
+      <p>{approvalAvailability(result)}</p>
       <p>Run {result.run_id} · Rules {result.rules_version}</p>
       <div className="overflow-x-auto"><table className="w-full text-left text-sm">
         <caption className="sr-only">Draft pay-run amounts in GBP</caption>

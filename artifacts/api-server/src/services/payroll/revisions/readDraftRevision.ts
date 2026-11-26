@@ -8,7 +8,7 @@ export function readDraftRevision(companyId: string, actorId: string, revisionId
     if (review && context.role !== 'owner' && context.role !== 'payroll_approver')
       throw new SensitiveAccessError('SENSITIVE_ACCESS_DENIED');
     await requireReadOnlySensitiveStorage(context, 'pay_run_draft_revisions');
-    const reviewFields = review ? ', review_breakdown, head.current_revision_id, draft.revision_id = head.current_revision_id AS is_current_revision' : '';
+    const reviewFields = review ? ', draft.prepared_by, draft.prepared_at, review_breakdown, head.current_revision_id, draft.revision_id = head.current_revision_id AS is_current_revision' : '';
     const historyFields = review === 'history' ? `,
       (SELECT adjacent.revision_id FROM public.pay_run_draft_revisions adjacent
        WHERE adjacent.company_id=draft.company_id AND adjacent.run_id=draft.run_id

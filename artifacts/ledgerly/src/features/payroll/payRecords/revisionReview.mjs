@@ -10,10 +10,13 @@ const money = row => amount(row.gross) && amount(row.net) && components(row.dedu
 const uuid = value => typeof value === 'string' && /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(value);
 
 export function validatedReview(row,requested,history = false) {
-  const fields = ['run_id','revision_id','revision_number','period_start','period_end','payday','currency','rules_version','is_current_revision','current_revision_id','review_breakdown'];
+  const fields = ['run_id','revision_id','revision_number','period_start','period_end','payday','currency','rules_version','is_current_revision','current_revision_id','prepared_by','prepared_at','review_breakdown'];
   if (history) fields.push('previous_revision_id','next_revision_id');
   if (!exact(row,fields) || row.revision_id !== recordId(requested) || recordId(row.current_revision_id) !== row.current_revision_id ||
     row.is_current_revision !== (row.revision_id === row.current_revision_id) || !uuid(row.run_id) ||
+    typeof row.prepared_by !== 'string' || !row.prepared_by.trim() ||
+    typeof row.prepared_at !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(row.prepared_at) ||
+    !Number.isFinite(Date.parse(row.prepared_at)) || new Date(row.prepared_at).toISOString() !== row.prepared_at ||
     !Number.isSafeInteger(row.revision_number) || row.revision_number < 1 || typeof row.is_current_revision !== 'boolean' ||
     row.currency !== 'GBP' || typeof row.rules_version !== 'string' || !row.rules_version.trim() ||
     ![row.period_start,row.period_end,row.payday].every(date => effectiveDate(date) === date) || row.period_end < row.period_start)
@@ -59,4 +62,10 @@ export function validatedReview(row,requested,history = false) {
 export function formatDraftPence(value) {
   const p = BigInt(value), magnitude = p < 0n ? -p : p;
   return (p < 0n ? '-£' : '£') + (magnitude / 100n).toLocaleString('en-GB') + '.' + String(magnitude % 100n).padStart(2,'0');
+}
+
+export function approvalAvailability(draft) {
+  if (!draft.is_current_revision) return 'Approval unavailable for superseded revisions.';
+  if (!draft.review_breakdown.lines.length) return 'Approval requires at least one employee line.';
+  return 'Approval unavailable until the payroll calculations are qualified.';
 }

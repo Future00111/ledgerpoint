@@ -22,6 +22,8 @@ async function exercise() {
   await wait(()=>button('Clear revision'));
   button('Load draft revision').click();
   const table = await wait(()=>document.querySelector('table'));
+  if (!document.body.innerText.includes('Prepared by synthetic-preparer') || !document.querySelector('time[datetime]') ||
+      !document.body.innerText.includes('Approval unavailable for superseded revisions.')) throw Error('Missing review context');
   const lines = [...table.querySelectorAll('tbody tr')];
   if (!document.body.innerText.includes('Revision 2 · Superseded') || lines.length !== 2 ||
     lines.some((row,i)=>row.querySelector('th').textContent !== lineIds[i]) ||
@@ -37,6 +39,7 @@ async function exercise() {
   button('Open current revision').click();
   await wait(()=>document.body.innerText.includes('Revision 4 · Current at lookup') && input.value === latest);
   if (button('Open current revision') || document.body.innerText.includes(lineIds[0])) throw Error('Old draft remained visible');
+  if (!document.body.innerText.includes('Approval requires at least one employee line.')) throw Error('Missing empty revision status');
   if (button('Next revision')) throw Error('Unexpected successor');
   button('Previous revision').click();
   await wait(()=>document.body.innerText.includes('Revision 3 · Superseded'));
