@@ -152,7 +152,10 @@ test('dated employee payslips carry the eligible HMRC NI examples through to tak
     });
     assert.equal(payslip.employeeNiMinor, row.expected.employeeNiMinor, row.id);
     assert.equal(payslip.employerNiMinor, row.expected.employerNiMinor, row.id);
-    const net = BigInt(grossPayMinor) - BigInt(payslip.payeMinor) - BigInt(row.expected.employeeNiMinor);
+    // First payday on BR: 20 pence for each complete pound of taxable pay.
+    const expectedPaye = (BigInt(grossPayMinor) / 100n) * 20n;
+    assert.equal(payslip.payeMinor, String(expectedPaye), row.id);
+    const net = BigInt(grossPayMinor) - expectedPaye - BigInt(row.expected.employeeNiMinor);
     assert.equal(payslip.netMinor, String(net), row.id);
     checked++;
   }
