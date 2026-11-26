@@ -624,6 +624,29 @@ test('populated backup rehearses the amendment upgrade, rollback, retry and rest
     assertSameFingerprint(upgraded,await fingerprintDatabase(payrollRestored));
     assert.deepEqual(await invoiceEvidence(payrollRestored),posted);
     assertSameFingerprint(repaired,await fingerprintDatabase(recovered));
+    const payProbe = [...probeArgs,'--require-pay-revision-schema'];
+    const compatible = probe(payrollRestoredDb,payProbe);
+    assert.equal(compatible.status,0,compatible.log);
+    const oldProfile = probe(restoredDb,payProbe);
+    assert.equal(oldProfile.status,1,oldProfile.log);
+    assert.match(oldProfile.log,/MIGRATION_HISTORY_INCOMPATIBLE/);
+    for (const [damage,repair] of [
+      ['ALTER TABLE public.pay_run_draft_revisions RENAME COLUMN payday TO former_payday',
+       'ALTER TABLE public.pay_run_draft_revisions RENAME COLUMN former_payday TO payday'],
+      ['ALTER TABLE public.pay_run_draft_revisions DISABLE TRIGGER pay_run_draft_source_check',
+       'ALTER TABLE public.pay_run_draft_revisions ENABLE TRIGGER pay_run_draft_source_check'],
+      ['GRANT UPDATE(employee_lines) ON public.pay_run_draft_revisions TO ledgerly_api',
+       'REVOKE UPDATE(employee_lines) ON public.pay_run_draft_revisions FROM ledgerly_api'],
+    ]) {
+      await payrollRestored.query(damage);
+      try {
+        const refused = probe(payrollRestoredDb,[...standardArgs,'--require-pay-revision-schema']);
+        assert.equal(refused.status,1,refused.log);
+        assert.match(refused.log,/PAY_REVISION_SCHEMA_INCOMPLETE/);
+        assert.doesNotMatch(refused.log,/Server listening/);
+      } finally { await payrollRestored.query(repair); }
+    }
+    assertSameFingerprint(upgraded,await fingerprintDatabase(payrollRestored));
     console.log('PAY_REVISION_UPGRADE_REHEARSAL',JSON.stringify({rollbackVerified:true,existingTablesPreserved:true,
       freshControlsMatch:true,restored:true,originalHistoryPreserved:true,sourceUnchanged:true}));
     console.log('POPULATED_UPGRADE_REHEARSAL',JSON.stringify({originalHistory:oldIds.size,added:additions.map(row=>row.id),
