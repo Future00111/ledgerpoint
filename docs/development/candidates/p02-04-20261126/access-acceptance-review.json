@@ -1,0 +1,14 @@
+{
+  "task": "P02-04",
+  "sprintCommit": "b3983e229dd1a911ecc2493a8ffed6a9167818d4",
+  "workflowRun": 45834594465,
+  "job": 139960005794,
+  "review": "Independent review verified both catalogue permission criteria for the implemented access paths.",
+  "evidence": [
+    "Ordinary bookkeeping and invalid memberships cannot invoke sensitive reads, exports or change callbacks. Payroll preparation and approval and personal-tax preparation and submission have separately tested rights.",
+    "Native salary, taxpayer and bank reads apply company and role projections. Authorised reads, exports, preparation and role changes record the actor and company. Failed audit writes roll back.",
+    "The merged Chromium cases verify refusal and company-switch behavior for payroll and personal-tax exports."
+  ],
+  "remaining": "Keep parent pending. Approval and submission rights are exercised by protected callbacks. A real pay-run approval and a tax submission decision still need their own operational evidence.",
+  "next": "Recover the existing immutable revision and read-only payroll review candidate from PR 35 before implementing the local approval decision. Require an authorised current qualified revision and an immutable actor/company/revision receipt; verify retry, stale revision and audit rollback."
+}
