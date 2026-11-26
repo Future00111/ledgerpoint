@@ -1,3 +1,4 @@
+import {registerCorrectionAdmissionJourney} from '../operationRecovery/correctionAdmissionJourney';
 import test,{before,after} from "node:test";
 import assert from "node:assert/strict";
 import {randomUUID} from "node:crypto";
@@ -1612,6 +1613,8 @@ test('paid supplier and customer credits atomically release allocations, preserv
     const before=(await admin.query('SELECT * FROM accounting_payment_events WHERE company_id=$1 ORDER BY id',[f.company])).rows;
     const journalCount=async()=>Number((await admin.query('SELECT count(*) n FROM canonical_journal_entries WHERE company_id=$1',[f.company])).rows[0].n);
     const n=await journalCount();
+    const admissionCount=async()=>Number((await admin.query('SELECT count(*) n FROM payment_attempt_admissions WHERE company_id=$1',[f.company])).rows[0].n);
+    const admissionsBefore=await admissionCount();
     await assert.rejects(()=>commitPaidCredit(f.company,actor,credit.id,credit.revision,body,async(tx)=>{await queryAdapter(tx).query('SELECT 1/0');}));
     assert.equal(await journalCount(),n);assert.deepEqual((await admin.query('SELECT * FROM accounting_payment_events WHERE company_id=$1 ORDER BY id',[f.company])).rows,before);
     await assert.rejects(()=>commitPaidCredit(f.company,readOnly,credit.id,credit.revision,body));
@@ -1620,7 +1623,7 @@ test('paid supplier and customer credits atomically release allocations, preserv
     assert.deepEqual(simultaneous.map(r=>r.status).sort(),['duplicate','posted']);
     assert.equal((await commitPaidCredit(f.company,actor,credit.id,credit.revision,body)).status,'duplicate');
     await assert.rejects(()=>commitPaidCredit(f.company,actor,credit.id,credit.revision,{...body,reason:'Changed'}),(e:any)=>e.code==='IDEMPOTENCY_CONFLICT');
-    assert.equal(await journalCount(),n+2);
+    assert.equal(await journalCount(),n+2);assert.equal(await admissionCount(),admissionsBefore);
     const beforeRelease=await reports(f.company,actor,'2026-10-01','2026-10-21'),afterRelease=await reports(f.company,actor,'2026-10-01','2026-10-22');
     assert.equal(beforeRelease.open_items[0].paid_minor,'12000');assert.equal(beforeRelease.open_items[0].credited_minor,'0');
     assert.equal(afterRelease.open_items[0].paid_minor,'10800');assert.equal(afterRelease.open_items[0].credited_minor,'1200');assert.equal(afterRelease.balance_sheet.balanced,true);
@@ -1799,7 +1802,26 @@ test('payment recovery survives actual subprocess restart after a committed resp
         const r=await fetch(`http://127.0.0.1:${second.port}/companies/${company}/accounting-payments/operations/${id}`,{headers:user?{'x-test-actor':user}:{}});
         return {status:r.status,body:await r.json() as {data:{status:string,id:string,journal_id?:string}}};
       };
-      const known=await lookup(f.company);
+      // The new session has no browser locator: discovery request contains no original ID or intent.
+      const discover=async(company:string,user:string|null=actor)=>{
+        const r=await fetch(`http://127.0.0.1:${second.port}/companies/${company}/accounting-payments/operations`,{headers:user?{'x-test-actor':user}:{}});
+        return {status:r.status,body:await r.json() as any};
+      };
+      const discovered=await discover(f.company);
+      assert.equal(discovered.status,200);assert.equal(discovered.body.data.has_more,false);
+      assert.equal(discovered.body.data.receipts.length,1);
+      const receipt=discovered.body.data.receipts[0];
+      assert.equal(receipt.id,command.id);assert.equal(receipt.journal_id,events[0].journal_id);
+      assert.equal(receipt.reference,command.reference);assert.equal(receipt.amount_minor,command.amount_minor);
+      assert.deepEqual(Object.keys(receipt).sort(),['amount_minor','effective_date','id','journal_id','kind','party_type','recorded_at','reference','status']);
+      assert.deepEqual((await discover(f.company,readOnly)).body.data.receipts,[]);
+      assert.deepEqual((await discover(foreign.company)).body.data.receipts,[]);
+      assert.equal((await discover(f.company,null)).status,401);
+      assert.equal((await discover(f.company,'synthetic-no-membership')).status,404);
+      await admin.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
+      assert.equal((await discover(f.company)).status,404);
+      await admin.query('UPDATE company_users SET is_active=true WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
+      const known=await lookup(f.company,actor,receipt.id);
       assert.equal(known.status,200);assert.deepEqual(known.body.data,{status:'recorded',id:command.id,journal_id:events[0].journal_id});
       assert.equal((await lookup(f.company,null)).status,401);
       assert.equal((await lookup(f.company,'synthetic-no-membership')).status,404);
@@ -1845,7 +1867,8 @@ test('rolled-back payment command remains unknown and a same-identity retry reco
   failNext=true;
   assert.equal((await request(f.company,'/accounting-payments','POST',reviewed)).status,500);
   const path=`/accounting-payments/operations/${reviewed.id}`;
-  assert.deepEqual((await request(f.company,path)).data,{status:'unknown',id:reviewed.id});
+  const receipt=(await request(f.company,path)).data;assert.equal(receipt.status,'pending');assert.equal(receipt.id,reviewed.id);
+  assert.match(receipt.request_hash,/^sha256:[a-f0-9]{64}$/);assert.match(receipt.review_hash,/^sha256:[a-f0-9]{64}$/);
   assert.equal((await admin.query('SELECT id FROM accounting_payment_events WHERE id=$1',[reviewed.id])).rowCount,0);
   const posted=await request(f.company,'/accounting-payments','POST',reviewed);assert.equal(posted.status,200);
   assert.deepEqual((await request(f.company,path)).data,{status:'recorded',id:reviewed.id,journal_id:posted.data.journal_id});
@@ -1902,17 +1925,737 @@ test('isolated Chromium: unpaid and partial discounts, fully paid credit/refund 
  const {createRequire}=await import('node:module');
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'discount-rule-browser-'));
  const root=process.cwd(),entry=path.join(dir,'entry.jsx'),bundle=path.join(dir,'bundle.js');
- const server=express();let browser:ReturnType<typeof cp.spawn>|undefined;
+ const server=express();server.use(express.json());let browser:ReturnType<typeof cp.spawn>|undefined;
+ let browserClosed:Promise<void>|undefined;
+ const reportId=randomUUID();let stage='browser startup',report:(value:any)=>void=()=>{};
+ server.post('/browser-result',(req,res)=>{if(req.body?.id!==reportId){res.sendStatus(409);return;}stage=String(req.body.stage??stage);res.json({ok:true});if(typeof req.body.passed==='boolean')report(req.body);});
  const fixture=server.listen(0,'127.0.0.1');await new Promise<void>(r=>fixture.once('listening',r));
  try {
-  fs.writeFileSync(entry,"import React from 'react';\nimport {createRoot} from 'react-dom/client';\nimport {MemoryRouter} from 'react-router-dom';\nimport PostedDocument from '@/components/accounting/PostedDocument.jsx';\nimport {DiscountBalanceReview} from '@/features/documentDiscounts/DiscountControls.jsx';\n// Synthetic read-only UI harness. No API, Clerk, database or posting authority.\nlet requests=0;\nwindow.fetch=async()=>{requests++;return new Response(JSON.stringify({error:{code:'SYNTHETIC_UNAVAILABLE'}}),{status:503,headers:{'Content-Type':'application/json'}})};\nconst root=createRoot(document.getElementById('root'));\nconst source={invoice_number:'SYNTHETIC',issue_date:'2026-11-10',due_date:'2026-11-10',payment_terms:0,price_basis:'including_vat',reference:'',notes:'',line_items:[{description:'Synthetic supply',quantity:'1',unit_price:'120',tax_code:'STANDARD_20'}]};\nconst doc={id:'original',revision:'one',status:'posted',party_id:'party',party_name:'Synthetic party',journal_id:'synthetic',source,money:{gross_pence:'12000',net_pence:'10000',vat_pence:'2000',lines:[{net_pence:'10000',vat_pence:'2000',gross_pence:'12000'}]}};\nconst wait=()=>new Promise(r=>setTimeout(r,80));\nconst assert=(v,m)=>{if(!v)throw Error(m)};\n(async()=>{\n for(const kind of ['sales_invoice','purchase_bill']) for(const paid of ['0','5000','12000']) {\n  const open=(12000n-BigInt(paid)).toString();\n  root.render(<MemoryRouter key={kind+paid}><PostedDocument kind={kind} doc={{...doc,kind}} company={{id:'synthetic-company'}} journal={{status:'loading'}} capabilities={{edit_drafts:true,post_documents:true}} settlement={{loading:false}} openItem={{gross_minor:'12000',paid_minor:paid,credited_minor:'0',open_minor:open,history:[]}} /></MemoryRouter>);await wait();\n  const links=[...document.querySelectorAll('a')];\n  assert(links.some(a=>a.textContent==='Create credit note'),kind+' ordinary credit unavailable');\n  assert(links.some(a=>a.textContent==='Apply discount')===(open!=='0'),kind+' wrong discount entry '+paid);\n  if(open==='0')assert(document.body.textContent.includes('There is no unpaid balance to discount'),'Refund guidance missing');\n }\n const item={gross_minor:'12000',paid_minor:'5000',credited_minor:'0',open_minor:'7000'};\n for(const amount of ['1200','7000','8000']) {\n  root.render(<DiscountBalanceReview original={doc} item={item} money={{gross_pence:amount}}/>);await wait();\n  assert(document.body.textContent.includes('Balance if posted')===(amount!=='8000'),'Wrong excess preview');\n }\n document.body.dataset.acceptance='passed';document.body.dataset.scope='synthetic-read-only-ui';document.body.dataset.stubbedRequests=String(requests);\n})().catch(e=>{document.body.dataset.acceptance='failed';document.body.append(document.createTextNode(e.message));});\n");
+  fs.writeFileSync(entry,"import React from 'react';\nimport {createRoot} from 'react-dom/client';\nimport {flushSync} from 'react-dom';\nimport {MemoryRouter} from 'react-router-dom';\nimport PostedDocument from '@/components/accounting/PostedDocument.jsx';\nimport {DiscountBalanceReview} from '@/features/documentDiscounts/DiscountControls.jsx';\n// Synthetic read-only UI harness. No API, Clerk, database or posting authority.\nconst nativeFetch=window.fetch.bind(window);let stage='mount';\nconst report=(passed,error=null)=>nativeFetch('/browser-result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:REPORT_ID,stage,passed,error})});\nconst progress=async value=>{stage=value;await nativeFetch('/browser-result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:REPORT_ID,stage})});};\nwindow.addEventListener('error',event=>{void report(false,event.message)});\nwindow.addEventListener('unhandledrejection',event=>{void report(false,String(event.reason?.message??event.reason))});\nlet requests=0;\nwindow.fetch=async()=>{requests++;return new Response(JSON.stringify({error:{code:'SYNTHETIC_UNAVAILABLE'}}),{status:503,headers:{'Content-Type':'application/json'}})};\nconst root=createRoot(document.getElementById('root'));\nconst source={invoice_number:'SYNTHETIC',issue_date:'2026-11-10',due_date:'2026-11-10',payment_terms:0,price_basis:'including_vat',reference:'',notes:'',line_items:[{description:'Synthetic supply',quantity:'1',unit_price:'120',tax_code:'STANDARD_20'}]};\nconst doc={id:'original',revision:'one',status:'posted',party_id:'party',party_name:'Synthetic party',journal_id:'synthetic',source,money:{gross_pence:'12000',net_pence:'10000',vat_pence:'2000',lines:[{net_pence:'10000',vat_pence:'2000',gross_pence:'12000'}]}};\nconst assert=(v,m)=>{if(!v)throw Error(m)};\n(async()=>{\n for(const kind of ['sales_invoice','purchase_bill']) for(const paid of ['0','5000','12000']) {\n  await progress(kind+' paid '+paid);\n  const open=(12000n-BigInt(paid)).toString();\n  flushSync(()=>root.render(<MemoryRouter key={kind+paid}><PostedDocument kind={kind} doc={{...doc,kind}} company={{id:'synthetic-company'}} journal={{status:'loading'}} capabilities={{edit_drafts:true,post_documents:true}} settlement={{loading:false}} openItem={{gross_minor:'12000',paid_minor:paid,credited_minor:'0',open_minor:open,history:[]}} /></MemoryRouter>));\n  const links=[...document.querySelectorAll('a')];\n  assert(links.some(a=>a.textContent==='Create credit note'),kind+' ordinary credit unavailable');\n  assert(links.some(a=>a.textContent==='Apply discount')===(open!=='0'),kind+' wrong discount entry '+paid);\n  if(open==='0')assert(document.body.textContent.includes('There is no unpaid balance to discount'),'Refund guidance missing');\n }\n const item={gross_minor:'12000',paid_minor:'5000',credited_minor:'0',open_minor:'7000'};\n for(const amount of ['1200','7000','8000']) {\n  await progress('discount preview '+amount);\n  flushSync(()=>root.render(<DiscountBalanceReview original={doc} item={item} money={{gross_pence:amount}}/>));\n  assert(document.body.textContent.includes('Balance if posted')===(amount!=='8000'),'Wrong excess preview');\n }\n await progress('all discount views verified');await report(true);\n})().catch(e=>report(false,e.message));\n".replaceAll('REPORT_ID',JSON.stringify(reportId)));
   createRequire(path.join(root,'artifacts/api-server/package.json'))('esbuild').buildSync({entryPoints:[entry],outfile:bundle,bundle:true,platform:'browser',format:'iife',jsx:'automatic',alias:{'@':path.join(root,'artifacts/ledgerly/src')},nodePaths:[path.join(root,'artifacts/ledgerly/node_modules')],define:{'process.env.NODE_ENV':'"production"'}});
   server.get('/bundle.js',(_req,res)=>res.type('js').send(fs.readFileSync(bundle,'utf8')));
   server.get('/',(_req,res)=>res.type('html').send('<!doctype html><html><head><meta charset="utf-8"><title>Synthetic discount UI</title></head><body><div id="root"></div><script src="/bundle.js"></script></body></html>'));
-  browser=cp.spawn('chromium',['--headless','--disable-gpu','--no-first-run','--disable-background-networking','--user-data-dir='+path.join(dir,'profile'),'--dump-dom','--virtual-time-budget=6000','http://127.0.0.1:'+(fixture.address() as any).port],{stdio:['ignore','pipe','pipe']});
+  browser=cp.spawn('chromium',['--headless','--disable-gpu','--no-first-run','--disable-background-networking','--user-data-dir='+path.join(dir,'profile'),'http://127.0.0.1:'+(fixture.address() as any).port],{stdio:['ignore','pipe','pipe']});
+  browserClosed=new Promise<void>(resolve=>browser!.once('close',()=>resolve()));
+  let stderr='';browser.stdout!.resume();browser.stderr!.on('data',chunk=>stderr=(stderr+chunk).slice(-4000));
+  const acceptance=await new Promise<any>((resolve,reject)=>{
+   const finish=(error:Error|null,value?:any)=>{clearTimeout(timer);report=()=>{};browser!.off('error',failed);browser!.off('exit',exited);error?reject(error):resolve(value);};
+   const failed=(error:Error)=>finish(error),exited=(code:number|null)=>finish(Error('Browser exited before discount acceptance at '+stage+' ('+code+'): '+stderr));
+   const timer=setTimeout(()=>finish(Error('Bounded discount browser timeout at '+stage+': '+stderr)),30000);
+   report=value=>finish(null,value);browser!.once('error',failed);browser!.once('exit',exited);
+  });
+  assert.equal(acceptance?.passed,true,JSON.stringify(acceptance));assert.equal(acceptance.stage,'all discount views verified');
+  console.log('DISCOUNT_RULE_BROWSER_ACCEPTANCE',JSON.stringify({syntheticReadOnly:true,actualComponents:true,unpaidAndPartial:true,fullyPaidCreditOnly:true,excessRefused:true,financialPosting:false,realClerk:false}));
+ } finally {
+  report=()=>{};
+  let killTimer:ReturnType<typeof setTimeout>|undefined;
+  let closeDeadline:ReturnType<typeof setTimeout>|undefined;
+  try {
+   if(browserClosed){
+    if(browser?.pid && browser.exitCode===null && browser.signalCode===null){
+     browser.kill('SIGTERM');
+     killTimer=setTimeout(()=>{
+      if(browser?.exitCode===null && browser.signalCode===null)browser.kill('SIGKILL');
+     },5000);
+    }
+    await Promise.race([browserClosed,new Promise<never>((_,reject)=>{
+     closeDeadline=setTimeout(()=>reject(Error('Discount browser did not close within 10 seconds')),10000);
+    })]);
+   }
+  } finally {
+   clearTimeout(killTimer);clearTimeout(closeDeadline);
+   browser?.stdout?.destroy();browser?.stderr?.destroy();
+   const fixtureClosed=new Promise<void>(resolve=>fixture.close(()=>resolve()));
+   fixture.closeAllConnections();
+   await fixtureClosed;
+   // Chromium helpers may finish writing profile files just after the browser closes.
+   await fs.promises.rm(dir,{recursive:true,force:true,maxRetries:6,retryDelay:100});
+  }
+ }
+});
+
+test('isolated Chromium: mounted payment discovery recovers committed event with no browser locator and no repost',async()=>{
+ const fs=await import('node:fs'),os=await import('node:os'),cp=await import('node:child_process');
+ const {createRequire}=await import('node:module');
+ const f=await fixture(),doc=await create(f,'sales_invoice',source(f.customer));await post(f,doc);
+ const command=await reviewPayment(f,paymentIntent(f,doc));
+ // Commit succeeds, but the browser never receives this response or its request locator.
+ const posted=await request(f.company,'/accounting-payments','POST',command);assert.equal(posted.status,200);
+ const before=(await admin.query('SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1',[f.company])).rows[0].n;
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'payment-discovery-browser-'));
+ const root=process.cwd(),entry=path.join(dir,'entry.jsx'),bundle=path.join(dir,'bundle.js');
+ const app=express();let browser:ReturnType<typeof cp.spawn>|undefined,posts=0;
+ // Isolated synthetic authenticated session; production Clerk is not bypassed or exercised.
+ app.use('/api/companies/:companyId',(req,_res,next)=>{if(req.method!=='GET')posts++;req.headers['x-test-actor']=actor;next();},createAccountingRouter(auth));
+ const listener=app.listen(0,'127.0.0.1');await new Promise<void>(r=>listener.once('listening',r));
+ try {
+  fs.writeFileSync(entry,`import React,{useSyncExternalStore} from 'react';
+import {createRoot} from 'react-dom/client';
+import {MemoryRouter} from 'react-router-dom';
+import {PaymentToolbar,PaymentRecoveryPanel} from '@/features/paymentRecovery/PaymentControls.jsx';
+import {createPaymentRecovery,recoveryUnresolved} from '@/features/paymentRecovery/model.mjs';
+import {createAccountingClient} from '@/api/accountingDocuments.mjs';
+const recovery=createPaymentRecovery(${JSON.stringify(f.company)},createAccountingClient());
+const caps={post_payments:true,configure_payments:true};let starts=0;
+function App(){const state=useSyncExternalStore(recovery.subscribe,recovery.getSnapshot);return <MemoryRouter><PaymentToolbar capabilities={caps} busy={recoveryUnresolved(state)} ready={true} onStart={()=>starts++}/><PaymentRecoveryPanel state={state} capabilities={caps}/><output>{state?.phase}</output></MemoryRouter>}
+createRoot(document.getElementById('root')).render(<App/>);
+const wait=()=>new Promise(r=>setTimeout(r,80));const assert=(v,m)=>{if(!v)throw Error(m)};
+const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent===text);
+(async()=>{await wait();assert(recovery.getSnapshot()?.phase==='discovery','URL lost-reference mode not mounted');
+ assert(button('Record payment').disabled,'ordinary recording must be locked');
+ assert(!document.body.textContent.includes('Retry same payment'),'no replay without original review');
+ button('Check my recorded payments').click();
+ for(let i=0;i<50&&!recovery.getSnapshot()?.candidates;i++)await wait();
+ assert(recovery.getSnapshot()?.candidates?.length===1,'own server receipt missing');
+ assert(recovery.getSnapshot().phase==='discovery','must not automatically select');
+ assert(button('Record payment').disabled,'candidate list must remain locked');
+ button('This is my event — verify status').click();
+ for(let i=0;i<50&&recovery.getSnapshot()?.phase!=='recorded';i++)await wait();
+ assert(recovery.getSnapshot()?.phase==='recorded','selected receipt not verified');assert(starts===0,'unexpected ordinary write start');
+ document.body.dataset.acceptance='passed';document.body.dataset.recovered=recovery.getSnapshot().result.id;
+})().catch(e=>{document.body.dataset.acceptance='failed';document.body.append(document.createTextNode(e.message));});`);
+  createRequire(path.join(root,'artifacts/api-server/package.json'))('esbuild').buildSync({entryPoints:[entry],outfile:bundle,bundle:true,platform:'browser',format:'iife',jsx:'automatic',alias:{'@':path.join(root,'artifacts/ledgerly/src')},nodePaths:[path.join(root,'artifacts/ledgerly/node_modules')],define:{'process.env.NODE_ENV':'"production"'}});
+  app.get('/bundle.js',(_req,res)=>res.type('js').send(fs.readFileSync(bundle,'utf8')));
+  app.get('/payments',(_req,res)=>res.type('html').send('<!doctype html><html><body><div id="root"></div><script src="/bundle.js"></script></body></html>'));
+  browser=cp.spawn('chromium',['--headless','--disable-gpu','--no-first-run','--disable-background-networking','--user-data-dir='+path.join(dir,'profile'),'--dump-dom','--virtual-time-budget=10000','http://127.0.0.1:'+(listener.address() as any).port+'/payments?recover=lost'],{stdio:['ignore','pipe','pipe']});
   let html='',stderr='';browser.stdout!.on('data',b=>html+=b);browser.stderr!.on('data',b=>stderr+=b);
   const code=await new Promise<number|null>((resolve,reject)=>{const timer=setTimeout(()=>{browser?.kill('SIGTERM');reject(Error('Bounded browser timeout: '+stderr.slice(-2000)));},30000);browser!.once('error',e=>{clearTimeout(timer);reject(e)});browser!.once('exit',code=>{clearTimeout(timer);resolve(code)})});
-  assert.equal(code,0,stderr.slice(-4000));assert.match(html,/data-acceptance="passed"/,html.slice(-2000));
-  console.log('DISCOUNT_RULE_BROWSER_ACCEPTANCE',JSON.stringify({syntheticReadOnly:true,actualComponents:true,unpaidAndPartial:true,fullyPaidCreditOnly:true,excessRefused:true,financialPosting:false,realClerk:false}));
- } finally {browser?.kill('SIGTERM');await new Promise<void>(r=>fixture.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});}
+  assert.equal(code,0,stderr.slice(-4000));assert.match(html,/data-acceptance="passed"/,html.slice(-3000));
+  assert.ok(html.includes('data-recovered="'+command.id+'"'));assert.equal(posts,0);
+  assert.equal((await admin.query('SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1',[f.company])).rows[0].n,before);
+  console.log('PAYMENT_DISCOVERY_BROWSER_ACCEPTANCE',JSON.stringify({actualComponents:true,nativeApi:true,syntheticSession:true,lostLocator:true,explicitSelection:true,reposts:posts,realClerk:false,pendingAdmission:false}));
+ } finally {browser?.kill('SIGTERM');await new Promise<void>(r=>listener.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});}
 });
+
+test('pending admission survives rollback, fences replacements and terminal resolution permanently fences delayed writers',async()=>{
+ const f=await fixture(),doc=await create(f,'sales_invoice',source(f.customer));await post(f,doc);
+ const command=await reviewPayment(f,paymentIntent(f,doc));failNext=true;
+ assert.equal((await request(f.company,'/accounting-payments','POST',command)).status,500);
+ const path=`/accounting-payments/operations/${command.id}`;
+ const pendingReceipt=(await request(f.company,path)).data;
+ assert.equal(pendingReceipt.status,'pending');assert.equal(pendingReceipt.id,command.id);
+ assert.match(pendingReceipt.request_hash,/^sha256:[a-f0-9]{64}$/);assert.match(pendingReceipt.review_hash,/^sha256:[a-f0-9]{64}$/);
+ const discovery=(await request(f.company,'/accounting-payments/operations')).data;
+ assert.equal(discovery.pending[0].id,command.id);assert.equal(discovery.receipts.length,0);
+ assert.deepEqual((await request(f.company,path,'GET',undefined,undefined,readOnly)).data,{status:'unknown',id:command.id});
+ const replacement=await reviewPayment(f,{...command,id:randomUUID()});
+ assert.equal((await request(f.company,'/accounting-payments','POST',replacement)).error.code,'PAYMENT_ATTEMPT_UNRESOLVED');
+ assert.equal((await request(f.company,'/accounting-payments','POST',{...command,reference:'Conflict'})).error.code,'IDEMPOTENCY_CONFLICT');
+ assert.equal((await request(f.company,'/accounting-payments','POST',{...command,review_token:'sha256:'+'0'.repeat(64)})).error.code,'IDEMPOTENCY_CONFLICT');
+ const admission=(await admin.query('SELECT * FROM payment_attempt_admissions WHERE company_id=$1 AND request_id=$2',[f.company,command.id])).rows[0];
+ const binding={request_hash:admission.request_hash,review_hash:admission.review_hash};
+ assert.equal(pendingReceipt.request_hash,binding.request_hash);assert.equal(pendingReceipt.review_hash,binding.review_hash);
+ assert.equal(pendingReceipt.reference,command.reference);assert.equal(pendingReceipt.amount_minor,command.amount_minor);
+ const otherActor='synthetic-pending-other-owner';
+ await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,$3,'owner',true)",[randomUUID(),f.company,otherActor]);
+ assert.equal((await request(f.company,'/accounting-payments','POST',command,undefined,otherActor)).error.code,'IDEMPOTENCY_CONFLICT');
+ assert.deepEqual((await request(f.company,'/accounting-payments/operations','GET',undefined,undefined,otherActor)).data.pending,[]);
+ assert.deepEqual((await request(f.company,path,'GET',undefined,undefined,otherActor)).data,{status:'unknown',id:command.id});
+ assert.equal((await request(f.company,path+'/no-effect','POST',binding,undefined,otherActor)).status,404);
+ const foreign=await fixture();assert.equal((await request(foreign.company,path+'/no-effect','POST',binding)).status,404);
+ assert.equal((await request(f.company,path+'/no-effect','POST',binding,undefined,readOnly)).status,403);
+ assert.equal((await request(f.company,path+'/no-effect','POST',{...binding,review_hash:'invalid'})).status,409);
+ await admin.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
+ assert.equal((await request(f.company,path+'/no-effect','POST',binding)).status,404);
+ assert.equal((await request(f.company,'/accounting-payments/operations')).status,404);
+ await admin.query('UPDATE company_users SET is_active=true WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
+ const terminal=await request(f.company,path+'/no-effect','POST',binding);
+ assert.deepEqual(terminal.data,{status:'no_effect',id:command.id});
+ assert.deepEqual((await request(f.company,path)).data,{...pendingReceipt,status:'no_effect'});
+ assert.deepEqual((await request(f.company,path+'/no-effect','POST',binding)).data,terminal.data);
+ assert.equal((await request(f.company,'/accounting-payments','POST',command)).error.code,'PAYMENT_ATTEMPT_TERMINATED');
+ assert.equal((await request(f.company,'/accounting-payments','POST',replacement)).status,200);
+ assert.equal((await admin.query('SELECT count(*)::int n FROM accounting_payment_events WHERE id=$1',[command.id])).rows[0].n,0);
+ for(const table of ['payment_attempt_admissions','payment_attempt_no_effect']) {
+  await assert.rejects(()=>pool.query(`DELETE FROM ${table} WHERE company_id=$1`,[f.company]),(e:any)=>e.code==='42501');
+  await assert.rejects(()=>admin.query(`DELETE FROM ${table} WHERE company_id=$1`,[f.company]),/immutable/);
+  await assert.rejects(()=>admin.query(`TRUNCATE ${table} CASCADE`),/immutable/);
+ }
+});
+
+test('admission is visible before effects and a terminal reader waiting on posting sees the committed canonical outcome',async()=>{
+ const f=await fixture(),doc=await create(f,'sales_invoice',source(f.customer));await post(f,doc);
+ const command=await reviewPayment(f,paymentIntent(f,doc));
+ let release!:()=>void,entered!:()=>void;const paused=new Promise<void>(r=>entered=r),resume=new Promise<void>(r=>release=r);
+ pausePosting=async()=>{entered();await resume;};
+ const posting=request(f.company,'/accounting-payments','POST',command);
+ try {
+  await paused;
+  const admission=(await admin.query('SELECT * FROM payment_attempt_admissions WHERE company_id=$1 AND request_id=$2',[f.company,command.id])).rows[0];
+  assert.ok(admission);assert.equal((await request(f.company,`/accounting-payments/operations/${command.id}`)).data.status,'pending');
+  assert.equal((await admin.query('SELECT count(*)::int n FROM accounting_payment_events WHERE id=$1',[command.id])).rows[0].n,0);
+  assert.equal((await admin.query("SELECT count(*)::int n FROM canonical_journal_entries WHERE company_id=$1 AND source_id=$2",[f.company,command.id])).rows[0].n,0);
+  let terminalFinished=false;
+  const terminal=request(f.company,`/accounting-payments/operations/${command.id}/no-effect`,'POST',{request_hash:admission.request_hash,review_hash:admission.review_hash}).then(r=>{terminalFinished=true;return r;});
+  let observedWaiting=false;
+  for(let i=0;i<200;i++) {
+   observedWaiting=(await admin.query("SELECT 1 FROM pg_stat_activity WHERE datname=current_database() AND wait_event_type='Lock' AND query LIKE 'SELECT * FROM companies WHERE id=%'")).rowCount!>0;
+   if(observedWaiting) break;await new Promise(r=>setTimeout(r,10));
+  }
+  assert.equal(observedWaiting,true,'terminal must actually wait on the held company lock before posting commits');
+  assert.equal(terminalFinished,false);
+  release();const posted=await posting,closed=await terminal;
+  assert.equal(posted.status,200);assert.equal(closed.data.status,'recorded');assert.equal(closed.data.journal_id,posted.data.journal_id);
+  assert.equal((await admin.query('SELECT count(*)::int n FROM payment_attempt_no_effect WHERE company_id=$1 AND request_id=$2',[f.company,command.id])).rows[0].n,0);
+ } finally {release();pausePosting=undefined;await posting;}
+});
+
+test('isolated Chromium: mounted payment discovery discovers pending admission then resolves original event with no browser locator or repost',async()=>{
+ const fs=await import('node:fs'),os=await import('node:os'),cp=await import('node:child_process');
+ const {createRequire}=await import('node:module');
+ const f=await fixture(),doc=await create(f,'sales_invoice',source(f.customer));await post(f,doc);
+ const command=await reviewPayment(f,paymentIntent(f,doc));
+ // Commit succeeds, but the browser never receives this response or its request locator.
+ let release!:()=>void,entered!:()=>void;const paused=new Promise<void>(r=>entered=r),resume=new Promise<void>(r=>release=r);
+ pausePosting=async()=>{entered();await resume;};
+ const posting=request(f.company,'/accounting-payments','POST',command);await paused;
+ const before=(await admin.query('SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1',[f.company])).rows[0].n;
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'payment-discovery-browser-'));
+ const root=process.cwd(),entry=path.join(dir,'entry.jsx'),bundle=path.join(dir,'bundle.js');
+ const app=express();let browser:ReturnType<typeof cp.spawn>|undefined,posts=0;
+ // Isolated synthetic authenticated session; production Clerk is not bypassed or exercised.
+ app.use('/api/companies/:companyId',(req,_res,next)=>{if(req.method!=='GET')posts++;req.headers['x-test-actor']=actor;next();},createAccountingRouter(auth));
+ app.get('/release',async(_req,res)=>{release();await posting;res.json({ok:true});});
+ const listener=app.listen(0,'127.0.0.1');await new Promise<void>(r=>listener.once('listening',r));
+ try {
+  fs.writeFileSync(entry,`import React,{useSyncExternalStore} from 'react';
+import {createRoot} from 'react-dom/client';
+import {MemoryRouter} from 'react-router-dom';
+import {PaymentToolbar,PaymentRecoveryPanel} from '@/features/paymentRecovery/PaymentControls.jsx';
+import {createPaymentRecovery,recoveryUnresolved} from '@/features/paymentRecovery/model.mjs';
+import {createAccountingClient} from '@/api/accountingDocuments.mjs';
+const recovery=createPaymentRecovery(${JSON.stringify(f.company)},createAccountingClient());
+const caps={post_payments:true,configure_payments:true};let starts=0;
+function App(){const state=useSyncExternalStore(recovery.subscribe,recovery.getSnapshot);return <MemoryRouter><PaymentToolbar capabilities={caps} busy={recoveryUnresolved(state)} ready={true} onStart={()=>starts++}/><PaymentRecoveryPanel state={state} capabilities={caps}/><output>{state?.phase}</output></MemoryRouter>}
+createRoot(document.getElementById('root')).render(<App/>);
+const wait=()=>new Promise(r=>setTimeout(r,80));const assert=(v,m)=>{if(!v)throw Error(m)};
+const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent===text);
+(async()=>{await wait();assert(recovery.getSnapshot()?.phase==='discovery','URL lost-reference mode not mounted');
+ assert(button('Record payment').disabled,'ordinary recording must be locked');
+ assert(!document.body.textContent.includes('Retry same payment'),'no replay without original review');
+ button('Check my recorded payments').click();
+ for(let i=0;i<50&&!recovery.getSnapshot()?.candidates;i++)await wait();
+ assert(recovery.getSnapshot()?.candidates?.length===1,'own server receipt missing');
+ assert(recovery.getSnapshot().phase==='discovery','must not automatically select');
+ assert(button('Record payment').disabled,'candidate list must remain locked');
+ button('This is my event — verify status').click();
+ for(let i=0;i<50&&recovery.getSnapshot()?.phase!=='unknown';i++)await wait();
+ assert(recovery.getSnapshot()?.check==='pending','pending selection must stay unresolved');
+ assert(button('Record payment').disabled,'pending must fence ordinary writes');
+ assert(!document.body.textContent.includes('Retry same payment'),'lost review must remain read-only');
+ await fetch('/release');await recovery.check();
+ assert(recovery.getSnapshot()?.phase==='recorded','selected receipt not verified');assert(starts===0,'unexpected ordinary write start');
+ document.body.dataset.acceptance='passed';document.body.dataset.recovered=recovery.getSnapshot().result.id;
+})().catch(e=>{document.body.dataset.acceptance='failed';document.body.append(document.createTextNode(e.message));});`);
+  createRequire(path.join(root,'artifacts/api-server/package.json'))('esbuild').buildSync({entryPoints:[entry],outfile:bundle,bundle:true,platform:'browser',format:'iife',jsx:'automatic',alias:{'@':path.join(root,'artifacts/ledgerly/src')},nodePaths:[path.join(root,'artifacts/ledgerly/node_modules')],define:{'process.env.NODE_ENV':'"production"'}});
+  app.get('/bundle.js',(_req,res)=>res.type('js').send(fs.readFileSync(bundle,'utf8')));
+  app.get('/payments',(_req,res)=>res.type('html').send('<!doctype html><html><body><div id="root"></div><script src="/bundle.js"></script></body></html>'));
+  browser=cp.spawn('chromium',['--headless','--disable-gpu','--no-first-run','--disable-background-networking','--user-data-dir='+path.join(dir,'profile'),'--dump-dom','--virtual-time-budget=10000','http://127.0.0.1:'+(listener.address() as any).port+'/payments?recover=lost'],{stdio:['ignore','pipe','pipe']});
+  let html='',stderr='';browser.stdout!.on('data',b=>html+=b);browser.stderr!.on('data',b=>stderr+=b);
+  const code=await new Promise<number|null>((resolve,reject)=>{const timer=setTimeout(()=>{browser?.kill('SIGTERM');reject(Error('Bounded browser timeout: '+stderr.slice(-2000)));},30000);browser!.once('error',e=>{clearTimeout(timer);reject(e)});browser!.once('exit',code=>{clearTimeout(timer);resolve(code)})});
+  assert.equal(code,0,stderr.slice(-4000));assert.match(html,/data-acceptance="passed"/,html.slice(-3000));
+  assert.ok(html.includes('data-recovered="'+command.id+'"'));assert.equal(posts,0);
+  assert.equal((await admin.query('SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1',[f.company])).rows[0].n,before+1);
+  console.log('PAYMENT_DISCOVERY_BROWSER_ACCEPTANCE',JSON.stringify({actualComponents:true,nativeApi:true,syntheticSession:true,lostLocator:true,explicitSelection:true,reposts:posts,realClerk:false,pendingAdmission:true}));
+ } finally {release();pausePosting=undefined;await posting;browser?.kill('SIGTERM');await new Promise<void>(r=>listener.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+test('competing fresh identity is fenced before effects; exact same identity continuation stays single-effect',async()=>{
+ const {postPayment}=await import('./payments');
+ for(const same of [false,true]) {
+  const f=await fixture(),doc=await create(f,'sales_invoice',source(f.customer));await post(f,doc);
+  const first=await reviewPayment(f,paymentIntent(f,doc)),second=same?first:await reviewPayment(f,{...first,id:randomUUID()});
+  let release!:()=>void,entered!:()=>void;const admitted=new Promise<void>(r=>entered=r),resume=new Promise<void>(r=>release=r);
+  const firstWrite=postPayment(f.company,actor,first,undefined,undefined,async()=>{entered();await resume;});
+  try {
+   await admitted;
+   const competing=await request(f.company,'/accounting-payments','POST',second);
+   if(same) assert.equal(competing.status,200);
+   else {assert.equal(competing.status,409);assert.equal(competing.error.code,'PAYMENT_ATTEMPT_UNRESOLVED');}
+   release();await firstWrite;
+   assert.equal((await admin.query('SELECT count(*)::int n FROM payment_attempt_admissions WHERE company_id=$1',[f.company])).rows[0].n,1);
+   assert.equal((await admin.query('SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1',[f.company])).rows[0].n,1);
+  } finally {release();await firstWrite.catch(()=>{});}
+ }
+});
+
+test('terminal marker cannot be bypassed by an existing canonical parent transaction',async()=>{
+ const {withCanonicalPostingTransaction}=await import('../accounting/canonicalPosting');
+ const {postPayment}=await import('./payments');
+ const f=await fixture(),doc=await create(f,'sales_invoice',source(f.customer));await post(f,doc);
+ const command=await reviewPayment(f,paymentIntent(f,doc));failNext=true;
+ assert.equal((await request(f.company,'/accounting-payments','POST',command)).status,500);
+ const row=(await admin.query('SELECT * FROM payment_attempt_admissions WHERE company_id=$1 AND request_id=$2',[f.company,command.id])).rows[0];
+ assert.equal((await request(f.company,`/accounting-payments/operations/${command.id}/no-effect`,'POST',{request_hash:row.request_hash,review_hash:row.review_hash})).data.status,'no_effect');
+ await assert.rejects(()=>withCanonicalPostingTransaction(tx=>postPayment(f.company,actor,command,undefined,tx)),(e:any)=>e.code==='PAYMENT_ATTEMPT_TERMINATED');
+ assert.equal((await admin.query('SELECT count(*)::int n FROM accounting_payment_events WHERE id=$1',[command.id])).rows[0].n,0);
+});
+
+test('orphan canonical effect never permits same-ID continuation, no-effect terminal or replacement admission',async()=>{
+ const f=await fixture(),doc=await create(f,'sales_invoice',source(f.customer));await post(f,doc);
+ const command=await reviewPayment(f,paymentIntent(f,doc));failNext=true;
+ assert.equal((await request(f.company,'/accounting-payments','POST',command)).status,500);
+ const row=(await admin.query('SELECT * FROM payment_attempt_admissions WHERE company_id=$1 AND request_id=$2',[f.company,command.id])).rows[0];
+ // Deliberately corrupt only the disposable fixture; immutable evidence is retained for restore.
+ await admin.query(`INSERT INTO accounting_posting_effects(id,company_id,source_type,source_id,posting_kind,
+  economic_effect_id,idempotency_key,command_fingerprint,status,created_by_type,created_by_id)
+  VALUES($1,$2,'accounting_payment_event',$3,'party_payment',$4,$4,'synthetic-orphan','uncertain','user',$5)`,
+  [randomUUID(),f.company,command.id,`payment-event:${command.id}`,actor]);
+ assert.equal((await request(f.company,'/accounting-payments','POST',command)).error.code,'PAYMENT_HISTORY_INVALID');
+ assert.equal((await request(f.company,`/accounting-payments/operations/${command.id}/no-effect`,'POST',{request_hash:row.request_hash,review_hash:row.review_hash})).error.code,'PAYMENT_HISTORY_INVALID');
+ const replacement=await reviewPayment(f,{...command,id:randomUUID()});
+ assert.equal((await request(f.company,'/accounting-payments','POST',replacement)).error.code,'PAYMENT_HISTORY_INVALID');
+ assert.equal((await admin.query('SELECT count(*)::int n FROM payment_attempt_no_effect WHERE company_id=$1',[f.company])).rows[0].n,0);
+});
+
+test('terminal wins while a top-level canonical writer is delayed after committed admission',async()=>{
+ const {postPayment}=await import('./payments');
+ const f=await fixture(),doc=await create(f,'sales_invoice',source(f.customer));await post(f,doc);
+ const command=await reviewPayment(f,paymentIntent(f,doc));
+ let release!:()=>void,entered!:()=>void;const admitted=new Promise<void>(r=>entered=r),resume=new Promise<void>(r=>release=r);
+ const writing=postPayment(f.company,actor,command,undefined,undefined,async()=>{entered();await resume;});
+ try {
+  await admitted;
+  const row=(await admin.query('SELECT * FROM payment_attempt_admissions WHERE company_id=$1 AND request_id=$2',[f.company,command.id])).rows[0];
+  const terminal=await request(f.company,`/accounting-payments/operations/${command.id}/no-effect`,'POST',{request_hash:row.request_hash,review_hash:row.review_hash});
+  assert.equal(terminal.data.status,'no_effect');
+  const rejected=assert.rejects(writing,(e:any)=>e.code==='PAYMENT_ATTEMPT_TERMINATED');release();await rejected;
+  assert.equal((await admin.query('SELECT count(*)::int n FROM accounting_payment_events WHERE id=$1',[command.id])).rows[0].n,0);
+  assert.equal((await admin.query('SELECT count(*)::int n FROM canonical_journal_entries WHERE company_id=$1 AND source_id=$2',[f.company,command.id])).rows[0].n,0);
+ } finally {release();await writing.catch(()=>{});}
+});
+
+test('isolated Chromium: mounted terminal resolution explicitly cancels, confirms and verifies before fresh review',async()=>{
+ const fs=await import('node:fs'),os=await import('node:os'),cp=await import('node:child_process');
+ const {createRequire}=await import('node:module');
+ const f=await fixture(),doc=await create(f,'sales_invoice',source(f.customer));await post(f,doc);
+ const command=await reviewPayment(f,paymentIntent(f,doc));
+ failNext=true;assert.equal((await request(f.company,'/accounting-payments','POST',command)).status,500);
+ const before=(await admin.query('SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1',[f.company])).rows[0].n;
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'payment-discovery-browser-'));
+ const root=process.cwd(),entry=path.join(dir,'entry.jsx'),bundle=path.join(dir,'bundle.js');
+ const app=express();app.use(express.json({limit:'10mb',verify:verifyDraftBody}));app.use(draftParserErrors);let browser:ReturnType<typeof cp.spawn>|undefined,posts=0,reviews=0;
+ let stage='browser startup',report:(value:any)=>void=()=>{};
+ app.post('/acceptance',(req,res)=>{res.json({ok:true});report(req.body);});
+ app.post('/progress',(req,res)=>{stage=String(req.body?.stage??'unknown');res.json({ok:true});});
+ // Isolated synthetic authenticated session; production Clerk is not bypassed or exercised.
+ app.use('/api/companies/:companyId',(req,_res,next)=>{if(req.method!=='GET'){if(req.path.endsWith('/review'))reviews++;else posts++;}req.headers['x-test-actor']=actor;next();},createAccountingRouter(auth));
+ app.get('/revoke',async(_req,res)=>{await admin.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2',[f.company,actor]);res.json({ok:true});});
+ app.get('/restore',async(_req,res)=>{await admin.query('UPDATE company_users SET is_active=true WHERE company_id=$1 AND user_id=$2',[f.company,actor]);res.json({ok:true});});
+ const listener=app.listen(0,'127.0.0.1');await new Promise<void>(r=>listener.once('listening',r));
+ try {
+  fs.writeFileSync(entry,`import React,{useSyncExternalStore} from 'react';
+import {createRoot} from 'react-dom/client';
+import {MemoryRouter} from 'react-router-dom';
+import {PaymentToolbar,PaymentRecoveryPanel} from '@/features/paymentRecovery/PaymentControls.jsx';
+import {createPaymentRecovery,recoveryUnresolved} from '@/features/paymentRecovery/model.mjs';
+import {createAccountingClient} from '@/api/accountingDocuments.mjs';
+import {createPaymentLocator} from '@/features/paymentRecovery/locator.mjs';
+const api=createAccountingClient(),company=${JSON.stringify(f.company)};
+const locator=createPaymentLocator(company);
+const recovery=createPaymentRecovery(company,api,{recoveryRequestId:locator.read(),rememberRequest:id=>locator.remember(id),forgetRequest:locator.forget,nextRecoveryRequest:locator.read});
+let stage='mount';
+const report=(passed,error=null)=>fetch('/acceptance',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({passed,error,stage,freshId})});
+const progress=async value=>{stage=value;await fetch('/progress',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stage})});};
+window.addEventListener('unhandledrejection',event=>{report(false,String(event.reason?.message??event.reason));});
+let caps={post_payments:true,configure_payments:true},starts=0,freshReview=null,freshId=null;
+async function start(){starts++;freshId=crypto.randomUUID();const {review_token,...input}=${JSON.stringify(command)};freshReview=await api.reviewPayment(company,{...input,id:freshId});}
+function App(){const state=useSyncExternalStore(recovery.subscribe,recovery.getSnapshot);return <MemoryRouter><PaymentToolbar capabilities={caps} busy={recoveryUnresolved(state)} ready={true} onStart={start}/><PaymentRecoveryPanel state={state} capabilities={caps} onCheck={()=>recovery.check()}/><output>{state?.phase}</output></MemoryRouter>}
+const root=createRoot(document.getElementById('root'));root.render(<App/>);
+const wait=()=>new Promise(r=>setTimeout(r,80));const assert=(v,m)=>{if(!v)throw Error(m)};
+const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent===text);
+(async()=>{await wait();
+ if(sessionStorage.getItem('terminal-stage')==='fresh') {
+  await progress('fresh page after actual navigation');
+  assert(recovery.getSnapshot()===null&&locator.read()===null,'terminal locator survived navigation');
+  assert(location.search==='','old recovery URL survived navigation');assert(starts===0,'navigation automatically started a payment');
+  assert(!button('Record payment').disabled,'fresh payment remains locked');button('Record payment').click();
+  for(let i=0;i<50&&!freshReview;i++)await wait();
+  assert(starts===1&&freshReview?.review_token&&freshId!==${JSON.stringify(command.id)},'fresh identity review missing');
+  sessionStorage.removeItem('terminal-stage');document.body.dataset.acceptance='passed';await progress('fresh UUID native review verified');await report(true);return;
+ }
+ await progress('lost-reference discovery');
+ assert(recovery.getSnapshot()?.phase==='discovery','URL lost-reference mode not mounted');
+ assert(button('Record payment').disabled,'ordinary recording must be locked');
+ assert(!document.body.textContent.includes('Retry same payment'),'no replay without original review');
+ button('Check my recorded payments').click();
+ for(let i=0;i<50&&!recovery.getSnapshot()?.candidates;i++)await wait();
+ assert(recovery.getSnapshot()?.candidates?.length===1,'own server receipt missing');
+ assert(recovery.getSnapshot().phase==='discovery','must not automatically select');
+ assert(button('Record payment').disabled,'candidate list must remain locked');
+ button('This is my event — verify status').click();
+ for(let i=0;i<50&&recovery.getSnapshot()?.phase!=='unknown';i++)await wait();
+ assert(recovery.getSnapshot()?.check==='pending','pending selection must stay unresolved');
+ assert(button('Record payment').disabled,'pending must fence ordinary writes');
+ assert(!document.body.textContent.includes('Retry same payment'),'lost review must remain read-only');
+ button('Select this attempt to close without effect').click();
+ for(let i=0;i<50&&!recovery.getSnapshot()?.confirming;i++)await wait();
+ assert(recovery.getSnapshot()?.confirming,'confirmation missing');
+ button('Keep checking this attempt').click();await wait();assert(!recovery.getSnapshot().confirming,'cancel failed');
+ assert(button('Record payment').disabled,'cancel must not unlock');
+ button('Select this attempt to close without effect').click();
+ for(let i=0;i<50&&!recovery.getSnapshot()?.confirming;i++)await wait();
+ await progress('selected attempt and cancel verified');
+ caps={post_payments:false};root.render(<App/>);await wait();assert(!button('Confirm close without effect'),'revoked local capability allows confirmation');
+ caps={post_payments:true};root.render(<App/>);await wait();await fetch('/revoke');button('Confirm close without effect').click();
+ for(let i=0;i<50&&!recovery.getSnapshot()?.error;i++)await wait();assert(recovery.getSnapshot()?.error,'revoked server session accepted');assert(button('Record payment').disabled,'denial unlocked');
+ await progress('client and server revocation verified');
+ await fetch('/restore');button('Select this attempt to close without effect').click();
+ for(let i=0;i<50&&!recovery.getSnapshot()?.confirming;i++)await wait();
+ button('Confirm close without effect').click();
+ for(let i=0;i<50&&recovery.getSnapshot()?.check!=='no_effect';i++)await wait();
+ assert(recovery.getSnapshot()?.check==='no_effect','terminal not verified');assert(button('Record payment').disabled,'must await explicit continuation');
+ await progress('terminal verified; explicit navigation next');
+ sessionStorage.setItem('terminal-stage','fresh');button('Continue to a fresh payment review').click();
+})().catch(e=>{document.body.dataset.acceptance='failed';document.body.append(document.createTextNode(e.message));return report(false,e.message);});`);
+  createRequire(path.join(root,'artifacts/api-server/package.json'))('esbuild').buildSync({entryPoints:[entry],outfile:bundle,bundle:true,platform:'browser',format:'iife',jsx:'automatic',alias:{'@':path.join(root,'artifacts/ledgerly/src')},nodePaths:[path.join(root,'artifacts/ledgerly/node_modules')],define:{'process.env.NODE_ENV':'"production"'}});
+  app.get('/bundle.js',(_req,res)=>res.type('js').send(fs.readFileSync(bundle,'utf8')));
+  app.get('/payments',(_req,res)=>res.type('html').send('<!doctype html><html><body><div id="root"></div><script src="/bundle.js"></script></body></html>'));
+  browser=cp.spawn('chromium',['--headless','--disable-gpu','--no-first-run','--disable-background-networking','--user-data-dir='+path.join(dir,'profile'),'http://127.0.0.1:'+(listener.address() as any).port+'/payments?recover=lost'],{stdio:['ignore','pipe','pipe']});
+  let stdout='',stderr='';browser.stdout!.on('data',b=>stdout=(stdout+b).slice(-4000));browser.stderr!.on('data',b=>stderr=(stderr+b).slice(-4000));
+  // Completion is reported by the real reloaded page, not inferred from Chrome's
+  // dump-dom/virtual-time lifecycle. A missing report or early browser exit fails.
+  const acceptance=await new Promise<any>((resolve,reject)=>{
+    const finish=(error:Error|null,value?:any)=>{clearTimeout(timer);browser!.off('error',failed);browser!.off('exit',exited);report=()=>{};error?reject(error):resolve(value);};
+    const failed=(error:Error)=>finish(error);
+    const exited=(code:number|null)=>finish(Error('Browser exited before acceptance at '+stage+' ('+code+'): '+stderr));
+    const timer=setTimeout(()=>finish(Error('Bounded browser timeout at '+stage+': '+stderr+' '+stdout)),30000);
+    report=value=>finish(null,value);browser!.once('error',failed);browser!.once('exit',exited);
+  });
+  assert.equal(acceptance?.passed,true,JSON.stringify(acceptance));
+  assert.equal(acceptance.stage,'fresh UUID native review verified');
+  assert.match(acceptance.freshId,/^[0-9a-f]{8}-[0-9a-f-]{27}$/i);assert.notEqual(acceptance.freshId,command.id);
+  assert.equal(posts,2);assert.equal(reviews,1); // One denied and one confirmed terminal command; no payment repost.
+  assert.equal((await admin.query('SELECT count(*)::int n FROM accounting_payment_events WHERE company_id=$1',[f.company])).rows[0].n,before);
+  console.log('PAYMENT_TERMINAL_BROWSER_ACCEPTANCE',JSON.stringify({actualComponents:true,nativeApi:true,syntheticSession:true,lostLocator:true,explicitSelection:true,terminalPosts:posts,realClerk:false,pendingAdmission:true}));
+ } finally {
+  if(browser?.pid && browser.exitCode===null && browser.signalCode===null) await new Promise<void>(resolve=>{
+    const timer=setTimeout(()=>browser?.kill('SIGKILL'),5000);
+    browser!.once('exit',()=>{clearTimeout(timer);resolve();});browser!.kill('SIGTERM');
+  });
+  listener.closeAllConnections();await new Promise<void>(r=>listener.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true});
+ }
+});
+
+for(const kind of ['sales_invoice','purchase_bill']) test(`${kind}: rejected correction retry cannot forget a delayed original commit`,async()=>{
+ const {pathToFileURL}=await import('node:url');
+ const {createCorrectionController}=await import(pathToFileURL(path.resolve('artifacts/ledgerly/src/features/documentCorrections/model.mjs')).href);
+ const f=await fixture(),foreign=await fixture();
+ const doc=await create(f,kind,source(kind==='sales_invoice'?f.customer:f.supplier));await post(f,doc);
+ const immutable=(await admin.query('SELECT source,money,revision,journal_id FROM accounting_document_sources WHERE id=$1',[doc.id])).rows[0];
+ const originalJournal=(await admin.query('SELECT * FROM canonical_journal_entries WHERE id=$1',[immutable.journal_id])).rows[0];
+ const requestId=randomUUID(),form={reason:'Recover delayed agreed-price correction',effective_date:'2026-10-22',line_items:[{quantity:'1',unit_price:'108'}]};
+ let release!:()=>void,entered!:()=>void;const paused=new Promise<void>(r=>entered=r),resume=new Promise<void>(r=>release=r);
+ let posting:Promise<any>|undefined,posts=0,forgotten=0,locator:string|null=null,user:string|null=actor;
+ const counts=async()=> (await admin.query(`SELECT
+  (SELECT count(*)::int FROM accounting_document_amendments WHERE company_id=$1) amendments,
+  (SELECT count(*)::int FROM canonical_journal_entries WHERE company_id=$1) journals,
+  (SELECT count(*)::int FROM accounting_posting_effects WHERE company_id=$1) effects`,[f.company])).rows[0];
+ const before=await counts();
+ const unwrap=(r:any)=>{if(r.status!==200)throw Object.assign(Error(r.error?.code??'Rejected'),{status:r.status});return r.data;};
+ const client={
+  correctionContext:async(c:string,d:string)=>unwrap(await request(c,`/accounting-documents/${d}/correction-context`,'GET',undefined,undefined,user)),
+  reviewCorrection:async(c:string,d:string,b:any,rev:string)=>unwrap(await request(c,`/accounting-documents/${d}/corrections/review`,'POST',b,rev,user)),
+  commitCorrection:async(c:string,d:string,b:any,rev:string)=>{
+   posts++;
+   if(posts===1){
+    posting=request(c,`/accounting-documents/${d}/corrections`,'POST',b,rev,user);
+    let timeout:ReturnType<typeof setTimeout>|undefined;
+    try {await Promise.race([paused,new Promise((_,reject)=>{timeout=setTimeout(()=>reject(Error('Correction did not reach transaction barrier')),5000);})]);}
+    finally {clearTimeout(timeout);}
+    throw Error('Response lost while original correction remains in flight');
+   }
+   return unwrap(await request(c,`/accounting-documents/${d}/corrections`,'POST',b,rev,user));
+  },
+  recoverCorrection:async(c:string,d:string,id:string)=>unwrap(await request(c,`/accounting-documents/${d}/corrections/operations/${id}`,'GET',undefined,undefined,user)),
+ };
+ const options={client,companyId:f.company,documentId:doc.id,makeRequestId:()=>requestId,
+  rememberRequest:(id:string)=>{locator=id;},forgetRequest:()=>{forgotten++;locator=null;}};
+ const controller=createCorrectionController(options);
+ try {
+  await controller.load();await controller.review(form);assert.equal(controller.state.status,'reviewed');
+  const pending=controller.state.pending;pausePosting=async()=>{entered();await resume;};
+  await controller.post();assert.equal(controller.state.status,'unknown');assert.deepEqual(await counts(),before);
+  user=null;await controller.post();assert.equal(controller.state.error.status,401);
+  assert.equal(controller.state.status,'unknown');assert.equal(controller.state.pending,pending);assert.equal(locator,requestId);assert.equal(forgotten,0);
+  await controller.recover();assert.equal(controller.state.status,'unknown');assert.equal(controller.state.error.status,401);
+  user=actor;await controller.recover();assert.equal(controller.state.status,'unknown');
+  controller.discardReview();await controller.review({...form,reason:'Never create a replacement'});assert.equal(controller.state.pending,pending);
+  controller.dispose();const reloaded=createCorrectionController({...options,recoveryRequestId:locator});
+  await reloaded.load();await reloaded.review(form);await reloaded.post();assert.equal(reloaded.state.status,'unknown');assert.equal(posts,2);
+  release();pausePosting=undefined;const committed=await posting;assert.equal(committed.status,200,JSON.stringify(committed));
+  const knownCounts=await counts();assert.deepEqual(knownCounts,{amendments:before.amendments+1,journals:before.journals+1,effects:before.effects+1});
+  // Foreign-company and another current member cannot recover this actor's result.
+  const otherScope=createCorrectionController({...options,companyId:foreign.company,recoveryRequestId:locator});
+  await otherScope.load();assert.equal(otherScope.state.status,'unknown');assert.equal(otherScope.state.error.status,404);otherScope.dispose();
+  await admin.query('UPDATE company_users SET role=$3 WHERE company_id=$1 AND user_id=$2',[f.company,readOnly,'owner']);
+  user=readOnly;await reloaded.recover();assert.equal(reloaded.state.status,'unknown');assert.equal(reloaded.state.error.status,404);
+  await admin.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
+  user=actor;await reloaded.recover();assert.equal(reloaded.state.status,'unknown');assert.equal(reloaded.state.error.status,404);
+  await admin.query('UPDATE company_users SET is_active=true WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
+  await reloaded.recover();assert.equal(reloaded.state.status,'posted');assert.equal(reloaded.state.receipt.id,requestId);
+  assert.equal(reloaded.state.receipt.journal_id,committed.data.journal_id);assert.equal(reloaded.state.pending,null);
+  await reloaded.post();assert.equal(posts,2);assert.equal(forgotten,0);assert.deepEqual(await counts(),knownCounts);
+  const replay=await request(f.company,`/accounting-documents/${doc.id}/corrections`,'POST',pending.body,pending.revision);
+  assert.equal(replay.status,200);assert.equal(replay.data.status,'duplicate');assert.equal(replay.data.journal_id,committed.data.journal_id);
+  const history=await request(f.company,`/accounting-documents/${doc.id}/corrections`);
+  assert.equal(history.status,200);assert.equal(history.data.amendments.length,1);assert.equal(history.data.amendments[0].journal_id,committed.data.journal_id);
+  assert.deepEqual((await admin.query('SELECT source,money,revision,journal_id FROM accounting_document_sources WHERE id=$1',[doc.id])).rows[0],immutable);
+  assert.deepEqual((await admin.query('SELECT * FROM canonical_journal_entries WHERE id=$1',[immutable.journal_id])).rows[0],originalJournal);
+  assert.deepEqual(await counts(),knownCounts);reloaded.dispose();
+ } finally {release();pausePosting=undefined;await posting;controller.dispose();}
+});
+
+for(const kind of ['purchase_bill','supplier_credit_note']) test(`isolated Chromium: ${kind} capture recovers a lost save response across reload and scope changes`,async()=>{
+ const fs=await import('node:fs'),os=await import('node:os'),cp=await import('node:child_process');
+ const {createRequire}=await import('node:module');
+ const f=await fixture(),other=await fixture(),upload=captureUpload(),s=await captured(f,upload);
+ let envelope:any=captureEnvelope(f);
+ if(kind==='supplier_credit_note') {
+  const bill=await create(f,'purchase_bill',source(f.supplier));await post(f,bill);
+  envelope={kind,purchase_vat_eligible:true,
+   source:{...bill.source,invoice_number:'CAPTURE-RECOVERY-'+randomUUID(),line_items:bill.source.line_items.map((l:any)=>({...l,quantity:'0.5'}))},
+   original_id:bill.id,original_line_refs:[0],reason:'Returned half of the original supply',
+   adjustment_method:'offset_outstanding',effective_adjustment_date:bill.source.issue_date};
+ }
+ const count=async(table:string)=>Number((await admin.query(`SELECT count(*) n FROM ${table} WHERE company_id=$1`,[f.company])).rows[0].n);
+ const before={documents:await count('accounting_document_sources'),journals:await count('canonical_journal_entries')};
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'capture-recovery-browser-'));
+ const root=process.cwd(),entry=path.join(dir,'entry.jsx'),bundle=path.join(dir,'bundle.js');
+ const app=express();app.use(express.json({limit:'10mb',verify:verifyDraftBody}));app.use(draftParserErrors);
+ let browser:ReturnType<typeof cp.spawn>|undefined,posts=0,reviews=0,pageLoads=0,signedIn=true,dropped=false,documentId:string|undefined,submittedIntent:any;
+ let acceptanceTimer:ReturnType<typeof setTimeout>|undefined;
+ let stage='browser startup',report:(value:any)=>void=()=>{};
+ app.post('/acceptance',(req,res)=>{res.json({ok:true});report(req.body);});
+ app.post('/progress',(req,res)=>{stage=String(req.body?.stage??'unknown');res.json({ok:true});});
+ app.get('/scenario',(_req,res)=>res.json({reloaded:pageLoads>1}));
+ app.post('/session/:action',async(req,res)=>{
+  if(req.params.action==='logout')signedIn=false;
+  else if(req.params.action==='login')signedIn=true;
+  else if(['revoke','restore'].includes(req.params.action))await admin.query('UPDATE company_users SET is_active=$3 WHERE company_id=$1 AND user_id=$2',[f.company,actor,req.params.action==='restore']);
+  else {res.status(400).end();return;}
+  res.json({ok:true});
+ });
+ // Only this loopback fixture supplies a synthetic identity. Native company/member
+ // authorization still runs, and the committed response is lost at the transport.
+ app.use('/api/companies/:companyId/document-intake',(req,res,next)=>{
+  if(signedIn)req.headers['x-test-actor']=actor;
+  if(req.method==='POST'&&req.path.endsWith('/review'))reviews++;
+  if(req.method==='POST'&&req.path.endsWith('/draft')) {
+   posts++;submittedIntent=structuredClone(req.body);const json=res.json.bind(res);
+   res.json=((body:any)=>{
+    if(!dropped&&res.statusCode===201) {
+     dropped=true;documentId=body.data.document.id;
+     // Start the committed response before interrupting its body. An empty
+     // socket close can be transparently retried by the browser, obscuring the
+     // uncertain-outcome path this scenario must exercise.
+     res.type('json').set('Content-Length',String(Buffer.byteLength(JSON.stringify(body))));
+     res.flushHeaders();res.write('{"data":',()=>res.destroy());return res;
+    }
+    return json(body);
+   }) as typeof res.json;
+  }
+  next();
+ },createDocumentIntakeRouter(auth));
+ const listener=app.listen(0,'127.0.0.1');await new Promise<void>(r=>listener.once('listening',r));
+ try {
+  fs.writeFileSync(entry,`import React from 'react';
+import {createRoot} from 'react-dom/client';
+import {MemoryRouter} from 'react-router-dom';
+import {useCaptureDraft} from '@/features/documentIntake/useDocumentIntake.jsx';
+import {CaptureSourceReview,CaptureDraftActions} from '@/features/documentIntake/CaptureReview.jsx';
+import {sourceOpenPath} from '@/features/documentIntake/presentation.mjs';
+const originalCompany=${JSON.stringify(f.company)},foreignCompany=${JSON.stringify(other.company)},sourceId=${JSON.stringify(s.id)},envelope=${JSON.stringify(envelope)};
+let companyId=originalCompany,scope=0,mount=0,capture,stage='mount';
+const report=(passed,error=null)=>fetch('/acceptance',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({passed,error,stage,documentId:capture?.source?.document_id})});
+const progress=async value=>{stage=value;await fetch('/progress',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stage})});};
+window.addEventListener('unhandledrejection',event=>{report(false,String(event.reason?.message??event.reason));});
+function App(){capture=useCaptureDraft({companyId,sourceId,kind:envelope.kind,envelope,scope});return <MemoryRouter><form onSubmit={event=>{event.preventDefault();const action=event.nativeEvent.submitter?.value;if(action==='review')void capture.reviewEnvelope(envelope);if(action==='save')void capture.saveDraft(envelope);}}><CaptureSourceReview capture={capture} companyId={companyId}/><CaptureDraftActions capture={capture} canEdit={true}/></form></MemoryRouter>}
+const root=createRoot(document.getElementById('root'));const render=()=>root.render(<App key={mount}/>);render();
+const assert=(value,message)=>{if(!value)throw Error(message)};
+const wait=()=>new Promise(resolve=>setTimeout(resolve,40));
+const until=async(predicate,message)=>{for(let i=0;i<150;i++){if(predicate())return;await wait();}throw Error(message);};
+const button=text=>[...document.querySelectorAll('button')].find(item=>item.textContent===text);
+const linked=()=>[...document.querySelectorAll('a')].find(item=>item.textContent==='Open the existing document');
+const assertLinked=()=>{assert(capture.source?.document_id&&linked()?.getAttribute('href')===sourceOpenPath(capture.source),'canonical existing document link missing');assert(!button('Save linked draft')&&!button('Review details & totals'),'linked source offers a replacement draft');};
+const assertDenied=()=>{assert(!capture.source&&!linked()&&!document.querySelector('[aria-label="Review source before saving"]'),'denied scope retained source or write controls');};
+const changeScope=async(company,status)=>{companyId=company;scope++;render();await until(()=>!capture.loading&&capture.error?.status===status,'scope denial missing '+status);assertDenied();};
+const session=async action=>{const response=await fetch('/session/'+action,{method:'POST'});assert(response.ok,'synthetic session transition failed');};
+(async()=>{
+ const scenario=await fetch('/scenario').then(response=>response.json());
+ await until(()=>capture&&!capture.loading,'initial source lookup stalled');
+ if(scenario.reloaded) {
+  await progress('actual reload recovered persisted source link');assertLinked();
+  assert(new URLSearchParams(location.search).get('capture')===sourceId,'source locator lost on reload');
+  assert(localStorage.length===0&&sessionStorage.length===0,'capture persisted browser state');
+  await session('logout');mount++;render();await until(()=>!capture.loading&&capture.error?.status===401,'signed-out mount accepted');assertDenied();
+  await session('login');mount++;render();await until(()=>Boolean(capture.source?.document_id),'re-login did not recover draft');assertLinked();
+  await session('revoke');capture.refresh();await until(()=>!capture.loading&&capture.error?.status===404,'removed member read accepted');assertDenied();
+  await session('restore');capture.refresh();await until(()=>Boolean(capture.source?.document_id),'restored membership did not recover draft');assertLinked();
+  assert(localStorage.length===0&&sessionStorage.length===0,'session recovery persisted browser state');
+  await progress('reload login membership and isolation verified');await report(true);return;
+ }
+ await progress('explicit source review and acknowledgements');
+ assert(capture.source?.id===sourceId&&capture.canManage,'unlinked source unavailable');
+ assert(!button('Save linked draft'),'draft save available before review');button('Review details & totals').click();
+ await until(()=>Boolean(capture.currentReview),'native review missing');assert(button('Save linked draft').disabled,'save enabled without acknowledgements');
+ const checks=[...document.querySelectorAll('input[type="checkbox"]')];assert(checks.length===3,'review acknowledgements missing');
+ for(let index=0;index<checks.length;index++){checks[index].click();await wait();if(index<2)assert(button('Save linked draft').disabled,'partial acknowledgement unlocked save');}
+ assert(!button('Save linked draft').disabled,'fully reviewed save disabled');button('Save linked draft').click();
+ await until(()=>Boolean(capture.error)&&!capture.busy,'lost response not exposed');
+ assert(!linked(),'lost response was treated as verified success');assert(button('Retry'),'read-only source retry unavailable');
+ await progress('lost response; refresh persisted source');button('Retry').click();
+ await until(()=>Boolean(capture.source?.document_id),'refresh did not discover committed draft');assertLinked();
+ await changeScope(foreignCompany,404);
+ companyId=originalCompany;scope++;render();await until(()=>Boolean(capture.source?.document_id),'return to original company lost draft');assertLinked();
+ assert(localStorage.length===0&&sessionStorage.length===0,'financial state entered browser storage');
+ await progress('company isolation verified; actual reload next');location.reload();
+})().catch(error=>report(false,error.message));`);
+  createRequire(path.join(root,'artifacts/api-server/package.json'))('esbuild').buildSync({entryPoints:[entry],outfile:bundle,bundle:true,platform:'browser',format:'iife',jsx:'automatic',alias:{'@':path.join(root,'artifacts/ledgerly/src')},nodePaths:[path.join(root,'artifacts/ledgerly/node_modules')],define:{'process.env.NODE_ENV':'"production"'}});
+  app.get('/bundle.js',(_req,res)=>res.type('js').send(fs.readFileSync(bundle,'utf8')));
+  app.get('/capture',(_req,res)=>{pageLoads++;res.type('html').send('<!doctype html><html><body><div id="root"></div><script src="/bundle.js"></script></body></html>');});
+  const acceptance=new Promise<any>((resolve,reject)=>{
+   acceptanceTimer=setTimeout(()=>reject(Error('Bounded capture browser timeout at '+stage)),45000);
+   report=value=>{clearTimeout(acceptanceTimer);resolve(value);};
+  });
+  browser=cp.spawn('chromium',['--headless','--disable-gpu','--no-first-run','--disable-background-networking','--user-data-dir='+path.join(dir,'profile'),'http://127.0.0.1:'+(listener.address() as any).port+'/capture?capture='+s.id],{stdio:['ignore','pipe','pipe']});
+  let stderr='';browser.stderr!.on('data',chunk=>stderr=(stderr+chunk).slice(-4000));browser.stdout!.resume();
+  const failed=new Promise<never>((_resolve,reject)=>{browser!.once('error',reject);browser!.once('exit',code=>reject(Error('Browser exited before capture acceptance ('+code+'): '+stderr)));});
+  const result=await Promise.race([acceptance,failed]);
+  assert.equal(result?.passed,true,JSON.stringify({...result,posts,reviews,dropped,pageLoads,committedDocumentId:documentId}));assert.equal(result.stage,'reload login membership and isolation verified');
+  assert.equal(dropped,true);assert.equal(posts,1,'recovery must never replay create');assert.equal(reviews,1);assert.equal(pageLoads,2,'actual page reload required');
+  assert.equal(result.documentId,documentId);assert.equal(await count('accounting_document_sources'),before.documents+1);assert.equal(await count('canonical_journal_entries'),before.journals,'capture must not post');
+  const persisted=(await request(f.company,`/document-intake/${s.id}`)).data.source;
+  assert.equal(persisted.document_id,documentId);assert.equal(persisted.document_kind,kind);
+  const document=(await request(f.company,`/accounting-documents/${documentId}`)).data;
+  assert.equal(document.status,'draft');assert.equal(document.money.gross_pence,kind==='purchase_bill'?'12000':'6000');
+  const replay=await request(f.company,`/document-intake/${s.id}/draft`,'POST',submittedIntent,s.revision);
+  assert.equal(replay.status,200);assert.equal(replay.data.duplicate,true);assert.equal(replay.data.document.id,documentId);
+  assert.equal(await count('accounting_document_sources'),before.documents+1);assert.equal(await count('canonical_journal_entries'),before.journals);
+  assert.equal((await admin.query("SELECT count(*)::int n FROM document_intake_audit WHERE source_id=$1 AND action='draft_created'",[s.id])).rows[0].n,1);
+  const evidence=(await admin.query('SELECT filename,content FROM document_intake_sources WHERE id=$1',[s.id])).rows[0];
+  assert.equal(evidence.filename,upload.filename);assert.deepEqual(evidence.content,Buffer.from(upload.content_base64,'base64'));
+  console.log('CAPTURE_RECOVERY_BROWSER_ACCEPTANCE',JSON.stringify({kind,actualComponents:true,nativeApi:true,lostCommittedResponse:true,actualReload:true,companyIsolation:true,removedMemberDenied:true,syntheticRelogin:true,realClerk:false,draftPosts:posts,browserStorageEmpty:true}));
+ } finally {
+  clearTimeout(acceptanceTimer);report=()=>{};
+  if(browser?.pid&&browser.exitCode===null&&browser.signalCode===null)await new Promise<void>(resolve=>{
+   const timer=setTimeout(()=>browser?.kill('SIGKILL'),5000);browser!.once('exit',()=>{clearTimeout(timer);resolve();});browser!.kill('SIGTERM');
+  });
+  listener.closeAllConnections();await new Promise<void>(r=>listener.close(()=>r()));fs.rmSync(dir,{recursive:true,force:true,maxRetries:5,retryDelay:100});
+ }
+});
+
+async function recordedCorrectionFixture(kind:string) {
+ const f=await fixture(),doc=await create(f,kind,source(kind==='sales_invoice'?f.customer:f.supplier));await post(f,doc);
+ const intent={request_id:randomUUID(),reason:'Synthetic discoverable correction',effective_date:'2026-10-22',line_items:[{quantity:'1',unit_price:'108'}]};
+ const reviewed=await request(f.company,`/accounting-documents/${doc.id}/corrections/review`,'POST',intent,doc.revision);
+ assert.equal(reviewed.status,200,JSON.stringify(reviewed));
+ const posted=await request(f.company,`/accounting-documents/${doc.id}/corrections`,'POST',{...intent,review_token:reviewed.data.review_token},doc.revision);
+ assert.equal(posted.status,200,JSON.stringify(posted));return {f,doc,intent,receipt:posted.data};
+}
+for(const kind of ['sales_invoice','purchase_bill']) test(`${kind}: correction discovery is actor-filtered read-only validated history`,async()=>{
+ const {f,doc,intent,receipt}=await recordedCorrectionFixture(kind),other=await fixture(),another='correction-discovery-'+randomUUID();
+ await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES($1,$2,$3,'owner',true)",[randomUUID(),f.company,another]);
+ const route=`/accounting-documents/${doc.id}/corrections/operations`;
+ const empty=await request(f.company,route,'GET',undefined,undefined,another);assert.deepEqual(empty.data,{company_id:f.company,document_id:doc.id,has_more:false,receipts:[]});
+ const second={...intent,request_id:randomUUID(),reason:'Other actor correction',line_items:[{quantity:'1',unit_price:'96'}]};
+ const review=await request(f.company,`/accounting-documents/${doc.id}/corrections/review`,'POST',second,receipt.revision,another);assert.equal(review.status,200);
+ const posted=await request(f.company,`/accounting-documents/${doc.id}/corrections`,'POST',{...second,review_token:review.data.review_token},receipt.revision,another);assert.equal(posted.status,200);
+ const snapshot=async()=>(await admin.query(`SELECT
+  (SELECT jsonb_agg(to_jsonb(x) ORDER BY id) FROM accounting_document_amendments x WHERE company_id=$1) amendments,
+  (SELECT jsonb_agg(to_jsonb(x) ORDER BY id) FROM canonical_journal_entries x WHERE company_id=$1) journals,
+  (SELECT jsonb_agg(to_jsonb(x) ORDER BY id) FROM canonical_journal_lines x WHERE company_id=$1) lines,
+  (SELECT jsonb_agg(to_jsonb(x) ORDER BY id) FROM accounting_posting_effects x WHERE company_id=$1) effects,
+  (SELECT to_jsonb(x) FROM accounting_document_sources x WHERE company_id=$1 AND id=$2) original`,[f.company,doc.id])).rows[0];
+ const before=await snapshot();
+ const found=await request(f.company,route);assert.equal(found.status,200);assert.equal(found.data.has_more,false);
+ assert.deepEqual(found.data.receipts,[{request_id:intent.request_id,document_id:doc.id,revision:receipt.revision,journal_id:receipt.journal_id,effective_date:intent.effective_date,reason:intent.reason}]);
+ const own=await request(f.company,route,'GET',undefined,undefined,another);assert.equal(own.data.receipts.length,1);assert.equal(own.data.receipts[0].request_id,second.request_id);
+ const known=await request(f.company,route+'/'+intent.request_id);assert.equal(known.data.receipt.journal_id,receipt.journal_id);
+ assert.equal((await request(f.company,route+'/'+intent.request_id,'GET',undefined,undefined,another)).status,404);
+ assert.equal((await request(f.company,route,'GET',undefined,undefined,null)).status,401);
+ assert.equal((await request(f.company,route,'GET',undefined,undefined,readOnly)).status,403);
+ assert.equal((await request(other.company,route)).status,404);
+ assert.equal((await request(f.company,route+'?actor='+another)).status,400);
+ assert.notEqual((await request(f.company,'/accounting-documents/not-a-uuid/corrections/operations')).status,200);
+ const draft=await create(f,kind,source(kind==='sales_invoice'?f.customer:f.supplier));
+ assert.equal((await request(f.company,`/accounting-documents/${draft.id}/corrections/operations`)).status,409);
+ const current=await request(f.company,`/accounting-documents/${doc.id}`);assert.equal(current.status,200);
+ const credit=await creditDoc(f,current.data,'0.1','2026-10-23');
+ assert.equal((await request(f.company,`/accounting-documents/${credit.id}/corrections/operations`)).status,409);
+ await admin.query('UPDATE company_users SET is_active=false WHERE company_id=$1 AND user_id=$2',[f.company,actor]);
+ assert.equal((await request(f.company,route)).status,404);assert.equal((await request(f.company,route+'/'+intent.request_id)).status,404);
+ assert.deepEqual(await snapshot(),before);
+});
+
+for(const kind of ['sales_invoice','purchase_bill']) test(`isolated Chromium: ${kind} discovers and verifies a recorded correction without its locator`,async()=>{
+ const fs=await import('node:fs'),cp=await import('node:child_process'),{createRequire}=await import('node:module');
+ const {f,doc,intent,receipt}=await recordedCorrectionFixture(kind);
+ const snapshot=async()=>(await admin.query(`SELECT
+  (SELECT jsonb_agg(to_jsonb(x) ORDER BY id) FROM accounting_document_amendments x WHERE company_id=$1) amendments,
+  (SELECT jsonb_agg(to_jsonb(x) ORDER BY id) FROM canonical_journal_entries x WHERE company_id=$1) journals,
+  (SELECT jsonb_agg(to_jsonb(x) ORDER BY id) FROM canonical_journal_lines x WHERE company_id=$1) lines,
+  (SELECT jsonb_agg(to_jsonb(x) ORDER BY id) FROM accounting_posting_effects x WHERE company_id=$1) effects,
+  (SELECT to_jsonb(x) FROM accounting_document_sources x WHERE company_id=$1 AND id=$2) original`,[f.company,doc.id])).rows[0];
+ const before=await snapshot();assert.equal(before.amendments.length,1);assert.equal(before.journals.length,2);
+ const dir=fs.mkdtempSync('/tmp/correction-discovery-browser-'),root=process.cwd(),entry=path.join(dir,'entry.jsx'),bundle=path.join(dir,'bundle.js');
+ const app=express();app.use(express.json());let pageLoads=0,posts=0,lists=0,reads=0,stage='startup',report:(value:any)=>void=()=>{};
+ let browser:ReturnType<typeof cp.spawn>|undefined,timer:ReturnType<typeof setTimeout>|undefined;
+ app.post('/acceptance',(req,res)=>{res.json({ok:true});report(req.body);});
+ app.post('/progress',(req,res)=>{stage=String(req.body.stage);res.json({ok:true});});
+ app.get('/scenario',(_req,res)=>res.json({reloaded:pageLoads>1}));
+ app.use('/api/companies/:companyId',(req,res,next)=>{req.headers['x-test-actor']=actor;if(req.method!=='GET')posts++;
+  if(req.path.endsWith('/corrections/operations'))lists++;else if(req.path.includes('/corrections/operations/'))reads++;next();},createAccountingRouter(auth));
+ const listener=app.listen(0,'127.0.0.1');await new Promise<void>(r=>listener.once('listening',r));
+ try {
+  fs.writeFileSync(entry,`import React,{useState} from 'react';import {createRoot} from 'react-dom/client';import {MemoryRouter} from 'react-router-dom';
+import DocumentCorrections from '@/features/documentCorrections/DocumentCorrections.jsx';
+const expected=${JSON.stringify(receipt)},sourceRequest=${JSON.stringify(intent.request_id)};let refreshes=0;
+const assert=(ok,message)=>{if(!ok)throw Error(message)};
+const report=(passed,error=null)=>fetch('/acceptance',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({passed,error,refreshes})});
+window.addEventListener('unhandledrejection',e=>report(false,String(e.reason?.message??e.reason)));window.addEventListener('error',e=>report(false,e.message));
+function App(){const[confirmed,setConfirmed]=useState(null);return <MemoryRouter><DocumentCorrections companyId=${JSON.stringify(f.company)} documentId=${JSON.stringify(doc.id)} onSaved={receipt=>{assert(!new URLSearchParams(location.search).has('correction_request')&&!new URLSearchParams(location.search).has('correction_recovery'),'locator must clear before refresh');assert(receipt.id===sourceRequest&&receipt.revision===expected.revision&&receipt.journal_id===expected.journal_id,'receipt identity mismatch');refreshes++;setConfirmed(receipt);}}/>{confirmed&&<p data-testid="verified-correction">Verified correction {confirmed.id}</p>}</MemoryRouter>}
+createRoot(document.getElementById('root')).render(<App/>);
+const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent===text);
+const wait=async(fn,label)=>{await fetch('/progress',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stage:label})});for(let i=0;i<160;i++){if(fn())return;await new Promise(r=>setTimeout(r,25));}throw Error('Timed out: '+label+' '+document.body.textContent.slice(-1800));};
+(async()=>{const scenario=await fetch('/scenario').then(r=>r.json());
+ await wait(()=>button('Find a recorded correction'),'entry');
+ if(!scenario.reloaded){assert(!new URLSearchParams(location.search).has('correction_request'),'fixture unexpectedly has locator');button('Find a recorded correction').click();}
+ await wait(()=>button('This is my correction — verify receipt'),'explicit choice');
+ assert(document.body.textContent.includes(sourceRequest),'actor receipt missing');assert(refreshes===0&&!document.querySelector('[data-testid="verified-correction"]'),'automatic receipt selection');
+ assert(!button('Post correction')&&!button('Review revised amounts'),'discovery exposed write controls');
+ assert(localStorage.length===0&&sessionStorage.length===0,'financial state stored in browser');
+ if(!scenario.reloaded){assert(new URLSearchParams(location.search).get('correction_recovery')==='lost','discovery mode not retained');location.reload();return;}
+ button('This is my correction — verify receipt').click();await wait(()=>document.querySelector('[data-testid="verified-correction"]'),'fresh verified receipt');
+ assert(refreshes===1,'parent refreshed more than once');assert(!document.querySelector('[aria-label="Find a recorded correction"]'),'recovery did not close');
+ assert(localStorage.length===0&&sessionStorage.length===0,'receipt persisted financial browser data');await report(true);
+})().catch(e=>report(false,e.message));`);
+  createRequire(path.join(root,'artifacts/api-server/package.json'))('esbuild').buildSync({entryPoints:[entry],outfile:bundle,bundle:true,platform:'browser',format:'iife',jsx:'automatic',alias:{'@':path.join(root,'artifacts/ledgerly/src')},nodePaths:[path.join(root,'artifacts/ledgerly/node_modules')],define:{'process.env.NODE_ENV':'"production"'}});
+  app.get('/bundle.js',(_req,res)=>res.type('js').send(fs.readFileSync(bundle,'utf8')));
+  app.get('/correction',(_req,res)=>{pageLoads++;res.type('html').send('<!doctype html><html><body><div id="root"></div><script src="/bundle.js"></script></body></html>');});
+  const acceptance=new Promise<any>((resolve,reject)=>{timer=setTimeout(()=>reject(Error('Bounded correction discovery timeout at '+stage)),35000);report=value=>{clearTimeout(timer);resolve(value);};});
+  browser=cp.spawn('chromium',['--headless','--disable-gpu','--no-first-run','--disable-background-networking','--user-data-dir='+path.join(dir,'profile'),'http://127.0.0.1:'+(listener.address() as any).port+'/correction'],{stdio:['ignore','pipe','pipe']});
+  let stderr='';browser.stderr!.on('data',chunk=>stderr=(stderr+chunk).slice(-4000));browser.stdout!.resume();
+  const failure=new Promise<never>((_,reject)=>{browser!.once('error',reject);browser!.once('exit',code=>reject(Error('Browser exited before verification '+code+': '+stderr)));});
+  const result=await Promise.race([acceptance,failure]);assert.equal(result.passed,true,JSON.stringify({...result,stage}));assert.equal(result.refreshes,1);
+  assert.equal(posts,0);assert.equal(lists,2);assert.equal(reads,1);assert.equal(pageLoads,2);assert.deepEqual(await snapshot(),before);
+  console.log('CORRECTION_DISCOVERY_BROWSER_ACCEPTANCE',JSON.stringify({kind,actualComponents:true,nativeApi:true,missingLocator:true,explicitSelection:true,freshReceipt:true,actualReload:true,parentRefreshes:1,posts:0,browserStorageEmpty:true,realClerk:false}));
+ } finally {
+  clearTimeout(timer);
+  report=()=>{};
+  if(browser?.pid && browser.exitCode===null && browser.signalCode===null) {
+   await new Promise<void>(resolve=>{
+    const force=setTimeout(()=>browser?.kill('SIGKILL'),5000);
+    browser!.once('exit',()=>{clearTimeout(force);resolve();});
+    browser!.kill('SIGTERM');
+   });
+  }
+  const closed=new Promise<void>(resolve=>listener.close(()=>resolve()));
+  listener.closeAllConnections();
+  await closed;
+  // Chromium helpers can still write profile files briefly after the main process exits.
+  await fs.promises.rm(dir,{recursive:true,force:true,maxRetries:6,retryDelay:100});
+ }
+});
+
+registerCorrectionAdmissionJourney({fixture,create,post,source,request,admin,actor,readOnly,socket});

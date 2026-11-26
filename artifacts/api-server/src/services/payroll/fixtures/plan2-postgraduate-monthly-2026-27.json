@@ -1,0 +1,49 @@
+{
+  "scope": "Synthetic reference examples for one active Plan 2 and one active postgraduate loan, regular monthly Class 1 NI earnings, no protected earnings restriction or correction.",
+  "taxYear": "2026-27",
+  "source": "https://www.gov.uk/government/publications/payroll-technical-specifications-student-loans/collection-of-student-loans-from-6-april-2026",
+  "cases": [
+    {
+      "earningsMinor": "175000",
+      "plan2Minor": "0",
+      "postgraduateMinor": "0",
+      "totalMinor": "0"
+    },
+    {
+      "earningsMinor": "176666",
+      "plan2Minor": "0",
+      "postgraduateMinor": "0",
+      "totalMinor": "0"
+    },
+    {
+      "earningsMinor": "176667",
+      "plan2Minor": "0",
+      "postgraduateMinor": "100",
+      "totalMinor": "100"
+    },
+    {
+      "earningsMinor": "244875",
+      "plan2Minor": "0",
+      "postgraduateMinor": "4100",
+      "totalMinor": "4100"
+    },
+    {
+      "earningsMinor": "245986",
+      "plan2Minor": "0",
+      "postgraduateMinor": "4200",
+      "totalMinor": "4200"
+    },
+    {
+      "earningsMinor": "245987",
+      "plan2Minor": "100",
+      "postgraduateMinor": "4200",
+      "totalMinor": "4300"
+    },
+    {
+      "earningsMinor": "250400",
+      "plan2Minor": "400",
+      "postgraduateMinor": "4500",
+      "totalMinor": "4900"
+    }
+  ]
+}

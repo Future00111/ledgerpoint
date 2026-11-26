@@ -70,13 +70,56 @@ test('real PostgreSQL: absent amendment pair preserves original projection and d
   });
 });
 
-test('real PostgreSQL: missing amendment lookup column aborts projection with no repair or writes', async () => {
+test('real PostgreSQL: every missing, mistyped or nullable amendment column blocks projection', async () => {
+  const relations = ['accounting_document_amendments','accounting_document_amendment_heads'];
+  const { rows } = await admin.query(`SELECT c.relname, a.attname, format_type(a.atttypid,a.atttypmod) AS type
+    FROM pg_catalog.pg_attribute a JOIN pg_catalog.pg_class c ON c.oid=a.attrelid
+    WHERE c.relnamespace='public'::regnamespace AND c.relname=ANY($1)
+      AND a.attnum>0 AND NOT a.attisdropped ORDER BY c.relname,a.attnum`,[relations]);
+  assert.equal(rows.length,26);
+  const unavailable = error => error.code === 'CORRECTION_SCHEMA_INCOMPLETE' && error.status === 503;
   await unchangedAfterRollback(async () => {
-    await admin.query('ALTER TABLE accounting_document_amendment_heads RENAME COLUMN company_id TO partial_schema_company');
-    await restricted();
-    // The existing service fails at the SQL read; it does not yet provide a typed
-    // whole-schema compatibility error. P03-03 must add that wider startup gate.
-    await assert.rejects(() => amendmentHistory(admin, original.id, original), error => error.code === '42703');
+    for (const {relname,attname,type} of rows) {
+      assert.ok(relations.includes(relname) && /^[a-z_]+$/.test(attname));
+      await admin.query('SAVEPOINT column_rehearsal');
+      await admin.query(`ALTER TABLE public.${relname} RENAME COLUMN ${attname} TO rehearsal_held`);
+      await restricted();
+      await assert.rejects(()=>amendmentHistory(admin,original.id,original),unavailable);
+      await admin.query('RESET ROLE');
+      await admin.query(`ALTER TABLE public.${relname} ADD COLUMN ${attname} boolean NOT NULL DEFAULT false`);
+      await restricted();
+      await assert.rejects(()=>amendmentHistory(admin,original.id,original),unavailable);
+      await admin.query('RESET ROLE');
+      await admin.query(`ALTER TABLE public.${relname} DROP COLUMN ${attname}`);
+      await admin.query(`ALTER TABLE public.${relname} ADD COLUMN ${attname} ${type}`);
+      await restricted();
+      await assert.rejects(()=>amendmentHistory(admin,original.id,original),unavailable);
+      await admin.query('ROLLBACK TO SAVEPOINT column_rehearsal');
+      await admin.query('RELEASE SAVEPOINT column_rehearsal');
+    }
+    assert.equal(await amendmentSchema(admin),true);
+  });
+});
+
+test('correction reads require each installed append-only and head guard to fire on replica and ordinary writes', async () => {
+  const guards = {
+    accounting_document_amendments:['accounting_amendment_immutable','accounting_amendment_no_truncate'],
+    accounting_document_amendment_heads:['accounting_amendment_head_guard','accounting_amendment_head_no_truncate'],
+  };
+  await unchangedAfterRollback(async () => {
+    for (const [table,triggers] of Object.entries(guards)) {
+      for (const trigger of triggers) {
+        for (const mode of ['DISABLE','ENABLE','ENABLE REPLICA']) {
+          await admin.query('SAVEPOINT guard_rehearsal');
+          await admin.query(`ALTER TABLE public.${table} ${mode} TRIGGER ${trigger}`);
+          await restricted();
+          await assert.rejects(()=>amendmentSchema(admin),{code:'CORRECTION_SCHEMA_INCOMPLETE'});
+          await admin.query('ROLLBACK TO SAVEPOINT guard_rehearsal');
+          await admin.query('RELEASE SAVEPOINT guard_rehearsal');
+        }
+      }
+    }
+    assert.equal(await amendmentSchema(admin),true);
   });
 });
 
@@ -336,4 +379,224 @@ test('real PostgreSQL: interrupted migration-history recording leaves no DDL or 
     await candidate.query('COMMIT');
     assert.deepEqual((await candidate.query('SELECT id FROM schema_migrations')).rows.map(row => row.id).sort(), Object.keys(inputs).sort());
   } finally { await candidate.end(); await admin.query(`DROP DATABASE ${database}`); }
+});
+
+test('populated backup rehearses the amendment upgrade, rollback, retry and restored readback', async () => {
+  const sourceDb = 'ledgerly_upgrade_source_test', targetDb = 'ledgerly_upgrade_copy_test';
+  const restoredDb = 'ledgerly_upgrade_restored_test';
+  const { execFileSync,spawnSync,spawn } = await import('node:child_process');
+  const { installSchema, exportSchema } = await import(
+    pathToFileURL(path.join(process.cwd(),'tools/accounting-flow/schema.mjs')).href);
+  const { inputs, checkInstalledMigrationHistory, expectedMigrationHistory, appendLegacyDependencyCorrection } = await historyAPI();
+  const databases = [], clients = [];
+  const connect = async name => {
+    // Names originate only from this rehearsal. CREATE must succeed before cleanup owns the database.
+    await admin.query('CREATE DATABASE '+name);
+    databases.push(name);
+    const client = new pg.Client({host:socket,port:55441,user:'w03_bootstrap',database:name,ssl:false});
+    clients.push(client);
+    await client.connect();
+    return client;
+  };
+  const args = name => ['-h',socket,'-p','55441','-U','w03_bootstrap','-d',name];
+  const dump = name => execFileSync('pg_dump',[...args(name),'--format=custom'],{maxBuffer:64*1024*1024});
+  const restore = (name,archive) => execFileSync('pg_restore',[...args(name),'--exit-on-error','--single-transaction'],{input:archive});
+  try {
+    const source = await connect(sourceDb);
+    await installSchema(source,exportSchema());
+    await source.query("INSERT INTO companies(id,name) VALUES ('00000000-0000-4000-8000-000000000001','Synthetic upgrade business')");
+    await source.query(`INSERT INTO public.employee_pay_records(company_id,employee_id,id,effective_from,annual_salary_pence)
+      VALUES ('00000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000002',
+        '00000000-0000-4000-8000-000000000003','2026-04-06',4200000)`);
+    execFileSync('pnpm',['--filter','@workspace/api-server','exec','esbuild',
+      '../../tools/development/migrations/seed-upgrade-invoice.mjs','--bundle','--platform=node','--format=cjs',
+      '--external:pg','--outfile=../../generated-artifacts/seed-upgrade-invoice.cjs'],{stdio:'inherit'});
+    execFileSync(process.execPath,['generated-artifacts/seed-upgrade-invoice.cjs'],{stdio:'inherit',timeout:30000,
+      env:{...process.env,
+        DATABASE_URL:'postgresql://ledgerly_api@localhost/'+sourceDb+'?host='+encodeURIComponent(socket)+'&port=55441'}});
+    const invoiceEvidence = async client => (await client.query(`SELECT d.company_id,d.id,d.revision,d.number,d.journal_id,
+      d.money->>'gross_pence' AS gross,e.id AS evidence_id,e.terms_hash,e.evidence_hash,
+      e.terms->>'discount_gross_pence' AS discount,b.binding_hash,
+      (SELECT sum(l.debit_minor)::text FROM public.canonical_journal_lines l
+       WHERE l.company_id=d.company_id AND l.journal_entry_id=j.id) AS debits,
+      (SELECT sum(l.credit_minor)::text FROM public.canonical_journal_lines l
+       WHERE l.company_id=d.company_id AND l.journal_entry_id=j.id) AS credits
+      FROM public.accounting_document_sources d
+      JOIN public.canonical_journal_entries j ON j.company_id=d.company_id AND j.id=d.journal_id
+      JOIN public.conditional_discount_original_bindings b ON b.company_id=d.company_id AND b.document_id=d.id AND b.journal_id=j.id
+      JOIN public.conditional_discount_evidence e ON e.company_id=d.company_id AND e.party_id=d.party_id
+        AND e.id::text=d.source#>>'{conditional_discount,evidence_receipt_id}'
+      WHERE d.kind='sales_invoice' AND d.status='posted'`)).rows;
+    const posted = await invoiceEvidence(source);
+    assert.equal(posted.length,1);
+    assert.deepEqual([posted[0].gross,posted[0].discount,posted[0].debits,posted[0].credits],['12000','1200','12000','12000']);
+    const before = await fingerprintDatabase(source);
+    const candidate = await connect(targetDb);
+    restore(targetDb,dump(sourceDb));
+    assertSameFingerprint(before,await fingerprintDatabase(candidate));
+    const manifest = 'artifacts/api-server/.replit-artifact/artifact.toml';
+    const command = JSON.parse(execFileSync('python3',['-c',
+      'import json, sys, tomllib; print(json.dumps(tomllib.load(open(sys.argv[1],"rb"))["services"][0]["production"]["run"]))',
+      manifest],{encoding:'utf8'}));
+    const [executable,...releaseArgs] = command.args;
+    assert.equal(executable,'node');
+    const probeArgs = ['artifacts/api-server/dist/index.mjs','--check-amendment-schema'];
+    const releaseEnv = (database,port) => ({...command.env,PATH:process.env.PATH,PORT:String(port),
+      DATABASE_URL:'postgresql://ledgerly_api@localhost/'+database+'?host='+encodeURIComponent(socket)+'&port=55441'});
+    const probe = (database,args) => {
+      const {status,stdout,stderr} = spawnSync(process.execPath,args,{
+        cwd:process.cwd(),encoding:'utf8',timeout:15000,env:releaseEnv(database,0)});
+      return {status,log:stdout+stderr};
+    };
+    const standardArgs = ['--enable-source-maps','artifacts/api-server/dist/index.mjs'];
+    assert.equal(command.env.NODE_ENV,'production');
+    for (const args of [probeArgs,releaseArgs,standardArgs]) {
+      const refused = probe(targetDb,args);
+      assert.equal(refused.status,1,refused.log);
+      assert.match(refused.log,/MIGRATION_HISTORY_INCOMPATIBLE/);
+      assert.doesNotMatch(refused.log,/Server listening/);
+    }
+    const oldHistory = (await candidate.query('SELECT * FROM public.schema_migrations ORDER BY id')).rows;
+    const oldIds = new Set(oldHistory.map(row=>row.id));
+    const additions = expectedMigrationHistory(inputs,{includeAmendments:true}).filter(row=>!oldIds.has(row.id));
+    assert.deepEqual(additions.map(row=>row.id),['accounting-document-amendments',
+      'conditional-discount-corrected-observations','conditional-discount-commercial-credits']);
+    const {rehearseAmendmentUpgrade} = await import(pathToFileURL(
+      path.join(process.cwd(),'tools/development/migrations/rehearse-amendments.mjs')).href);
+    const apply = client => rehearseAmendmentUpgrade(client,socket,process.cwd());
+    await assert.rejects(()=>apply(source),/Disposable upgrade copy required/);
+    for (const row of additions) {
+      const interrupted = {query:async (sql,values) => {
+        const result = await candidate.query(sql,values);
+        if (sql.startsWith('INSERT INTO public.schema_migrations') && values[0] === row.id)
+          throw Error('Injected rehearsal interruption');
+        return result;
+      }};
+      await assert.rejects(()=>apply(interrupted),/Injected rehearsal interruption/);
+      assertSameFingerprint(before,await fingerprintDatabase(candidate));
+    }
+    await candidate.query('CREATE TABLE accounting_document_amendment_heads (id integer)');
+    try { await assert.rejects(()=>apply(candidate),/Unexpected partial amendment schema/); }
+    finally { await candidate.query('DROP TABLE accounting_document_amendment_heads'); }
+    assertSameFingerprint(before,await fingerprintDatabase(candidate));
+    assert.deepEqual(await apply(candidate),additions.map(row=>row.id));
+    assert.equal(await amendmentSchema(candidate),true);
+    assert.deepEqual(await invoiceEvidence(candidate),posted);
+    const after = await fingerprintDatabase(candidate);
+    // A restored upgraded schema must grant the same rights and enforce the same
+    // constraints and triggers as the reviewed fresh installation of this version.
+    const fresh = await connect('ledgerly_upgrade_fresh_reference_test');
+    await installSchema(fresh,exportSchema(),{includeAmendments:true});
+    const reference = await fingerprintDatabase(fresh);
+    assert.deepEqual(after.controlDigests,reference.controlDigests);
+    assert.deepEqual(after.tables.map(table=>table.table),reference.tables.map(table=>table.table));
+
+    for (const table of before.tables.filter(table=>table.table !== 'schema_migrations')) {
+      assert.deepEqual(after.tables.find(current=>current.table === table.table),table);
+    }
+    const preserved = (await candidate.query('SELECT * FROM public.schema_migrations WHERE id=ANY($1) ORDER BY id',[[...oldIds]])).rows;
+    assert.deepEqual(preserved,oldHistory);
+    await assert.rejects(()=>apply(candidate),{code:'MIGRATION_HISTORY_INCOMPATIBLE'});
+    assertSameFingerprint(after,await fingerprintDatabase(candidate));
+    const recovered = await connect(restoredDb);
+    restore(restoredDb,dump(targetDb));
+    assertSameFingerprint(after,await fingerprintDatabase(recovered));
+    assert.deepEqual(await invoiceEvidence(recovered),posted);
+    // Recreate the committed legacy installer output on the isolated restored copy.
+    // Re-enable the immutable trigger before committing the fixture or invoking repair.
+    await recovered.query('BEGIN');
+    try {
+      await recovered.query('ALTER TABLE public.schema_migrations DISABLE TRIGGER ledgerly_migration_history_immutable');
+      for (const [id,previous] of [
+        ['conditional-discount-replacements','conditional-discount-compensations'],
+        ['conditional-discount-cash-reversal','conditional-discount-replacements'],
+        ['conditional-discount-replacement-observations','conditional-discount-cash-reversal'],
+      ]) await recovered.query('UPDATE public.schema_migrations SET dependencies=jsonb_build_array($2::text) WHERE id=$1',[id,previous]);
+      await recovered.query('ALTER TABLE public.schema_migrations ENABLE ALWAYS TRIGGER ledgerly_migration_history_immutable');
+      await recovered.query('COMMIT');
+    } catch (error) { await recovered.query('ROLLBACK'); throw error; }
+    const blocked = probe(restoredDb,releaseArgs);
+    assert.equal(blocked.status,1,blocked.log);
+    assert.match(blocked.log,/MIGRATION_HISTORY_LEGACY_DEPENDENCIES/);
+    const history = async client => (await client.query('SELECT * FROM public.schema_migrations ORDER BY id')).rows;
+    const committed = await history(recovered);
+    const profile = {includeAmendments:true};
+    assert.equal(await appendLegacyDependencyCorrection(recovered,inputs,profile),true);
+    assert.equal(await appendLegacyDependencyCorrection(recovered,inputs,profile),false);
+    const forwardHistory = await history(recovered);
+    assert.equal(forwardHistory.length,committed.length+1);
+    assert.deepEqual(forwardHistory.filter(row=>row.id!=='migration-history-dependencies-v1'),committed);
+    const {validateInstalledMigrationHistory} = await historyAPI();
+    const expectedHistory=expectedMigrationHistory(inputs,profile);
+    for (const change of [{sha256:'0'.repeat(64)},{contract_version:2},{dependencies:[]}]) {
+      const tampered = forwardHistory.map(row=>row.id==='migration-history-dependencies-v1' ? {...row,...change} : row);
+      assert.throws(()=>validateInstalledMigrationHistory(tampered,expectedHistory),{code:'MIGRATION_HISTORY_INCOMPATIBLE'});
+    }
+    const repaired = await fingerprintDatabase(recovered);
+    assert.deepEqual(repaired.controlDigests,after.controlDigests);
+    assert.deepEqual(repaired.tables.filter(t=>t.table!=='schema_migrations'),after.tables.filter(t=>t.table!=='schema_migrations'));
+    assert.deepEqual(await invoiceEvidence(recovered),posted);
+    const restoredRepairDb='ledgerly_forward_fix_restored_test';
+    const restoredRepair=await connect(restoredRepairDb);
+    restore(restoredRepairDb,dump(restoredDb));
+    assertSameFingerprint(repaired,await fingerprintDatabase(restoredRepair));
+    const restoredProbe=probe(restoredRepairDb,probeArgs);
+    assert.equal(restoredProbe.status,0,restoredProbe.log);
+    await restoredRepair.query('ALTER FUNCTION public.conditional_remaining_money(jsonb,jsonb) RENAME TO temporarily_missing_remaining_money');
+    try {
+      for (const args of [standardArgs,releaseArgs]) {
+        const missing = probe(restoredRepairDb,args);
+        assert.equal(missing.status,1,missing.log);
+        assert.match(missing.log,/CORRECTION_SCHEMA_INCOMPLETE/);
+        assert.doesNotMatch(missing.log,/Server listening/);
+      }
+    } finally {
+      await restoredRepair.query('ALTER FUNCTION public.temporarily_missing_remaining_money(jsonb,jsonb) RENAME TO conditional_remaining_money');
+    }
+    const ready = probe(restoredDb,probeArgs);
+    assert.equal(ready.status,0,ready.log);
+    assert.match(ready.log,/Amendment schema release check passed/);
+    // The positive control must actually listen; a check-only command also exits 0.
+    const {createServer,connect:createConnection} = await import('node:net');
+    const {once} = await import('node:events');
+    const temporary = createServer();
+    temporary.listen(0,'127.0.0.1');
+    await once(temporary,'listening');
+    const port = temporary.address().port;
+    await new Promise(resolve=>temporary.close(resolve));
+    for (const args of [releaseArgs,standardArgs]) {
+      const service = spawn(process.execPath,args,{env:releaseEnv(restoredDb,port),stdio:['ignore','pipe','pipe']});
+      const stopped = once(service,'exit');
+      let output = '';
+      service.stdout.on('data',chunk=>{output += chunk;});
+      service.stderr.on('data',chunk=>{output += chunk;});
+      try {
+        const deadline = Date.now()+15000;
+        while (!output.includes('Server listening') && service.exitCode === null && Date.now()<deadline)
+          await new Promise(resolve=>setTimeout(resolve,25));
+        assert.ok(output.includes('Server listening'),output);
+        const connection = createConnection({host:'127.0.0.1',port});
+        try { await once(connection,'connect'); } finally { connection.destroy(); }
+      } finally { service.kill(); await stopped; }
+    }
+    await recovered.query('ALTER TABLE public.accounting_document_amendments DISABLE TRIGGER accounting_amendment_immutable');
+    try {
+      const broken = probe(restoredDb,releaseArgs);
+      assert.equal(broken.status,1,broken.log);
+      assert.match(broken.log,/CORRECTION_SCHEMA_INCOMPLETE/);
+    } finally {
+      await recovered.query('ALTER TABLE public.accounting_document_amendments ENABLE ALWAYS TRIGGER accounting_amendment_immutable');
+    }
+    assertSameFingerprint(repaired,await fingerprintDatabase(recovered));
+    assert.equal(await checkInstalledMigrationHistory(recovered,inputs,{includeAmendments:true}),true);
+    await recovered.query('SET ROLE ledgerly_api');
+    try { assert.equal(await amendmentSchema(recovered),true); }
+    finally { await recovered.query('RESET ROLE'); }
+    assertSameFingerprint(before,await fingerprintDatabase(source));
+    console.log('POPULATED_UPGRADE_REHEARSAL',JSON.stringify({originalHistory:oldIds.size,added:additions.map(row=>row.id),
+      verifiedPriorTables:before.tables.length-1,rollbackBoundaries:additions.length,restored:true,freshControlsMatch:true,manifestStartupVerified:true,postedInvoiceVerified:true,legacyForwardFixVerified:true,sourceUnchanged:true}));
+  } finally {
+    for (const client of clients.reverse()) await client.end();
+    for (const name of databases.reverse()) await admin.query('DROP DATABASE '+name);
+  }
 });

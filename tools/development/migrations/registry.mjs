@@ -2,23 +2,40 @@
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
-export const migrationOrder = Object.freeze([
-  'accounting-documents', 'accounting-chart', 'accounting-payments', 'credit-tracking',
-  'document-intake', 'paid-credit-operations', 'accounting-document-amendments', 'w03-invoice-drafts', 'conditional-discount-agreements',
-  'conditional-discount-compensations',
-  'conditional-discount-replacements',
-  'conditional-discount-cash-reversal',
-  'conditional-discount-replacement-observations',
-  'conditional-discount-capacity-origins',
-  'conditional-discount-corrected-observations',
-  'conditional-discount-commercial-credits',
-  'bank-imports',
-  'bank-openings',
-  'bank-statement-matches',
-  'bank-import-review-authority',
-  'bank-import-canonical-history',
-  'bank-match-corrections',
+const prerequisites = new Map([
+  ['accounting-documents', []],
+  ['accounting-chart', ['accounting-documents']],
+  ['accounting-payments', ['accounting-chart']],
+  ['credit-tracking', ['accounting-payments']],
+  ['document-intake', ['credit-tracking']],
+  ['paid-credit-operations', ['document-intake']],
+  ['accounting-document-amendments', ['paid-credit-operations']],
+  ['w03-invoice-drafts', ['accounting-documents']],
+  ['conditional-discount-agreements', ['accounting-payments', 'paid-credit-operations']],
+  ['conditional-discount-compensations', ['conditional-discount-agreements']],
+  ['conditional-discount-replacements', ['conditional-discount-agreements']],
+  ['conditional-discount-cash-reversal', ['conditional-discount-compensations']],
+  ['conditional-discount-replacement-observations', ['conditional-discount-replacements', 'conditional-discount-cash-reversal']],
+  ['conditional-discount-capacity-origins', ['conditional-discount-replacement-observations']],
+  ['conditional-discount-corrected-observations', ['conditional-discount-capacity-origins', 'accounting-document-amendments']],
+  ['conditional-discount-commercial-credits', ['conditional-discount-corrected-observations']],
+  ['bank-imports', ['accounting-documents']],
+  ['bank-openings', ['accounting-payments']],
+  ['bank-statement-matches', ['bank-imports', 'bank-openings']],
+  ['bank-import-review-authority', ['bank-statement-matches']],
+  ['bank-import-canonical-history', ['bank-import-review-authority']],
+  ['bank-match-corrections', ['bank-import-canonical-history']],
+  ['operation-recovery', ['accounting-payments']],
+  ['correction-operation-recovery', ['accounting-documents']],
+  ['durable-jobs', ['document-intake']],
+  ['durable-job-execution', ['durable-jobs']],
+  ['employee-pay-records', ['accounting-documents']],
+  ['employee-pay-create', ['employee-pay-records']],
+  ['personal-tax-preparations', ['accounting-documents']],
+  ['personal-tax-create', ['personal-tax-preparations']],
+  ['employee-bank-details', ['accounting-documents']],
 ]);
+export const migrationOrder = Object.freeze([...prerequisites.keys()]);
 const fail = code => { throw Object.assign(new Error(code), { code }); };
 export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 export function validateMigrationInputs(registry, readBytes) {
@@ -29,13 +46,7 @@ export function validateMigrationInputs(registry, readBytes) {
   for (const [index, id] of migrationOrder.entries()) {
     const item = registry.migrations[index];
     const expectedPath = `lib/db/migrations/${id}.review.sql`;
-    const dependencies = id === 'bank-statement-matches' ? ['bank-imports','bank-openings'] : id === 'bank-openings' ? ['accounting-payments'] : id === 'bank-imports' ? ['accounting-documents'] : id === 'conditional-discount-corrected-observations' ? ['conditional-discount-capacity-origins','accounting-document-amendments']
-      : id === 'conditional-discount-capacity-origins' ? ['conditional-discount-replacement-observations']
-      : id === 'conditional-discount-replacement-observations' ? ['conditional-discount-replacements','conditional-discount-cash-reversal']
-      : id === 'conditional-discount-replacements' ? ['conditional-discount-agreements']
-      : id === 'conditional-discount-cash-reversal' ? ['conditional-discount-compensations']
-      : id === 'conditional-discount-agreements' ? ['accounting-payments', 'paid-credit-operations'] : id === 'w03-invoice-drafts' ? ['accounting-documents']
-      : index === 0 ? [] : [migrationOrder[index - 1]];
+    const dependencies = prerequisites.get(id);
     if (!item || item.id !== id || item.path !== expectedPath || item.contractVersion !== 1
         || JSON.stringify(item.dependencies) !== JSON.stringify(dependencies)
         || typeof item.sha256 !== 'string' || !/^[a-f0-9]{64}$/.test(item.sha256))
@@ -69,23 +80,48 @@ export function loadMigrationInputs(root) {
 export function expectedMigrationHistory(inputs, { includeAmendments = false } = {}) {
   return [...migrationOrder.filter(id => includeAmendments || !['accounting-document-amendments','conditional-discount-corrected-observations','conditional-discount-commercial-credits'].includes(id)),
     'canonical-security-overlay'].map(id => ({ id, sha256: sha256(Buffer.from(inputs[id])), contract_version: 1,
-      dependencies: id === 'canonical-security-overlay' ? ['w03-invoice-drafts']
-        : id === 'bank-statement-matches' ? ['bank-imports','bank-openings']
-        : id === 'bank-openings' ? ['accounting-payments']
-        : id === 'bank-imports' ? ['accounting-documents']
-        : id === 'conditional-discount-corrected-observations' ? ['conditional-discount-capacity-origins','accounting-document-amendments']
-        : id === 'conditional-discount-agreements' ? ['accounting-payments', 'paid-credit-operations'] : id === 'w03-invoice-drafts' ? ['accounting-documents']
-        : migrationOrder.indexOf(id) === 0 ? [] : [migrationOrder[migrationOrder.indexOf(id) - 1]] }));
+      dependencies: id === 'canonical-security-overlay' ? ['w03-invoice-drafts'] : [...prerequisites.get(id)] }));
+}
+// Earlier disposable installers recorded these three edges from list order.
+// Recognise the complete old format so recovery can distinguish it from damage.
+const legacyEdges = new Map([
+  ['conditional-discount-replacements', ['conditional-discount-compensations']],
+  ['conditional-discount-cash-reversal', ['conditional-discount-replacements']],
+  ['conditional-discount-replacement-observations', ['conditional-discount-cash-reversal']],
+]);
+
+const correctionId = 'migration-history-dependencies-v1';
+function correctionRecord(expected) {
+  const changes = [...legacyEdges].map(([id,previous]) => {
+    const entry = expected.find(row => row.id === id);
+    return { id, sha256:entry.sha256, previous, corrected:entry.dependencies };
+  });
+  return {id:correctionId,contract_version:1,sha256:sha256(JSON.stringify(changes)),dependencies:changes.map(row=>row.id)};
 }
 export function validateInstalledMigrationHistory(rows, expected) {
-  if (!Array.isArray(rows) || rows.length !== expected.length) fail('MIGRATION_HISTORY_INCOMPATIBLE');
+  if (!Array.isArray(rows)) fail('MIGRATION_HISTORY_INCOMPATIBLE');
   const byId = new Map(rows.map(row => [row.id, row]));
-  if (byId.size !== expected.length) fail('MIGRATION_HISTORY_INCOMPATIBLE');
+  const corrected = byId.has(correctionId);
+  if (byId.size !== rows.length || byId.size !== expected.length + Number(corrected)) fail('MIGRATION_HISTORY_INCOMPATIBLE');
+  let legacyCount = 0;
   for (const entry of expected) {
     const row = byId.get(entry.id);
-    if (!row || row.sha256 !== entry.sha256 || row.contract_version !== entry.contract_version
-        || JSON.stringify(row.dependencies) !== JSON.stringify(entry.dependencies)) fail('MIGRATION_HISTORY_INCOMPATIBLE');
+    if (!row || row.sha256 !== entry.sha256 || row.contract_version !== entry.contract_version)
+      fail('MIGRATION_HISTORY_INCOMPATIBLE');
+    if (JSON.stringify(row.dependencies) === JSON.stringify(entry.dependencies)) continue;
+    if (!legacyEdges.has(entry.id) || JSON.stringify(row.dependencies) !== JSON.stringify(legacyEdges.get(entry.id)))
+      fail('MIGRATION_HISTORY_INCOMPATIBLE');
+    legacyCount++;
   }
+  if (corrected) {
+    const record = byId.get(correctionId), required = correctionRecord(expected);
+    if (legacyCount !== legacyEdges.size || record.contract_version !== required.contract_version ||
+        record.sha256 !== required.sha256 || JSON.stringify(record.dependencies) !== JSON.stringify(required.dependencies))
+      fail('MIGRATION_HISTORY_INCOMPATIBLE');
+    return true;
+  }
+  if (legacyCount === legacyEdges.size) fail('MIGRATION_HISTORY_LEGACY_DEPENDENCIES');
+  if (legacyCount) fail('MIGRATION_HISTORY_INCOMPATIBLE');
   return true;
 }
 export async function checkInstalledMigrationHistory(client, inputs, options) {
@@ -115,4 +151,31 @@ export async function recordInstalledMigrationHistory(client, inputs, options) {
     'INSERT INTO public.schema_migrations(id,sha256,contract_version,dependencies) VALUES($1,$2,$3,$4::jsonb)',
     [row.id, row.sha256, row.contract_version, JSON.stringify(row.dependencies)]);
   await checkInstalledMigrationHistory(client, inputs, options);
+}
+
+async function correctLockedHistory(client, inputs, options) {
+  await client.query('LOCK TABLE public.schema_migrations IN SHARE ROW EXCLUSIVE MODE');
+  const expected = expectedMigrationHistory(inputs,options);
+  const {rows} = await client.query('SELECT id,sha256,contract_version,dependencies FROM public.schema_migrations');
+  try {
+    validateInstalledMigrationHistory(rows,expected);
+    return false;
+  } catch (error) {
+    if (error.code !== 'MIGRATION_HISTORY_LEGACY_DEPENDENCIES') throw error;
+  }
+  const record = correctionRecord(expected);
+  await client.query('INSERT INTO public.schema_migrations(id,sha256,contract_version,dependencies) VALUES($1,$2,$3,$4::jsonb)',
+    [record.id,record.sha256,record.contract_version,JSON.stringify(record.dependencies)]);
+  await checkInstalledMigrationHistory(client,inputs,options);
+  return true;
+}
+
+export async function appendLegacyDependencyCorrection(client, inputs, options) {
+  await client.query('BEGIN');
+  try {
+    await client.query('SELECT pg_advisory_xact_lock(17428,3003)');
+    const appended = await correctLockedHistory(client,inputs,options);
+    await client.query('COMMIT');
+    return appended;
+  } catch (error) { await client.query('ROLLBACK'); throw error; }
 }

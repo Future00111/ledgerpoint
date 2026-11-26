@@ -62,6 +62,7 @@ export interface ExtractionJob {
 // round trips need a future persistence validator, not a cast to these types.
 const jobs = new WeakSet<object>();
 const results = new WeakSet<object>();
+const resultPayloads = new WeakMap<object, unknown>();
 const uuid = (value: unknown) => typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 function fail(code: string): never { throw new IntakeError(code); }
 const digest = (value: unknown) => `sha256:${createHash('sha256').update(JSON.stringify(value)).digest('hex')}`;
@@ -140,7 +141,14 @@ export function adaptExtractionResult(source: ExtractionSource, output: unknown)
     result_fingerprint: digest({ contract: 'document-intake.extraction-result.v1', company_id,
       source_id, sha256: source.evidence.sha256, payload }), transcript, review });
   results.add(result);
+  resultPayloads.set(result, payload);
   return result;
+}
+
+/** Persistence receives the original bounded provider payload, never a forged review snapshot. */
+export function extractionResultPayload(result: AdaptedExtractionResult): unknown {
+  if (!result || !results.has(result) || !resultPayloads.has(result)) fail('EXTRACTION_RESULT_UNVERIFIED');
+  return boundedJson(resultPayloads.get(result));
 }
 
 /** Identity is deterministic for one company/source/hash/recipe/request/policy. This does not authenticate ownership. */

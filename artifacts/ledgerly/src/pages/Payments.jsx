@@ -89,8 +89,10 @@ function CompanyPayments({ company, companyName }) {
     await cache.invalidateQueries({ queryKey: ['posted-ledger', ticket.companyId] });
     if (ticket.isCurrent()) setTick(t => t + 1);
   };
+  const ledgerReady = Boolean(ledger.data) && !ledger.loading && !ledger.error;
+  const paymentReady = Boolean(context?.configuration) && ledgerReady;
   const start = (kind = 'payment', payment = null) => {
-    if (busy || unresolved || !canPost || !context?.configuration || !ledger.data || ledger.error) return false;
+    if (busy || unresolved || !canPost || !paymentReady) return false;
     requestScope.invalidate(); recovery.clearRecorded(); setClosingRecovery(false);
     if (recoveryUnresolved(recovery.getSnapshot())) { setResult(null); return false; }
     const partyType = payment?.party_type || (params.get('party_type') === 'supplier' ? 'supplier' : 'customer');
@@ -106,7 +108,7 @@ function CompanyPayments({ company, companyName }) {
   };
   useEffect(() => {
     const shortcut = shortcutGate.take({ entry: location.key, intent: params.get('new'), contextLoaded: !!context,
-      canPost, configured: !!context?.configuration, ledgerReady: !!ledger.data && !ledger.error && !ledger.loading,
+      canPost, configured: !!context?.configuration, ledgerReady,
       busy, unresolved, formOpen: !!form });
     if (shortcut === 'open' || shortcut === 'discard') {
       if (shortcut === 'open') start();
@@ -117,7 +119,7 @@ function CompanyPayments({ company, companyName }) {
     if (shortcut === 'wait' || form || busy || unresolved) return;
     const documentId = params.get('document');
     const key = `${company}:${documentId}`;
-    if (documentId && canPost && context?.configuration && ledger.data && !ledger.error && openedDocument.current !== key) {
+    if (documentId && canPost && paymentReady && openedDocument.current !== key) {
       const item = ledger.data.open_items.find(d => d.id === documentId && d.party_id === params.get('party_id'));
       openedDocument.current = key;
       if (item && BigInt(item.open_minor) > 0n) start();
@@ -169,7 +171,7 @@ function CompanyPayments({ company, companyName }) {
   </div>;
   return <div className="workspace-page">
     <PageHeader eyebrow="Money in and out" title="Payments" description="Record money already received or paid, then follow its allocations and remaining balance." context={companyName}
-      actions={<PaymentToolbar capabilities={context?.capabilities} busy={busy || unresolved} ready={!!context?.configuration && !!ledger.data && !ledger.error} onSetup={() => setSetup(value => !value)} onStart={() => start()} />} />
+      actions={<PaymentToolbar capabilities={context?.capabilities} busy={busy || unresolved} ready={paymentReady} onSetup={() => setSetup(value => !value)} onStart={() => start()} />} />
     <PaymentOverview payments={payments} filters={filters} onChange={setFilters} />
     {unresolved && !form && <PaymentRecoveryPanel state={recoveryState} capabilities={context?.capabilities} onCheck={() => recovery.check()} onRetry={() => recovery.retry(context?.capabilities)} />}
     <ConditionalCompensationPanel key={company} company={company} />
@@ -187,7 +189,7 @@ function CompanyPayments({ company, companyName }) {
       {payments && <PaymentList payments={shownPayments} total={payments.length} disabled={busy || unresolved} onReview={setDetail} onClear={() => setFilters({ search: '', direction: 'all', balance: 'all' })} />}
     </section>
     <p className="text-xs leading-5 text-muted-foreground">Recording a payment here does not instruct a bank transfer. Allocations, refunds and reversals are reviewed before they change your accounts.</p>
-    <Dialog open={!!detail && !form} onOpenChange={v => { if (!v) setDetail(null); }}><DialogContent className="max-h-[90vh] overflow-auto sm:max-w-3xl"><DialogHeader><DialogTitle>{detail?.reference}</DialogTitle><DialogDescription>{detail?.source.party_name} · Payment history and remaining balance</DialogDescription></DialogHeader>{detail && <><PaymentBalanceSummary payment={detail} />{partyStatementPath && <Link to={partyStatementPath} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-primary underline underline-offset-4">View account statement<ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>}<PaymentHistoryActions capabilities={context?.capabilities} payment={detail} disabled={busy || unresolved} onStart={start} /><p className="text-xs text-muted-foreground">Undo allocations before reversing a payment. Refunds and reversals remain separate events in the audit history.</p><PaymentEventHistory events={detail.events} labels={labels} /></>}</DialogContent></Dialog>
+    <Dialog open={!!detail && !form} onOpenChange={v => { if (!v) setDetail(null); }}><DialogContent className="max-h-[90vh] overflow-auto sm:max-w-3xl"><DialogHeader><DialogTitle>{detail?.reference}</DialogTitle><DialogDescription>{detail?.source.party_name} · Payment history and remaining balance</DialogDescription></DialogHeader>{detail && <><PaymentBalanceSummary payment={detail} />{partyStatementPath && <Link to={partyStatementPath} className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-primary underline underline-offset-4">View account statement<ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>}<PaymentHistoryActions capabilities={context?.capabilities} payment={detail} disabled={busy || unresolved || !paymentReady} onStart={start} /><p className="text-xs text-muted-foreground">Undo allocations before reversing a payment. Refunds and reversals remain separate events in the audit history.</p><PaymentEventHistory events={detail.events} labels={labels} /></>}</DialogContent></Dialog>
     <Dialog open={!!form} onOpenChange={v => { if (!v) closeForm(); }}><DialogContent className="max-h-[92vh] overflow-auto sm:max-w-4xl"><DialogHeader><DialogTitle>{form ? labels[form.kind] : ''}</DialogTitle><DialogDescription>Review the amount and accounting entries before confirming. No bank transfer is made.</DialogDescription></DialogHeader><ErrorBox error={unresolved ? null : error} />{unresolved && <PaymentRecoveryPanel state={recoveryState} capabilities={context?.capabilities} closing={closingRecovery} onCheck={() => recovery.check()} onRetry={() => recovery.retry(context?.capabilities)} onClose={() => setClosingRecovery(true)} onKeep={() => setClosingRecovery(false)} onAbandon={abandonRecovery} />}{form && <>
       {!review ? <fieldset disabled={busy || unresolved || !canPost} className="space-y-4"><div className="grid gap-4 sm:grid-cols-2"><div><Label htmlFor="pay-type">Party type</Label><select id="pay-type" className={selectClass} disabled={!!form.payment} value={form.party_type} onChange={e => change({ party_type: e.target.value, party_id: '', allocations: {} })}><option value="customer">Customer receipt</option><option value="supplier">Supplier payment</option></select></div><div><Label htmlFor="pay-party">{form.party_type === 'customer' ? 'Customer' : 'Supplier'}</Label><select id="pay-party" className={selectClass} disabled={!!form.payment} value={form.party_id} onChange={e => change({ party_id: e.target.value, allocations: {} })}><option value="">Choose a party</option>{(form.party_type === 'customer' ? context.customers : context.suppliers).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div><div><Label htmlFor="pay-date">Accounting date</Label><Input className="h-11" id="pay-date" type="date" value={form.date} onChange={e => change({ date: e.target.value })} /></div><div><Label htmlFor="pay-amount">Amount (£)</Label><Input className="h-11" id="pay-amount" inputMode="decimal" value={form.amount} disabled={form.kind === 'reversal'} onChange={e => change({ amount: e.target.value })} /></div><div className="sm:col-span-2"><Label htmlFor="pay-reference">Reference / reason</Label><Input className="h-11" id="pay-reference" maxLength={200} value={form.reference} onChange={e => change({ reference: e.target.value })} /></div></div>
       {['payment', 'allocation', 'unallocation'].includes(form.kind) && <PaymentAllocations documents={relevant} form={form} onChange={change} />}<Button className="min-h-11" disabled={busy || !form.party_id} onClick={doReview}>{busy ? 'Preparing review…' : 'Review accounting entries'}</Button></fieldset>
