@@ -461,7 +461,7 @@ test('populated backup rehearses the amendment upgrade, rollback, retry and rest
     const additions = expectedMigrationHistory(inputs,{includeAmendments:true}).filter(row=>!oldIds.has(row.id));
     assert.deepEqual(additions.map(row=>row.id),['accounting-document-amendments',
       'conditional-discount-corrected-observations','conditional-discount-commercial-credits']);
-    const {rehearseAmendmentUpgrade} = await import(pathToFileURL(
+    const {rehearseAmendmentUpgrade,rehearsePayRevisionUpgrade} = await import(pathToFileURL(
       path.join(process.cwd(),'tools/development/migrations/rehearse-amendments.mjs')).href);
     const apply = client => rehearseAmendmentUpgrade(client,socket,process.cwd());
     await assert.rejects(()=>apply(source),/Disposable upgrade copy required/);
@@ -593,6 +593,39 @@ test('populated backup rehearses the amendment upgrade, rollback, retry and rest
     try { assert.equal(await amendmentSchema(recovered),true); }
     finally { await recovered.query('RESET ROLE'); }
     assertSameFingerprint(before,await fingerprintDatabase(source));
+    // The payroll upgrade starts from a populated copy with previously repaired history.
+    const payrollDb = 'ledgerly_pay_revision_upgrade_copy_test';
+    const payroll = await connect(payrollDb);
+    restore(payrollDb,dump(restoredDb));
+    const upgrade = client => rehearsePayRevisionUpgrade(client,socket,process.cwd());
+    await assert.rejects(() => upgrade(recovered),/Disposable upgrade copy required/);
+    await assert.rejects(() => upgrade({query:async (sql,params) => {
+      const result = await payroll.query(sql,params);
+      if (sql.startsWith('INSERT INTO public.schema_migrations')) throw Error('Interrupted payroll migration');
+      return result;
+    }}),/Interrupted payroll migration/);
+    assertSameFingerprint(repaired,await fingerprintDatabase(payroll));
+    await upgrade(payroll);
+    const upgraded = await fingerprintDatabase(payroll);
+    const payrollFresh = await connect('ledgerly_pay_revision_fresh_reference_test');
+    await installSchema(payrollFresh,exportSchema(),{includeAmendments:true,includePayRevisions:true});
+    const freshPayroll = await fingerprintDatabase(payrollFresh);
+    assert.deepEqual(upgraded.controlDigests,freshPayroll.controlDigests);
+    assert.deepEqual(upgraded.tables.map(row=>row.table),freshPayroll.tables.map(row=>row.table));
+    assert.deepEqual(upgraded.tables.filter(row=>!['schema_migrations','pay_run_draft_revisions'].includes(row.table)),
+      repaired.tables.filter(row=>row.table!=='schema_migrations'));
+    const upgradedHistory = await history(payroll);
+    assert.deepEqual(upgradedHistory.filter(row=>row.id!=='pay-run-draft-revisions'),forwardHistory);
+    await assert.rejects(() => upgrade(payroll),{code:'MIGRATION_HISTORY_INCOMPATIBLE'});
+    assertSameFingerprint(upgraded,await fingerprintDatabase(payroll));
+    const payrollRestoredDb = 'ledgerly_pay_revision_upgrade_restored_test';
+    const payrollRestored = await connect(payrollRestoredDb);
+    restore(payrollRestoredDb,dump(payrollDb));
+    assertSameFingerprint(upgraded,await fingerprintDatabase(payrollRestored));
+    assert.deepEqual(await invoiceEvidence(payrollRestored),posted);
+    assertSameFingerprint(repaired,await fingerprintDatabase(recovered));
+    console.log('PAY_REVISION_UPGRADE_REHEARSAL',JSON.stringify({rollbackVerified:true,existingTablesPreserved:true,
+      freshControlsMatch:true,restored:true,originalHistoryPreserved:true,sourceUnchanged:true}));
     console.log('POPULATED_UPGRADE_REHEARSAL',JSON.stringify({originalHistory:oldIds.size,added:additions.map(row=>row.id),
       verifiedPriorTables:before.tables.length-1,rollbackBoundaries:additions.length,restored:true,freshControlsMatch:true,manifestStartupVerified:true,postedInvoiceVerified:true,legacyForwardFixVerified:true,sourceUnchanged:true}));
   } finally {
