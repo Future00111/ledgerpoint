@@ -205,8 +205,30 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
       await insert(latest,4,'after-reload');
       await insert(otherCompanyRevision,1,'same-run-different-company',[],admin,other);
       assert.equal((await readDraftRevision(other,actor,otherCompanyRevision,true)).is_current_revision,true);
-      await insert(otherRunRevision,1,'different-run',[],admin,company,randomUUID());
-      assert.equal((await readDraftRevision(company,actor,otherRunRevision,true)).is_current_revision,true);
+      // HMRC rest_of_uk/Gen_cumul-wkly rows 14–15, with a synthetic Plan 5 start notice.
+      const refundEmployee = randomUUID(), refundInput = randomUUID(), refundPayday = '2026-06-12';
+      await payInput(company,refundEmployee,refundInput,'2026-04-06');
+      const refund = prepareDatedLoanLine({
+        lineId:randomUUID(),employeeId:refundEmployee,inputRevisionId:refundInput,payday:refundPayday,
+        calculation:{grossHistory:['289383'],taxCodes:'NT',niCategory:'C',
+          opening:{employmentId:refundEmployee,taxYear:'2026-27',frequency:'weekly',completedPeriods:9,
+            taxablePayMinor:'2936096',taxPaidMinor:'587200'},
+          noticeContext:{...ordinaryCalculation.noticeContext,employmentId:refundEmployee,frequency:'weekly',
+            paymentDate:refundPayday,payMinor:'289383',plan:'plan_5',concurrentLoan:false,protectedEarnings:false,
+            notices:[{id:'SL1',type:'SL1',plan:'plan_5',employmentId:refundEmployee,receivedDate:'2026-06-08',
+              effectiveDate:'2026-06-08',firstAvailablePayday:refundPayday,availabilityEvidence:'Synthetic cutoff'}]}}});
+      await admin.query(`INSERT INTO pay_run_draft_revisions(company_id,run_id,revision_number,revision_id,
+        period_start,period_end,payday,currency,rules_version,prepared_by,employee_lines)
+        VALUES ($1,$2,1,$3,'2026-06-08',$4,$4,'GBP','different-run','synthetic-preparer',$5::jsonb)`,
+        [company,randomUUID(),otherRunRevision,refundPayday,JSON.stringify([refund])]);
+      const refundReview = await readDraftRevision(company,actor,otherRunRevision,true);
+      assert.equal(refundReview.is_current_revision,true);
+      // £2,893.83 gross plus £5,872 refunded PAYE less £217 student loan.
+      const deductions = {paye:'-587200',employee_ni:'0',student_loan:'21700',postgraduate_loan:'0'};
+      assert.deepEqual(refundReview.review_breakdown,{
+        lines:[{line_id:refund.line_id,gross:'289383',net:'854883',deductions,adjustments:{}}],
+        totals:{line_count:1,gross:'289383',net:'854883',deductions,adjustments:{}},
+      });
     } finally { await admin.query('ROLLBACK'); await contender.end(); }
     await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES ($1,$2,'revision-owner','owner',true)",[randomUUID(),company]);
     const app = express();
