@@ -6,13 +6,14 @@ import { pool, assertIsolatedInvoiceDemoDatabase, isInvoiceDemoModeEnabled } fro
 
 async function startServer() {
   const checkOnly = process.argv.slice(2).includes('--check-amendment-schema');
+  const requirePayRevisions = process.argv.slice(2).includes('--require-pay-revision-schema');
   await assertIsolatedInvoiceDemoDatabase();
-  if (process.env.NODE_ENV === 'production' || checkOnly || process.argv.slice(2).includes('--require-amendment-schema')) {
+  if (process.env.NODE_ENV === 'production' || checkOnly || requirePayRevisions || process.argv.slice(2).includes('--require-amendment-schema')) {
     try {
-      await checkAmendmentRelease(pool);
+      await checkAmendmentRelease(pool, requirePayRevisions);
     } catch (error) {
       const code = error instanceof Error && 'code' in error ? error.code : undefined;
-      const reason = ['MIGRATION_HISTORY_INCOMPATIBLE','MIGRATION_HISTORY_LEGACY_DEPENDENCIES','CORRECTION_SCHEMA_INCOMPLETE']
+      const reason = ['MIGRATION_HISTORY_INCOMPATIBLE','MIGRATION_HISTORY_LEGACY_DEPENDENCIES','CORRECTION_SCHEMA_INCOMPLETE','PAY_REVISION_SCHEMA_INCOMPLETE']
         .find(known => known === code) ?? 'AMENDMENT_SCHEMA_CHECK_FAILED';
       logger.error({ reason }, 'Amendment schema release check failed');
       throw error;

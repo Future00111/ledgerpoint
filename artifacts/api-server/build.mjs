@@ -15,9 +15,11 @@ async function buildAll() {
   const distDir = path.resolve(artifactDir, "dist");
   await rm(distDir, { recursive: true, force: true });
 
+  const inputs = loadMigrationInputs(path.resolve(artifactDir, '../..'));
   await esbuild({
     define: { __AMENDMENT_MIGRATION_HISTORY__: JSON.stringify(expectedMigrationHistory(
-      loadMigrationInputs(path.resolve(artifactDir, '../..')), {includeAmendments:true})) },
+      inputs, {includeAmendments:true})),
+      __PAY_REVISION_MIGRATION_HISTORY__: JSON.stringify(expectedMigrationHistory(inputs,{includeAmendments:true,includePayRevisions:true})) },
     entryPoints: [path.resolve(artifactDir, "src/index.ts")],
     platform: "node",
     bundle: true,
