@@ -1,4 +1,4 @@
-import { verifyCsvDownload } from './verifyCsvDownload';
+import { verifyCsvDownload, verifyLateCsvAfterSwitch } from './verifyCsvDownload';
 // Disposable browser entry point. The component and HTTP client are the production implementations.
 import React from 'react';
 import {createRoot} from 'react-dom/client';
@@ -70,7 +70,16 @@ async function exercise() {
   stage = 'csv-download';
   await verifyCsvDownload(await ready('Download CSV'), 'payroll-pay-record.csv',
     'effective_from,annual_salary_pence,currency\r\n2026-04-06,4525075,GBP\r\n', wait);
+  stage = 'company-change';
+  await verifyLateCsvAfterSwitch(await ready('Download CSV'), async () => {
+    mount(fixture.other, fixture.owner, 'owner');
+    await wait(() => !text().includes('45,250.75') && input('Pay record ID')?.value === ''
+      && !button('Download CSV'), 'destination workspace loaded');
+  }, wait);
   stage = 'bank-detail';
+  const previousBankInput = input('Employee UUID for bank lookup');
+  mount(fixture.company, fixture.owner, 'owner');
+  await wait(() => input('Employee UUID for bank lookup') && input('Employee UUID for bank lookup') !== previousBankInput, 'original company remounted');
   const lookupBank = async () => {
     fill(await wait(() => input('Employee UUID for bank lookup'), 'bank lookup'), fixture.employee);
     (await ready('Look up bank details')).click();

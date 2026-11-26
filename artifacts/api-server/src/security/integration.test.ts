@@ -1236,6 +1236,7 @@ test("Chromium payroll screen preserves salary workflows and restricts employee 
   await addMember(f.company, approver, 'payroll_approver');
   await admin.query('INSERT INTO public.employee_bank_details(company_id,employee_id,account_number) VALUES($1,$2,$3)',
     [f.company, employee, '00123456']);
+  await addMember(other.company, f.owner, 'owner');
   await runPayrollBrowser('browserAcceptance.jsx', {company:f.company, other:other.company, owner:f.owner, reader, employee, approver});
   const bankReads = (await sensitiveAudit(f.company)).filter(row => row.capability === 'payroll.bank.read');
   assert.deepEqual(bankReads.map(row => [row.actor_id, row.target_id]), [[f.owner,employee],[approver,employee],[approver,employee],[f.owner,employee]]);
@@ -1244,7 +1245,7 @@ test("Chromium payroll screen preserves salary workflows and restricts employee 
   assert.equal((await payCreationAudits(f.company)).length,1);
   assert.equal((await payPrepareAudits(f.company)).length,2);
   const exports = (await sensitiveAudit(f.company)).filter(row => row.capability === 'payroll.export');
-  assert.deepEqual(exports.map(row => [row.actor_id,row.target_id]), [[f.owner,(await storedPay(f.company))[0].id]]);
+  assert.deepEqual(exports.map(row => [row.actor_id,row.target_id]), Array(2).fill([f.owner,(await storedPay(f.company))[0].id]));
   assert.ok((await payReadAudits(f.company)).some(row => row.actor_id === reader));
 });
 
