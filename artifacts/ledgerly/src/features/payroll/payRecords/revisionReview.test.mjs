@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {validatedReview,formatDraftPence} from './revisionReview.mjs';
+import {approvalAvailability,validatedReview,formatDraftPence} from './revisionReview.mjs';
 
 const id = '13b008c3-f6fa-4973-a356-b6e4af7adbde';
 const money = {gross:'101',net:'99',deductions:{paye:'1'},adjustments:{rounding:'-1'}};
 const draft = {run_id:id,revision_id:id,revision_number:1,period_start:'2026-10-01',period_end:'2026-10-31',
-  payday:'2026-10-30',currency:'GBP',rules_version:'synthetic',is_current_revision:true,current_revision_id:id,
+  payday:'2026-10-30',currency:'GBP',rules_version:'synthetic',prepared_by:'synthetic-preparer',prepared_at:'2026-10-30T10:00:00.000Z',is_current_revision:true,current_revision_id:id,
   review_breakdown:{lines:[{line_id:id,...money}],totals:{line_count:1,...money}}};
 test('review accepts the requested draft and rejects mismatched IDs, private fields and malformed amounts',()=>{
   assert.equal(validatedReview(draft,id),draft);
@@ -60,4 +60,16 @@ test('revision history validates first, middle and current links before displayi
   }
   const only = {...draft,previous_revision_id:null,next_revision_id:null};
   assert.equal(validatedReview(only,id,true),only);
+});
+
+test('review requires a preparer and an exact UTC preparation time',()=>{
+  for (const fields of [{prepared_by:' '},{prepared_at:null},{prepared_at:'2026-02-30T10:00:00.000Z'}]) {
+    assert.throws(()=>validatedReview({...draft,...fields},id));
+  }
+});
+
+test('approval availability distinguishes superseded, empty and unqualified drafts',()=>{
+  assert.equal(approvalAvailability({...draft,is_current_revision:false}),'Approval unavailable for superseded revisions.');
+  assert.equal(approvalAvailability({...draft,review_breakdown:{lines:[]}}),'Approval requires at least one employee line.');
+  assert.equal(approvalAvailability(draft),'Approval unavailable until the payroll calculations are qualified.');
 });

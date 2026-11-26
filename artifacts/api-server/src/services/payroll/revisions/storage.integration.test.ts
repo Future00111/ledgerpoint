@@ -242,6 +242,7 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
         assert.equal(response.headers.get('etag'),null);
         const body = await response.json();
         assert.deepEqual(body,{...snapshot,revision_number:2,revision_id:second,rules_version:'synthetic-v2',
+          prepared_by:beforeRestore[1].prepared_by,prepared_at:beforeRestore[1].prepared_at.toISOString(),
           is_current_revision:false,current_revision_id:latest,review_breakdown:{
             lines:[line,another].map(({employee_id,input_revision_id,...visible}) => visible),
             totals:{line_count:2,gross:'9007199255090993',net:'9007199254985974',deductions:{paye:'70100',employee_ni:'19616',student_loan:'0',postgraduate_loan:'10300',priority_order:'5000'},adjustments:{rounding:'-3'}}
