@@ -118,3 +118,19 @@ test('clearing a pending bank lookup discards a late response and allows a fresh
   assert.deepEqual(lookup.getSnapshot(),cleared);
   assert.equal(calls,2);
 });
+test('only a current unauthenticated bank response expires the workspace session', async () => {
+  for (const status of [401, 403, 404, 500]) {
+    for (const cleared of [false, true]) {
+      const response = deferred();
+      let expirations = 0;
+      const lookup = createBankLookup({ companyId:company, role:'owner', client:{read:() => response.promise},
+        onSessionExpired:() => { expirations++; } });
+      lookup.changeEmployee(employee);
+      const pending = lookup.lookup();
+      if (cleared) lookup.changeEmployee('');
+      response.reject(Object.assign(Error('synthetic'), {status}));
+      await pending;
+      assert.equal(expirations, status === 401 && !cleared ? 1 : 0);
+    }
+  }
+});

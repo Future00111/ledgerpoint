@@ -60,7 +60,7 @@ function ScopedPayRecords({ companyId, companyName, actorId, role, client = payR
         {record && <PayExportButton key={record.id} companyId={companyId} record={record} role={role} client={client} onDenied={denyAccess} />}
       </section>
     </div>
-    <BankDetailsLookup companyId={companyId} actorId={actorId} role={role} client={bankClient} />
+    {phase !== 'blocked' && <BankDetailsLookup companyId={companyId} actorId={actorId} role={role} client={bankClient} onSessionExpired={denyAccess} />}
   </div>;
 }
 
