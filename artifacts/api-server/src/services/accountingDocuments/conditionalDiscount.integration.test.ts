@@ -1995,7 +1995,7 @@ for (const side of ['customer','supplier'] as const) test(`isolated Chromium: ${
   if(child?.pid&&child.exitCode===null&&child.signalCode===null)await new Promise<void>(resolve=>{
    const timer=setTimeout(()=>child?.kill('SIGKILL'),5000);child!.once('exit',()=>{clearTimeout(timer);resolve();});child!.kill('SIGTERM');
   });
-  rmSync(dir,{recursive:true,force:true});
+  rmSync(dir,{recursive:true,force:true,maxRetries:6,retryDelay:100});
  }
 });
 
