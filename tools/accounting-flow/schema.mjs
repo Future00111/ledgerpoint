@@ -14,7 +14,7 @@ export function exportSchema() {
   return execFileSync('pnpm',['--filter','@workspace/db','exec','drizzle-kit','export',
     '--schema=./src/schema/index.ts','--dialect=postgresql'],{cwd:root,env,encoding:'utf8',maxBuffer:4e6});
 }
-export async function installSchema(admin,sql,{includeAmendments=false}={}) {
+export async function installSchema(admin,sql,{includeAmendments=false,includePayRevisions=false}={}) {
   // Caller has already proved its Unix-socket identity. This never opens a connection.
   const migrationInputs = loadMigrationInputs(root); // Verify every source before BEGIN; use these exact bytes below.
   const requireEmptySchema = async () => {
@@ -122,7 +122,8 @@ export async function installSchema(admin,sql,{includeAmendments=false}={}) {
       'ledgerly_canonical_journal_relations_guard','ledgerly_accounting_audit_events_guard',
       'ledgerly_accounting_posting_effects_guard') AND tgenabled='A'`);
     if(immutable.rows[0].n!==5) throw Error('Canonical immutable guards not intact');
-    await recordInstalledMigrationHistory(admin, migrationInputs, { includeAmendments });
+    if (includePayRevisions) await admin.query(migrationInputs['pay-run-draft-revisions']);
+    await recordInstalledMigrationHistory(admin, migrationInputs, { includeAmendments, includePayRevisions });
     await admin.query('COMMIT');
   } catch(error) {await admin.query('ROLLBACK');throw error;}
 }

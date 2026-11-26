@@ -53,7 +53,11 @@ try {
   const revisionDatabase = 'ledgerly_revision_test_' + runId.replaceAll('-', '');
   admin=new Client({host:socket,port,user:'w03_bootstrap',database:'postgres',password:()=>'',ssl:false});
   await admin.connect();
-  await admin.query(`CREATE DATABASE ${revisionDatabase} TEMPLATE ledgerly_accounting_flow_test`);
+  await admin.query(`CREATE DATABASE ${revisionDatabase}`);
+  await admin.end(); admin=null;
+  admin=new Client({host:socket,port,user:'w03_bootstrap',database:revisionDatabase,password:()=>'',ssl:false});
+  await admin.connect();
+  await installSchema(admin,exportSchema(),{includeAmendments:true,includePayRevisions:true});
   await admin.end(); admin=null;
   const testEnv={...env,NODE_ENV:'test',NODE_PATH:root+'/artifacts/api-server/node_modules',
     ACCOUNTING_FLOW_TEST_SOCKET:socket,

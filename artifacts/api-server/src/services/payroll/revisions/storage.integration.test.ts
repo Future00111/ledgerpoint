@@ -27,11 +27,6 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
     await admin.query("INSERT INTO companies(id,name) VALUES ($1,'Revision A'),($2,'Revision B')",[company,other]);
     for (const id of [company,other]) await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES ($1,$2,$3,'payroll_approver',true)",[randomUUID(),id,actor]);
     await admin.query("INSERT INTO company_users(id,company_id,user_id,role,is_active) VALUES ($1,$2,'header-reader','payroll_reader',true)",[randomUUID(),company]);
-    const breakdownSql = readFileSync('artifacts/api-server/src/services/payroll/revisions/draft-breakdown.sql','utf8');
-    const sourceSql = readFileSync('artifacts/api-server/src/services/payroll/revisions/draft-source.sql','utf8');
-    await admin.query(sourceSql);
-    await admin.query(breakdownSql);
-    await admin.query(readFileSync('artifacts/api-server/src/services/payroll/revisions/draft-storage.sql','utf8'));
     const line = {line_id:randomUUID(),employee_id:randomUUID(),input_revision_id:randomUUID(),
       gross:'9007199254740993',net:'9007199254740890',deductions:{paye:'100'},adjustments:{rounding:'-3'}};
     function calculationFor(employeeId:string) {
@@ -99,8 +94,8 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
       [{...line,adjustments:{other:'-3'}}],[{...line,net:12}],[{...line,bank_account:'invalid'}]]) {
       await assert.rejects(insert(randomUUID(),3,'invalid',invalid),{code:'23514'});
     }
-    const rejectedSource = (source:string) => assert.rejects(
-      insert(randomUUID(),3,'source-check',[another,{...line,input_revision_id:source}]),{code:'23514'});
+    const rejectedSource = (source:string, writer = admin) => assert.rejects(
+      insert(randomUUID(),3,'source-check',[another,{...line,input_revision_id:source}],writer),{code:'23514'});
     for (const source of [stale,foreign,future,another.input_revision_id,randomUUID()]) await rejectedSource(source);
     const waitForBlockedWriter = async (pid:number) => {
       let blocked = false;
@@ -154,13 +149,39 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
     const beforeRestore = (await rawHeaders()).rows;
     assert.equal(beforeRestore.length,2);
     const args=['-h',socket,'-p','55441','-U','w03_bootstrap','-d',database];
-    const archive=execFileSync('pg_dump',[...args,'--format=custom','--table=public.pay_run_draft_revisions']);
-    await admin.query('DROP TABLE public.pay_run_draft_revisions');
-    await admin.query('DROP FUNCTION public.pay_run_draft_breakdown(jsonb)');
-    await admin.query('DROP FUNCTION public.check_pay_run_draft_sources()');
-    await admin.query(sourceSql);
-    await admin.query(breakdownSql);
-    execFileSync('pg_restore',[...args,'--exit-on-error'],{input:archive});
+    const archive=execFileSync('pg_dump',[...args,'--format=custom']);
+    const restoredDatabase = database + '_restore';
+    await admin.query('CREATE DATABASE ' + restoredDatabase + ' TEMPLATE template0');
+    const restored = new pg.Client({host:socket,port:55441,database:restoredDatabase,user:'w03_bootstrap',ssl:false});
+    try {
+      execFileSync('pg_restore',['-h',socket,'-p','55441','-U','w03_bootstrap','-d',restoredDatabase,'--exit-on-error','--single-transaction'],{input:archive});
+      await restored.connect();
+      const history = 'SELECT * FROM public.schema_migrations ORDER BY id';
+      const sourceHistory = (await admin.query(history)).rows;
+      assert.ok(sourceHistory.some(row => row.id === 'pay-run-draft-revisions'));
+      assert.deepEqual((await restored.query(history)).rows,sourceHistory);
+      await assert.rejects(restored.query('DELETE FROM public.pay_run_draft_revisions'),{code:'P0001'});
+      await rejectedSource(changed,restored);
+      const auditQuery = "SELECT count(*)::int n FROM accounting_audit_events WHERE company_id=$1 AND actor_id=$2 AND target_id=$3 AND capability='payroll.read'";
+      const auditArgs = [company,actor,second];
+      const priorReads = (await restored.query(auditQuery,auditArgs)).rows[0].n;
+      const probeDir = mkdtempSync(path.join(process.cwd(),'generated-artifacts/revision-restore-'));
+      try {
+        const probe = path.join(probeDir,'probe.cjs');
+        execFileSync('pnpm',['--filter','@workspace/api-server','exec','esbuild','src/services/payroll/revisions/restore-read.test-probe.ts',
+          '--bundle','--platform=node','--format=cjs','--external:pg','--outfile='+probe]);
+        const restoredUrl = new URL(process.env.DATABASE_URL!);
+        restoredUrl.pathname = '/' + restoredDatabase;
+        execFileSync(process.execPath,[probe,company,other,actor,second],{env:{...process.env,DATABASE_URL:restoredUrl.href}});
+      } finally { rmSync(probeDir,{recursive:true,force:true}); }
+      assert.equal((await restored.query(auditQuery,auditArgs)).rows[0].n,priorReads+1);
+      await restored.query('SET ROLE ledgerly_api');
+      assert.deepEqual((await restored.query('SELECT * FROM public.pay_run_draft_revisions WHERE company_id=$1 ORDER BY revision_number',[company])).rows,beforeRestore);
+      await assert.rejects(restored.query('DELETE FROM public.pay_run_draft_revisions'),{code:'42501'});
+    } finally {
+      await restored.end();
+      await admin.query('DROP DATABASE ' + restoredDatabase);
+    }
     await rejectedSource(changed);
     assert.deepEqual((await rawHeaders()).rows,beforeRestore);
     await verify();
