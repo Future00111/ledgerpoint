@@ -27,6 +27,9 @@ window.fetch = async (url, options = {}) => {
   if (target.pathname === '/api/companies/'+fixture.company+'/payroll-run-revisions/'+previousRevision) {
     return new Response(null,{status:403});
   }
+  if (target.pathname === '/api/companies/'+fixture.company+'/payroll-run-revisions/'+currentRevision && actor === '') {
+    return new Response(null,{status:401});
+  }
   if (target.pathname.endsWith('/payroll-run-revisions/'+reviewId)) {
     reviewReads++;
     if (actor !== fixture.owner || !target.pathname.startsWith('/api/companies/'+fixture.company+'/')) throw Error('Review scope');
@@ -209,6 +212,21 @@ async function exercise() {
   heldPayRead.release();
   await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   if (text().includes('Saved pay record') || text().includes('45,250.75') || button('Download CSV')) throw Error('Stale pay response');
+  stage = 'denial';
+  mount(fixture.other, fixture.reader, 'payroll_reader');
+  await wait(() => !text().includes('Previous values have been cleared'), 'leave expired scope');
+  mount(fixture.company, fixture.owner, 'owner');
+  fill(await wait(() => input('Pay-run revision ID'), 'fresh revision lookup'), reviewId);
+  (await ready('Load draft revision')).click();
+  await wait(() => text().includes(reviewRun), 'visible revision before expiry');
+  fill(input('Employee reference'), fixture.employee);
+  fill(input('Annual salary'), '45250.75');
+  actor = '';
+  (await ready('Next revision')).click();
+  await wait(() => text().includes('Previous values have been cleared'), 'revision session expiry');
+  if (text().includes(reviewRun) || text().includes('PAYE refunded') || button('Next revision') ||
+      input('Pay-run revision ID') || input('Employee reference') || input('Annual salary') ||
+      input('Employee UUID for bank lookup')) throw Error('Expired revision lookup retained sensitive controls');
   await nativeFetch('/pay-ui-result', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ok:true})});
 }
 exercise().catch(async () => {
