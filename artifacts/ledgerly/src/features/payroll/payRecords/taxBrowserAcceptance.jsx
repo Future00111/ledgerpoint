@@ -3,6 +3,7 @@ import { verifyCsvDownload, verifyLateCsvAfterSwitch } from './verifyCsvDownload
 import React from 'react';
 import {createRoot} from 'react-dom/client';
 import {AuthProvider} from '@/lib/AuthContext';
+import {rememberCompanySelection} from '@/lib/companySelection.mjs';
 import {CompanyProvider} from '@/lib/useCompany';
 import TaxPreparations from './TaxPreparations';
 import {TaxPreparationsWorkspace} from './TaxPreparationsWorkspace';
@@ -18,16 +19,14 @@ const createStatuses = [];
 let membershipReads = 0;
 window.fetch = async (url, options = {}) => {
   const target = new URL(url, location.href);
-  if (target.origin === location.origin && target.pathname === '/api/companies') {
-    membershipReads++;
-    if (membershipReads === 1) return new Response(null,{status:503});
-    return Response.json({companies:[{id:fixture.company,name:'Recovered tax company'}],
-      roles:{[fixture.company]:'personal_tax_submitter'}});
+  const membership = target.pathname === '/api/companies';
+  if (target.origin !== location.origin || (!membership && !target.pathname.startsWith('/api/companies/'))) {
+    throw Error('Unexpected browser request');
   }
-  if (target.origin !== location.origin || !target.pathname.startsWith('/api/companies/')) throw Error('Unexpected browser request');
+  if (membership && ++membershipReads === 1) return new Response(null,{status:503});
   const headers = new Headers(options.headers);
   headers.set('x-test-actor', actor);
-  const response = await nativeFetch(target.pathname.slice('/api/companies'.length), {...options, headers});
+  const response = await nativeFetch(target.pathname.slice('/api/companies'.length) || '/', {...options, headers});
   if (target.pathname.endsWith('/export.csv')) exportStatuses.push(response.status);
   if (options.method === 'POST') {
     createStatuses.push(response.status);
@@ -141,6 +140,7 @@ async function exercise() {
   if (text().includes(fixture.taxpayer) || input('Taxpayer reference') || button('Save tax input') ||
       button('Download CSV') || requests.length !== savesBeforeRefresh) throw Error('Unexpected access after refresh');
   stage = 'refresh';
+  rememberCompanySelection(window.localStorage,fixture.submitter,fixture.company);
   root.render(<AuthProvider><CompanyProvider><TaxPreparations /></CompanyProvider></AuthProvider>);
   await wait(() => text().includes('Your company access could not be loaded.'), 'membership failure');
   if (membershipReads !== 1 || input('Tax input ID') || input('Taxpayer reference')) throw Error('Failed membership exposed controls');
