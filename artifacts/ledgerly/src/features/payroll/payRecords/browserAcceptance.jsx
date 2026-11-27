@@ -24,6 +24,9 @@ window.fetch = async (url, options = {}) => {
     return Response.json({enabled:true});
   }
   if (target.origin !== location.origin || !target.pathname.startsWith('/api/companies/')) throw Error('Unexpected browser request');
+  if (target.pathname === '/api/companies/'+fixture.company+'/payroll-run-revisions/'+previousRevision) {
+    return new Response(null,{status:403});
+  }
   if (target.pathname.endsWith('/payroll-run-revisions/'+reviewId)) {
     reviewReads++;
     if (actor !== fixture.owner || !target.pathname.startsWith('/api/companies/'+fixture.company+'/')) throw Error('Review scope');
@@ -92,6 +95,11 @@ async function exercise() {
   if (!lines[0].innerText.includes('PAYE refund £0.03') || !lines[1].innerText.includes('PAYE £20.00') ||
       !table.querySelector('tfoot').innerText.includes('PAYE £19.97') ||
       !text().includes('PAYE deducted £20.00 · PAYE refunded £0.03')) throw Error('Mixed PAYE breakdown mismatch');
+  (await ready('Previous revision')).click();
+  const section = revisionInput.closest('section');
+  await wait(() => section.querySelector('[role="alert"]')?.textContent.includes('Check your company and payroll review access.'), 'denied revision');
+  if (section.querySelector('table, nav') || section.textContent.includes(reviewRun) ||
+      section.textContent.includes('PAYE refunded')) throw Error('Prior payroll details remained after denial');
   (await ready('Clear revision')).click();
   await wait(() => !text().includes('Superseded') && revisionInput.value === '', 'cleared draft review');
   if (reviewReads !== 1) throw Error('Unexpected review request count');

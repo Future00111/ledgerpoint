@@ -45,6 +45,10 @@ export function RevisionReview({companyId,onSessionExpired}) {
         {credentials:'include',cache:'no-store',redirect:'error',signal:token.signal});
       if (!token.isCurrent()) return;
       if (response.status === 401) { onSessionExpired(); return; }
+      if (response.status === 403) {
+        setMessage('This draft is unavailable to you. Check your company and payroll review access.');
+        return;
+      }
       if (response.status !== 200) throw Error();
       const value = validatedReview(await response.json(),revision,true);
       if ((expectedRun && value.run_id !== expectedRun) || (expectedNumber && value.revision_number !== expectedNumber)) throw Error();
