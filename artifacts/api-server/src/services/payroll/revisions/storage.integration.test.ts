@@ -297,14 +297,14 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
         app.get('/revision-browser',(_req,res)=>{
           res.cookie('revision_fixture',browserCookie,{httpOnly:true,sameSite:'strict'});
           res.type('html').send('<!doctype html><meta charset="utf-8"><div id="root"></div><script>window.revisionFixture='+
-            JSON.stringify({company,revision:second,latest,lineIds:[line.line_id,another.line_id]})+'</script><script src="/revision-browser.js"></script>');
+            JSON.stringify({company,revision:second,latest,refundRevision:otherRunRevision,lineIds:[line.line_id,another.line_id]})+'</script><script src="/revision-browser.js"></script>');
         });
         const {stdout} = await promisify(execFile)('chromium',['--headless','--no-first-run','--disable-gpu',
           '--disable-background-networking','--user-data-dir='+path.join(dir,'profile'),'--dump-dom',
           '--virtual-time-budget=15000',origin+'/revision-browser'],{timeout:45000,killSignal:'SIGKILL'});
         assert.match(stdout,/data-revision-review="passed"/);
         const audited = await admin.query("SELECT company_id,target_id FROM accounting_audit_events WHERE actor_id='browser-reviewer' AND capability='payroll.read'");
-        assert.deepEqual(audited.rows.map(row=>row.target_id).sort(),[second,first,second,latest,winner].sort());
+        assert.deepEqual(audited.rows.map(row=>row.target_id).sort(),[second,first,second,latest,winner,otherRunRevision].sort());
         assert.ok(audited.rows.every(row=>row.company_id===company));
       } finally { rmSync(dir,{recursive:true,force:true,maxRetries:6,retryDelay:100}); }
     } finally { await new Promise<void>(resolve => server.close(()=>resolve())); }
