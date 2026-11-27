@@ -2,7 +2,7 @@ import {useLayoutEffect,useRef,useState} from 'react';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {recordId,requestScope} from './model.mjs';
-import {approvalAvailability,validatedReview,formatDraftPence,deductionNames,adjustmentNames} from './revisionReview.mjs';
+import {approvalAvailability,validatedReview,formatDraftPence,netPayEffects,deductionNames,adjustmentNames} from './revisionReview.mjs';
 
 function amounts(values,names) {
   return Object.entries(values).map(([key,value]) => {
@@ -10,6 +10,17 @@ function amounts(values,names) {
     return <div key={key}>{refund ? 'PAYE refund' : names[key]} {formatDraftPence(refund ? value.slice(1) : value)}</div>;
   });
 }
+function MixedPayeSummary({lines}) {
+  let deducted = 0n, refunded = 0n;
+  for (const line of lines) {
+    const paye = BigInt(line.deductions.paye ?? '0');
+    if (paye < 0n) refunded -= paye;
+    else deducted += paye;
+  }
+  if (deducted === 0n || refunded === 0n) return null;
+  return <p>PAYE deducted {formatDraftPence(deducted)} · PAYE refunded {formatDraftPence(refunded)}</p>;
+}
+
 function Cells({row}) {
   return <><td>{formatDraftPence(row.gross)}</td><td>{amounts(row.deductions,deductionNames)}</td>
     <td>{amounts(row.adjustments,adjustmentNames)}</td><td>{formatDraftPence(row.net)}</td></>;
@@ -37,6 +48,17 @@ export function RevisionReview({companyId,onSessionExpired}) {
       if (response.status !== 200) throw Error();
       const value = validatedReview(await response.json(),revision,true);
       if ((expectedRun && value.run_id !== expectedRun) || (expectedNumber && value.revision_number !== expectedNumber)) throw Error();
+      if (expectedRun && result) {
+        const [older,newer] = result.revision_number < value.revision_number ? [result,value] : [value,result];
+        const difference = key => formatDraftPence(BigInt(newer.review_breakdown.totals[key]) - BigInt(older.review_breakdown.totals[key]));
+        value.netEffects = netPayEffects(older.review_breakdown.totals, newer.review_breakdown.totals);
+        value.comparison = `Change from revision ${older.revision_number} to ${newer.revision_number}: gross pay ${difference('gross')}, net pay ${difference('net')}.`;
+        const previousCount = older.review_breakdown.totals.line_count;
+        const currentCount = newer.review_breakdown.totals.line_count;
+        if (previousCount !== currentCount) {
+          value.comparison += ` Employee count changed from ${previousCount} to ${currentCount}.`;
+        }
+      }
       if (token.isCurrent()) setResult(value);
     } catch { if (token.isCurrent()) setMessage('The draft could not be loaded. Check the revision ID and your company access.'); }
     finally { if (token.isCurrent()) setBusy(false); }
@@ -56,6 +78,11 @@ export function RevisionReview({companyId,onSessionExpired}) {
         {result.next_revision_id && <Button variant="outline" onClick={()=>read(result.next_revision_id,result.run_id,result.revision_number+1)}>Next revision</Button>}
         {!result.is_current_revision && result.next_revision_id !== result.current_revision_id && <Button variant="outline" onClick={()=>read(result.current_revision_id,result.run_id)}>Open current revision</Button>}
       </nav>
+      {result.comparison && <p>{result.comparison}</p>}
+      {result.netEffects?.length > 0 && <div>
+        <h4>Effect of deduction and adjustment changes on net pay</h4>
+        <ul>{result.netEffects.map(({label,pence}) => <li key={label}>{label}: {pence > 0n ? '+' : ''}{formatDraftPence(pence)}</li>)}</ul>
+      </div>}
       <p>Period {result.period_start} to {result.period_end} · Payday {result.payday}</p>
       <p>Prepared by {result.prepared_by} · <time dateTime={result.prepared_at}>{result.prepared_at.slice(0,10)} {result.prepared_at.slice(11,19)} UTC</time></p>
       <p>{approvalAvailability(result)}</p>
@@ -66,6 +93,7 @@ export function RevisionReview({companyId,onSessionExpired}) {
         <tbody>{result.review_breakdown.lines.length === 0 && <tr><td colSpan={5}>No employee lines in this revision.</td></tr>}{result.review_breakdown.lines.map(line=><tr key={line.line_id}><th scope="row">{line.line_id}</th><Cells row={line}/></tr>)}</tbody>
         <tfoot><tr><th scope="row">Total ({result.review_breakdown.totals.line_count} {result.review_breakdown.totals.line_count === 1 ? 'line' : 'lines'})</th><Cells row={result.review_breakdown.totals}/></tr></tfoot>
       </table></div>
+      <MixedPayeSummary lines={result.review_breakdown.lines}/>
     </div>}
   </section>;
 }
