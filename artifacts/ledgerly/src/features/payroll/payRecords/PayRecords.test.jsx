@@ -50,3 +50,12 @@ test('only owners and payroll preparers see the explicit pay CSV download contro
   for (const role of ['payroll_reader', 'payroll_approver', 'personal_tax_preparer', 'personal_tax_submitter', 'admin', null])
     assert.equal(renderToStaticMarkup(<PayExportButton companyId={companyId} record={record} role={role} />), '');
 });
+
+test('failed membership lookup offers a retry before using a retained payroll role', () => {
+  const html = renderToStaticMarkup(<PayRecordsWorkspace actorId="synthetic_actor" companyId={companyId}
+    role="owner" companyLoadFailed onRefreshAccess={()=>{}} />);
+  assert.ok(html.includes('Retry company access'));
+  assert.ok(!html.includes('<input'));
+  assert.ok(!html.includes('Look up pay record'));
+  assert.ok(!html.includes('Look up bank details'));
+});
