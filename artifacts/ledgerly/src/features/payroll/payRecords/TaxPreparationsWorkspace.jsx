@@ -10,6 +10,9 @@ import { TaxExportButton } from './TaxExportButton';
 const blankForm = () => ({ taxpayer: '', year: '', income: '' });
 export function TaxPreparationsWorkspace(props) {
   const { companyId, actorId, role } = props;
+  if (actorId && props.companyLoadFailed) return <div className="workspace-page"><PageHeader title="Personal tax inputs" />
+    <p role="alert">Your company access could not be loaded.</p>
+    <Button variant="outline" onClick={props.onRefreshAccess}>Retry company access</Button></div>;
   if (!companyId) return <div className="workspace-page"><PageHeader title="Personal tax inputs" description="Choose a company to enter or look up employment income." /></div>;
   if (!actorId || !taxPermissions(role).read) return <div className="workspace-page"><PageHeader title="Personal tax inputs" />
     <p role="alert">Your current company role does not provide access to personal tax inputs.</p></div>;

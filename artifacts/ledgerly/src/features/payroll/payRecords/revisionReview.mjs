@@ -59,6 +59,18 @@ export function validatedReview(row,requested,history = false) {
   return row;
 }
 
+// Signed contribution of each changed component to the newer revision's net pay.
+export function netPayEffects(older, newer) {
+  const effects = [];
+  for (const [group, names] of [['deductions', deductionNames], ['adjustments', adjustmentNames]]) {
+    for (const [key, label] of Object.entries(names)) {
+      const difference = BigInt(newer[group][key] ?? '0') - BigInt(older[group][key] ?? '0');
+      if (difference !== 0n) effects.push({ label, pence: group === 'deductions' ? -difference : difference });
+    }
+  }
+  return effects;
+}
+
 export function formatDraftPence(value) {
   const p = BigInt(value), magnitude = p < 0n ? -p : p;
   return (p < 0n ? '-£' : '£') + (magnitude / 100n).toLocaleString('en-GB') + '.' + String(magnitude % 100n).padStart(2,'0');
