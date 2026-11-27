@@ -303,6 +303,19 @@ test('draft revision headers are immutable, company-scoped and recoverable', asy
           '--disable-background-networking','--user-data-dir='+path.join(dir,'profile'),'--dump-dom',
           '--virtual-time-budget=15000',origin+'/revision-browser'],{timeout:45000,killSignal:'SIGKILL'});
         assert.match(stdout,/data-revision-review="passed"/);
+        // The same signed-in reviewer loses detailed access on the first lookup after demotion.
+        const demotion = await admin.query("UPDATE company_users SET role='payroll_reader' WHERE company_id=$1 AND user_id='browser-reviewer'",[company]);
+        assert.equal(demotion.rowCount,1);
+        const readerDenial = await review(company,second,'header-reader');
+        assert.equal(readerDenial.status,403);
+        const expectedDenial = await readerDenial.json();
+        for (const suffix of ['', '?history=adjacent']) {
+          const response = await fetch(origin+'/api/companies/'+company+'/payroll-run-revisions/'+second+suffix,
+            {headers:{cookie:'revision_fixture='+browserCookie}});
+          assert.equal(response.status,403);
+          assert.equal(response.headers.get('cache-control'),'no-store');
+          assert.deepEqual(await response.json(),expectedDenial);
+        }
         const audited = await admin.query("SELECT company_id,target_id FROM accounting_audit_events WHERE actor_id='browser-reviewer' AND capability='payroll.read'");
         assert.deepEqual(audited.rows.map(row=>row.target_id).sort(),[second,first,second,latest,winner,otherRunRevision].sort());
         assert.ok(audited.rows.every(row=>row.company_id===company));
