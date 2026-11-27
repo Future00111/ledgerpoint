@@ -2,6 +2,9 @@ import { verifyCsvDownload, verifyLateCsvAfterSwitch } from './verifyCsvDownload
 // Disposable browser entry point. The component and HTTP client are the production implementations.
 import React from 'react';
 import {createRoot} from 'react-dom/client';
+import {AuthProvider} from '@/lib/AuthContext';
+import {CompanyProvider} from '@/lib/useCompany';
+import TaxPreparations from './TaxPreparations';
 import {TaxPreparationsWorkspace} from './TaxPreparationsWorkspace';
 
 const fixture = window.syntheticPayFixture;
@@ -12,8 +15,15 @@ let loseResponse = true;
 const requests = [];
 const exportStatuses = [];
 const createStatuses = [];
+let membershipReads = 0;
 window.fetch = async (url, options = {}) => {
   const target = new URL(url, location.href);
+  if (target.origin === location.origin && target.pathname === '/api/companies') {
+    membershipReads++;
+    if (membershipReads === 1) return new Response(null,{status:503});
+    return Response.json({companies:[{id:fixture.company,name:'Recovered tax company'}],
+      roles:{[fixture.company]:'personal_tax_submitter'}});
+  }
   if (target.origin !== location.origin || !target.pathname.startsWith('/api/companies/')) throw Error('Unexpected browser request');
   const headers = new Headers(options.headers);
   headers.set('x-test-actor', actor);
@@ -130,6 +140,17 @@ async function exercise() {
   await wait(() => text().includes('45,250.75'), 'submitter read after refresh');
   if (text().includes(fixture.taxpayer) || input('Taxpayer reference') || button('Save tax input') ||
       button('Download CSV') || requests.length !== savesBeforeRefresh) throw Error('Unexpected access after refresh');
+  stage = 'refresh';
+  root.render(<AuthProvider><CompanyProvider><TaxPreparations /></CompanyProvider></AuthProvider>);
+  await wait(() => text().includes('Your company access could not be loaded.'), 'membership failure');
+  if (membershipReads !== 1 || input('Tax input ID') || input('Taxpayer reference')) throw Error('Failed membership exposed controls');
+  (await ready('Retry company access')).click();
+  await wait(() => input('Tax input ID'), 'membership recovery');
+  if (membershipReads !== 2 || input('Taxpayer reference') || button('Save tax input')) throw Error('Unexpected recovered role');
+  fill(input('Tax input ID'), requests[0]);
+  (await ready('Look up tax input')).click();
+  await wait(() => text().includes('45,250.75'), 'native read after membership retry');
+  if (text().includes(fixture.taxpayer) || button('Download CSV') || requests.length !== savesBeforeRefresh) throw Error('Unexpected recovered access');
   await nativeFetch('/pay-ui-result', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ok:true})});
 }
 exercise().catch(async () => {
