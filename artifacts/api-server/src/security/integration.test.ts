@@ -1203,7 +1203,7 @@ async function runPayrollBrowser(entry: 'browserAcceptance.jsx' | 'historyBrowse
     const frontend = path.resolve('artifacts/ledgerly/src'), bundle = path.join(dir,'pay-ui.js');
     execFileSync('pnpm', ['--filter','@workspace/api-server','exec','esbuild',
       path.join(frontend,'features/payroll/payRecords',entry),'--bundle','--platform=browser','--format=iife',
-      ...(entry !== 'historyBrowserAcceptance.jsx' ? ['--alias:@clerk/react='+path.join(frontend,'features/payroll/payRecords/specialistBrowserIdentity.mjs')] : []),
+      '--alias:@clerk/react='+path.join(frontend,'features/payroll/payRecords/specialistBrowserIdentity.mjs'),
       '--jsx=automatic','--alias:@='+frontend,'--define:import.meta.env.BASE_URL="/"','--outfile='+bundle], {stdio:'pipe'});
     payBrowserScript = readFileSync(bundle,'utf8');
     payBrowserPage = '<!doctype html><html><head><meta charset="utf-8"></head><body><div id="root"></div><script>window.syntheticPayFixture=' +
@@ -1257,7 +1257,7 @@ test("Chromium owner history audits explicit reads and discards prior company da
   assert.equal(added.status,201);
   assert.equal((await request('/' + f.company + '/members/' + target, 'PUT', {role:'personal_tax_preparer'}, f.owner)).status,200);
   await addMember(other.company, f.owner, 'owner');
-  await runPayrollBrowser('historyBrowserAcceptance.jsx', {company:f.company, other:other.company, owner:f.owner,
+  await runPayrollBrowser('historyBrowserAcceptance.jsx', {sessionActor:f.owner,company:f.company, other:other.company, owner:f.owner,
     membership:JSON.parse(added.body).id, reader:target});
   const receipts = await historyReceipts(f.company);
   assert.deepEqual(receipts.map(row => [row.actor_id, row.context.returned_count]), [[f.owner,2],[f.owner,2]]);
