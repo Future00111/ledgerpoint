@@ -2,6 +2,10 @@ import { verifyCsvDownload, verifyLateCsvAfterSwitch } from './verifyCsvDownload
 // Disposable browser entry point. The component and HTTP client are the production implementations.
 import React from 'react';
 import {createRoot} from 'react-dom/client';
+import {AuthProvider} from '@/lib/AuthContext';
+import {CompanyProvider} from '@/lib/useCompany';
+import {rememberCompanySelection} from '@/lib/companySelection.mjs';
+import PayRecords from './PayRecords';
 import {PayRecordsWorkspace} from './PayRecordsWorkspace';
 
 const fixture = window.syntheticPayFixture;
@@ -17,13 +21,16 @@ const reviewRun = crypto.randomUUID();
 const previousRevision = crypto.randomUUID(), currentRevision = crypto.randomUUID();
 let releaseReview;
 let reviewReads = 0;
+let membershipReads = 0;
 const exportStatuses = [];
 window.fetch = async (url, options = {}) => {
   const target = new URL(url, location.href);
   if (target.origin === location.origin && target.pathname === '/api/capabilities/pay-revision-review') {
     return Response.json({enabled:true});
   }
-  if (target.origin !== location.origin || !target.pathname.startsWith('/api/companies/')) throw Error('Unexpected browser request');
+  const membership = target.pathname === '/api/companies';
+  if (target.origin === location.origin && membership && ++membershipReads === 1) return new Response(null,{status:503});
+  if (target.origin !== location.origin || (!membership && !target.pathname.startsWith('/api/companies/'))) throw Error('Unexpected browser request');
   if (target.pathname === '/api/companies/'+fixture.company+'/payroll-run-revisions/'+previousRevision) {
     return new Response(null,{status:403});
   }
@@ -45,7 +52,7 @@ window.fetch = async (url, options = {}) => {
   }
   const headers = new Headers(options.headers);
   headers.set('x-test-actor', actor);
-  const response = await nativeFetch(target.pathname.slice('/api/companies'.length), {...options, headers});
+  const response = await nativeFetch(target.pathname.slice('/api/companies'.length) || '/', {...options, headers});
   if (target.pathname.endsWith('/export.csv')) exportStatuses.push(response.status);
   if (heldPayRead && response.ok && target.pathname.includes('/payroll-pay-records/')) {
     // Buffer a successful response before cancellation to model a transport that ignores abort.
@@ -227,6 +234,22 @@ async function exercise() {
   if (text().includes(reviewRun) || text().includes('PAYE refunded') || button('Next revision') ||
       input('Pay-run revision ID') || input('Employee reference') || input('Annual salary') ||
       input('Employee UUID for bank lookup')) throw Error('Expired revision lookup retained sensitive controls');
+  stage = 'refresh';
+  actor = fixture.reader;
+  heldPayRead = null;
+  rememberCompanySelection(window.localStorage, actor, fixture.company);
+  root.render(<AuthProvider><CompanyProvider><PayRecords /></CompanyProvider></AuthProvider>);
+  await wait(() => text().includes('Your company access could not be loaded.'), 'failed payroll membership');
+  if (membershipReads !== 1 || input('Pay record ID') || input('Employee reference') ||
+      input('Employee UUID for bank lookup')) throw Error('Failed membership exposed payroll controls');
+  (await ready('Retry company access')).click();
+  fill(await wait(() => input('Pay record ID'), 'recovered payroll lookup'), requests[0]);
+  (await ready('Look up pay record')).click();
+  await wait(() => text().includes('45,250.75'), 'recovered reader salary');
+  if (membershipReads !== 2 || input('Annual salary') || input('Employee UUID for bank lookup') ||
+      input('Pay-run revision ID') || button('Download CSV') || text().includes(fixture.employee)) {
+    throw Error('Unexpected recovered payroll reader access');
+  }
   await nativeFetch('/pay-ui-result', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ok:true})});
 }
 exercise().catch(async () => {

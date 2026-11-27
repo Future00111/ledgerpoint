@@ -1203,7 +1203,7 @@ async function runPayrollBrowser(entry: 'browserAcceptance.jsx' | 'historyBrowse
     const frontend = path.resolve('artifacts/ledgerly/src'), bundle = path.join(dir,'pay-ui.js');
     execFileSync('pnpm', ['--filter','@workspace/api-server','exec','esbuild',
       path.join(frontend,'features/payroll/payRecords',entry),'--bundle','--platform=browser','--format=iife',
-      ...(entry === 'taxBrowserAcceptance.jsx' ? ['--alias:@clerk/react='+path.join(frontend,'features/payroll/payRecords/taxBrowserIdentity.mjs')] : []),
+      ...(entry !== 'historyBrowserAcceptance.jsx' ? ['--alias:@clerk/react='+path.join(frontend,'features/payroll/payRecords/specialistBrowserIdentity.mjs')] : []),
       '--jsx=automatic','--alias:@='+frontend,'--define:import.meta.env.BASE_URL="/"','--outfile='+bundle], {stdio:'pipe'});
     payBrowserScript = readFileSync(bundle,'utf8');
     payBrowserPage = '<!doctype html><html><head><meta charset="utf-8"></head><body><div id="root"></div><script>window.syntheticPayFixture=' +
