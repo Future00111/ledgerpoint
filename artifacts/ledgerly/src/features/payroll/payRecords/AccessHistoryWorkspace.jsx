@@ -7,6 +7,9 @@ import { historyActiveLabel, historyOperationLabel, historyRoleLabel, historyTim
 
 export function AccessHistoryWorkspace(props) {
   const { companyId, actorId, role } = props;
+  if (actorId && props.companyLoadFailed) return <div className="workspace-page"><PageHeader title="Access history" />
+    <p role="alert">Your company access could not be loaded.</p>
+    <Button variant="outline" onClick={props.onRefreshAccess}>Retry company access</Button></div>;
   if (!companyId) return <div className="workspace-page"><PageHeader title="Access history" description="Choose a company to view specialist access changes." /></div>;
   if (!actorId || role !== 'owner') return <div className="workspace-page"><PageHeader title="Access history" />
     <p role="alert">Only a current company owner can view specialist access history.</p></div>;

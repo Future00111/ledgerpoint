@@ -14,6 +14,9 @@ const blankForm = () => ({ employee: '', date: '', salary: '' });
 /** The same keyed boundary is used by the real route and disposable browser journey. */
 export function PayRecordsWorkspace(props) {
   const { companyId, actorId, role } = props;
+  if (actorId && props.companyLoadFailed) return <div className="workspace-page"><PageHeader title="Pay records" />
+    <p role="alert">Your company access could not be loaded.</p>
+    <Button variant="outline" onClick={props.onRefreshAccess}>Retry company access</Button></div>;
   if (!companyId) return <div className="workspace-page"><PageHeader title="Pay records" description="Choose a company to enter or look up annual pay." /></div>;
   if (!actorId || !payrollPermissions(role).read) return <div className="workspace-page"><PageHeader title="Pay records" />
     <p role="alert">Your current company role does not provide access to pay records.</p></div>;

@@ -46,3 +46,11 @@ test('only an owner or preparer sees the explicit CSV download control', async (
   for (const role of ['personal_tax_submitter', 'payroll_preparer', 'admin', null])
     assert.equal(renderToStaticMarkup(<TaxExportButton companyId={company} record={record} role={role} />), '');
 });
+
+test('a failed company lookup offers a membership retry without rendering tax record controls', () => {
+  const html = renderToStaticMarkup(<TaxPreparationsWorkspace actorId="synthetic_actor" companyLoadFailed
+    companyId={company} role="personal_tax_preparer" onRefreshAccess={()=>{}} />);
+  assert.ok(html.includes('Retry company access'));
+  assert.ok(!html.includes('<input'));
+  assert.ok(!html.includes('Save tax input'));
+});

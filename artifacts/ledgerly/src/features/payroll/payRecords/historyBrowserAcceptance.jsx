@@ -1,13 +1,22 @@
 // This entry is bundled only by the loopback PostgreSQL/Chromium acceptance test.
 import React from 'react';
 import {createRoot} from 'react-dom/client';
+import {AuthProvider} from '@/lib/AuthContext';
+import {CompanyProvider} from '@/lib/useCompany';
+import {rememberCompanySelection} from '@/lib/companySelection.mjs';
+import AccessHistory from './AccessHistory';
 import {AccessHistoryWorkspace} from './AccessHistoryWorkspace';
 
 const f = window.syntheticPayFixture, root = createRoot(document.getElementById('root'));
 const nativeFetch = window.fetch.bind(window);
+let membershipReads = 0;
 let actor = f.owner, reads = 0, hold = false, release;
 window.fetch = async (url, options = {}) => {
   const target = new URL(url, location.href);
+  if (target.origin === location.origin && target.pathname === '/api/companies') {
+    if (++membershipReads === 1) return new Response(null,{status:503});
+    return nativeFetch('/',{...options,headers:{'x-test-actor':actor}});
+  }
   if (target.origin !== location.origin || !target.pathname.endsWith('/specialist-access-history') ||
       !target.pathname.startsWith('/api/companies/')) throw Error('Unexpected request');
   reads++;
@@ -31,9 +40,15 @@ async function until(read) {
 const text = () => document.body.innerText;
 let stage = 'initial';
 async function exercise() {
-  mount(f.company,f.owner,'owner');
+  rememberCompanySelection(window.localStorage,f.owner,f.company);
+  root.render(<AuthProvider><CompanyProvider><AccessHistory /></CompanyProvider></AuthProvider>);
+  const retry = await until(() => button('Retry company access'));
+  if (membershipReads !== 1 || reads !== 0 || button('View history') || document.querySelector('table')) {
+    throw Error('Failed membership exposed history');
+  }
+  retry.click();
   const view = await until(() => button('View history'));
-  if (reads !== 0) throw Error('Unexpected mount read');
+  if (membershipReads !== 2 || reads !== 0) throw Error('Unexpected retry read');
   stage = 'history';
   view.click();
   await until(() => text().includes(f.membership));

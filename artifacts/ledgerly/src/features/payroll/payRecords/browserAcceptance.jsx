@@ -2,6 +2,10 @@ import { verifyCsvDownload, verifyLateCsvAfterSwitch } from './verifyCsvDownload
 // Disposable browser entry point. The component and HTTP client are the production implementations.
 import React from 'react';
 import {createRoot} from 'react-dom/client';
+import {AuthProvider} from '@/lib/AuthContext';
+import {CompanyProvider} from '@/lib/useCompany';
+import {rememberCompanySelection} from '@/lib/companySelection.mjs';
+import PayRecords from './PayRecords';
 import {PayRecordsWorkspace} from './PayRecordsWorkspace';
 
 const fixture = window.syntheticPayFixture;
@@ -17,26 +21,38 @@ const reviewRun = crypto.randomUUID();
 const previousRevision = crypto.randomUUID(), currentRevision = crypto.randomUUID();
 let releaseReview;
 let reviewReads = 0;
+let membershipReads = 0;
 const exportStatuses = [];
 window.fetch = async (url, options = {}) => {
   const target = new URL(url, location.href);
   if (target.origin === location.origin && target.pathname === '/api/capabilities/pay-revision-review') {
     return Response.json({enabled:true});
   }
-  if (target.origin !== location.origin || !target.pathname.startsWith('/api/companies/')) throw Error('Unexpected browser request');
+  const membership = target.pathname === '/api/companies';
+  if (target.origin === location.origin && membership && ++membershipReads === 1) return new Response(null,{status:503});
+  if (target.origin !== location.origin || (!membership && !target.pathname.startsWith('/api/companies/'))) throw Error('Unexpected browser request');
+  if (target.pathname === '/api/companies/'+fixture.company+'/payroll-run-revisions/'+previousRevision) {
+    return new Response(null,{status:403});
+  }
+  if (target.pathname === '/api/companies/'+fixture.company+'/payroll-run-revisions/'+currentRevision && actor === '') {
+    return new Response(null,{status:401});
+  }
   if (target.pathname.endsWith('/payroll-run-revisions/'+reviewId)) {
     reviewReads++;
     if (actor !== fixture.owner || !target.pathname.startsWith('/api/companies/'+fixture.company+'/')) throw Error('Review scope');
     const amounts = {gross:'9007199254740993',net:'9007199254740995',deductions:{paye:'-3'},adjustments:{rounding:'-1'}};
+    const taxed = {gross:'10000',net:'8000',deductions:{paye:'2000'},adjustments:{}};
+    const totals = {line_count:2,gross:'9007199254750993',net:'9007199254748995',
+      deductions:{paye:'1997'},adjustments:{rounding:'-1'}};
     if (reviewReads === 2) await new Promise(resolve => { releaseReview = resolve; });
     return Response.json({run_id:reviewRun,revision_id:reviewId,revision_number:2,period_start:'2026-10-01',
       period_end:'2026-10-31',payday:'2026-10-30',currency:'GBP',rules_version:'synthetic',prepared_by:'synthetic-preparer',prepared_at:'2026-10-30T10:00:00.000Z',is_current_revision:false,current_revision_id:currentRevision,
       previous_revision_id:previousRevision,next_revision_id:currentRevision,
-      review_breakdown:{lines:[{line_id:crypto.randomUUID(),...amounts}],totals:{line_count:1,...amounts}}});
+      review_breakdown:{lines:[amounts,taxed].map(line=>({line_id:crypto.randomUUID(),...line})),totals}});
   }
   const headers = new Headers(options.headers);
   headers.set('x-test-actor', actor);
-  const response = await nativeFetch(target.pathname.slice('/api/companies'.length), {...options, headers});
+  const response = await nativeFetch(target.pathname.slice('/api/companies'.length) || '/', {...options, headers});
   if (target.pathname.endsWith('/export.csv')) exportStatuses.push(response.status);
   if (heldPayRead && response.ok && target.pathname.includes('/payroll-pay-records/')) {
     // Buffer a successful response before cancellation to model a transport that ignores abort.
@@ -83,11 +99,17 @@ async function exercise() {
   fill(revisionInput,reviewId);
   (await ready('Load draft revision')).click();
   await wait(() => text().includes('Superseded') && text().includes('£90,071,992,547,409.95')
-    && text().includes('-£0.01') && text().includes('Total (1 line'), 'draft review');
+    && text().includes('-£0.01') && text().includes('Total (2 lines'), 'draft review');
   const table = document.querySelector('#revision-title')?.closest('section')?.querySelector('table');
-  for (const selector of ['tbody tr', 'tfoot tr']) {
-    if (!table?.querySelector(selector)?.innerText.includes('PAYE refund £0.03')) throw Error('Missing PAYE refund');
-  }
+  const lines = table.querySelectorAll('tbody tr');
+  if (!lines[0].innerText.includes('PAYE refund £0.03') || !lines[1].innerText.includes('PAYE £20.00') ||
+      !table.querySelector('tfoot').innerText.includes('PAYE £19.97') ||
+      !text().includes('PAYE deducted £20.00 · PAYE refunded £0.03')) throw Error('Mixed PAYE breakdown mismatch');
+  (await ready('Previous revision')).click();
+  const section = revisionInput.closest('section');
+  await wait(() => section.querySelector('[role="alert"]')?.textContent.includes('Check your company and payroll review access.'), 'denied revision');
+  if (section.querySelector('table, nav') || section.textContent.includes(reviewRun) ||
+      section.textContent.includes('PAYE refunded')) throw Error('Prior payroll details remained after denial');
   (await ready('Clear revision')).click();
   await wait(() => !text().includes('Superseded') && revisionInput.value === '', 'cleared draft review');
   if (reviewReads !== 1) throw Error('Unexpected review request count');
@@ -197,6 +219,37 @@ async function exercise() {
   heldPayRead.release();
   await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   if (text().includes('Saved pay record') || text().includes('45,250.75') || button('Download CSV')) throw Error('Stale pay response');
+  stage = 'denial';
+  mount(fixture.other, fixture.reader, 'payroll_reader');
+  await wait(() => !text().includes('Previous values have been cleared'), 'leave expired scope');
+  mount(fixture.company, fixture.owner, 'owner');
+  fill(await wait(() => input('Pay-run revision ID'), 'fresh revision lookup'), reviewId);
+  (await ready('Load draft revision')).click();
+  await wait(() => text().includes(reviewRun), 'visible revision before expiry');
+  fill(input('Employee reference'), fixture.employee);
+  fill(input('Annual salary'), '45250.75');
+  actor = '';
+  (await ready('Next revision')).click();
+  await wait(() => text().includes('Previous values have been cleared'), 'revision session expiry');
+  if (text().includes(reviewRun) || text().includes('PAYE refunded') || button('Next revision') ||
+      input('Pay-run revision ID') || input('Employee reference') || input('Annual salary') ||
+      input('Employee UUID for bank lookup')) throw Error('Expired revision lookup retained sensitive controls');
+  stage = 'refresh';
+  actor = fixture.reader;
+  heldPayRead = null;
+  rememberCompanySelection(window.localStorage, actor, fixture.company);
+  root.render(<AuthProvider><CompanyProvider><PayRecords /></CompanyProvider></AuthProvider>);
+  await wait(() => text().includes('Your company access could not be loaded.'), 'failed payroll membership');
+  if (membershipReads !== 1 || input('Pay record ID') || input('Employee reference') ||
+      input('Employee UUID for bank lookup')) throw Error('Failed membership exposed payroll controls');
+  (await ready('Retry company access')).click();
+  fill(await wait(() => input('Pay record ID'), 'recovered payroll lookup'), requests[0]);
+  (await ready('Look up pay record')).click();
+  await wait(() => text().includes('45,250.75'), 'recovered reader salary');
+  if (membershipReads !== 2 || input('Annual salary') || input('Employee UUID for bank lookup') ||
+      input('Pay-run revision ID') || button('Download CSV') || text().includes(fixture.employee)) {
+    throw Error('Unexpected recovered payroll reader access');
+  }
   await nativeFetch('/pay-ui-result', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ok:true})});
 }
 exercise().catch(async () => {
