@@ -3,7 +3,7 @@ import React from 'react';
 import {createRoot} from 'react-dom/client';
 import {PayRecordsWorkspace} from './PayRecordsWorkspace';
 
-const {company,revision,latest,lineIds} = window.revisionFixture;
+const {company,revision,latest,refundRevision,lineIds} = window.revisionFixture;
 const root = createRoot(document.getElementById('root'));
 root.render(<PayRecordsWorkspace companyId={company} actorId="browser-reviewer" role="payroll_approver"/>);
 const wait = async read => {
@@ -16,8 +16,11 @@ const wait = async read => {
 };
 async function exercise() {
   const input = await wait(()=>[...document.querySelectorAll('label')].find(label=>label.textContent.includes('Pay-run revision ID'))?.control);
-  Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,revision);
-  input.dispatchEvent(new Event('input',{bubbles:true}));
+  function enterRevision(id) {
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,id);
+    input.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+  enterRevision(revision);
   const button = label => [...document.querySelectorAll('button')].find(node=>node.textContent === label);
   await wait(()=>button('Clear revision'));
   button('Load draft revision').click();
@@ -53,6 +56,18 @@ async function exercise() {
   if (button('Open current revision') || !button('Next revision')) throw Error('Duplicate current revision link');
   button('Clear revision').click();
   await wait(()=>!document.querySelector('table') && input.value === '');
+  enterRevision(refundRevision);
+  await wait(()=>button('Clear revision'));
+  button('Load draft revision').click();
+  const refundTable = await wait(()=>document.querySelector('table'));
+  const rows = refundTable.querySelectorAll('tbody tr, tfoot tr');
+  if (rows.length !== 2) throw Error('Expected one refund line and one total');
+  for (const row of rows) {
+    const [gross,deductions,,net] = row.querySelectorAll('td');
+    if (gross.textContent !== '£2,893.83' || net.textContent !== '£8,548.83' ||
+        !deductions.innerText.includes('PAYE refund £5,872.00') ||
+        !deductions.innerText.includes('Student loan £217.00')) throw Error('Stored refund display mismatch');
+  }
   document.body.dataset.revisionReview='passed';
 }
 exercise().catch(()=>{document.body.dataset.revisionReview='failed';});

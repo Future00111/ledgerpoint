@@ -10,6 +10,17 @@ function amounts(values,names) {
     return <div key={key}>{refund ? 'PAYE refund' : names[key]} {formatDraftPence(refund ? value.slice(1) : value)}</div>;
   });
 }
+function MixedPayeSummary({lines}) {
+  let deducted = 0n, refunded = 0n;
+  for (const line of lines) {
+    const paye = BigInt(line.deductions.paye ?? '0');
+    if (paye < 0n) refunded -= paye;
+    else deducted += paye;
+  }
+  if (deducted === 0n || refunded === 0n) return null;
+  return <p>PAYE deducted {formatDraftPence(deducted)} · PAYE refunded {formatDraftPence(refunded)}</p>;
+}
+
 function Cells({row}) {
   return <><td>{formatDraftPence(row.gross)}</td><td>{amounts(row.deductions,deductionNames)}</td>
     <td>{amounts(row.adjustments,adjustmentNames)}</td><td>{formatDraftPence(row.net)}</td></>;
@@ -82,6 +93,7 @@ export function RevisionReview({companyId,onSessionExpired}) {
         <tbody>{result.review_breakdown.lines.length === 0 && <tr><td colSpan={5}>No employee lines in this revision.</td></tr>}{result.review_breakdown.lines.map(line=><tr key={line.line_id}><th scope="row">{line.line_id}</th><Cells row={line}/></tr>)}</tbody>
         <tfoot><tr><th scope="row">Total ({result.review_breakdown.totals.line_count} {result.review_breakdown.totals.line_count === 1 ? 'line' : 'lines'})</th><Cells row={result.review_breakdown.totals}/></tr></tfoot>
       </table></div>
+      <MixedPayeSummary lines={result.review_breakdown.lines}/>
     </div>}
   </section>;
 }
