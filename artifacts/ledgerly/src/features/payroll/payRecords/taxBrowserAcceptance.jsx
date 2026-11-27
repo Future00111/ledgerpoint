@@ -101,17 +101,24 @@ async function exercise() {
       await wait(() => !text().includes('Previous values have been cleared'), 'leave blocked workspace');
     }
   } finally { HTMLAnchorElement.prototype.click = click; }
-  mount(fixture.company, fixture.preparer, 'personal_tax_preparer');
-  const unsavedTaxpayer = crypto.randomUUID();
-  fill(await wait(() => input('Taxpayer reference'), 'new tax entry'), unsavedTaxpayer);
-  fill(input('Tax year starting'), '2026');
-  fill(input('Employment income'), '32100.12');
-  actor = '';
-  (await ready('Save tax input')).click();
-  await wait(() => text().includes('Previous values have been cleared'), 'expired tax save');
-  if (createStatuses.at(-1) !== 401 || input('Taxpayer reference') || input('Employment income') ||
-      button('Retry same request') || button('Save tax input') || input('Tax input ID')?.value !== '' ||
-      text().includes(unsavedTaxpayer)) throw Error('Expired save retained tax details or retry controls');
+  // Keep the preparer form mounted. The native API sees either an expired
+  // session or a signed-in submitter whose displayed role is stale.
+  for (const [identity, expectedStatus] of [['', 401], [fixture.submitter, 403]]) {
+    mount(fixture.company, identity || fixture.preparer, 'personal_tax_preparer');
+    const unsavedTaxpayer = crypto.randomUUID();
+    fill(await wait(() => input('Taxpayer reference'), 'new tax entry'), unsavedTaxpayer);
+    fill(input('Tax year starting'), '2026');
+    fill(input('Employment income'), '32100.12');
+    actor = identity;
+    const postsBeforeSave = createStatuses.length;
+    (await ready('Save tax input')).click();
+    await wait(() => text().includes('Previous values have been cleared'), 'denied tax save');
+    if (createStatuses.length !== postsBeforeSave + 1 || createStatuses.at(-1) !== expectedStatus ||
+        input('Taxpayer reference') || input('Employment income') || button('Retry same request') ||
+        button('Save tax input') || input('Tax input ID')?.value !== '' || text().includes(unsavedTaxpayer)) {
+      throw Error('Denied save retained tax details or retry controls');
+    }
+  }
   await nativeFetch('/pay-ui-result', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ok:true})});
 }
 exercise().catch(async () => {
