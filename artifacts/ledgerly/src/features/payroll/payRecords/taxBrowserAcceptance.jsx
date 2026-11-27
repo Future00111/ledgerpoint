@@ -11,6 +11,7 @@ let actor = fixture.preparer;
 let loseResponse = true;
 const requests = [];
 const exportStatuses = [];
+const createStatuses = [];
 window.fetch = async (url, options = {}) => {
   const target = new URL(url, location.href);
   if (target.origin !== location.origin || !target.pathname.startsWith('/api/companies/')) throw Error('Unexpected browser request');
@@ -19,6 +20,7 @@ window.fetch = async (url, options = {}) => {
   const response = await nativeFetch(target.pathname.slice('/api/companies'.length), {...options, headers});
   if (target.pathname.endsWith('/export.csv')) exportStatuses.push(response.status);
   if (options.method === 'POST') {
+    createStatuses.push(response.status);
     requests.push(JSON.parse(options.body).id);
     if (loseResponse && response.ok) {
       loseResponse = false;
@@ -99,6 +101,17 @@ async function exercise() {
       await wait(() => !text().includes('Previous values have been cleared'), 'leave blocked workspace');
     }
   } finally { HTMLAnchorElement.prototype.click = click; }
+  mount(fixture.company, fixture.preparer, 'personal_tax_preparer');
+  const unsavedTaxpayer = crypto.randomUUID();
+  fill(await wait(() => input('Taxpayer reference'), 'new tax entry'), unsavedTaxpayer);
+  fill(input('Tax year starting'), '2026');
+  fill(input('Employment income'), '32100.12');
+  actor = '';
+  (await ready('Save tax input')).click();
+  await wait(() => text().includes('Previous values have been cleared'), 'expired tax save');
+  if (createStatuses.at(-1) !== 401 || input('Taxpayer reference') || input('Employment income') ||
+      button('Retry same request') || button('Save tax input') || input('Tax input ID')?.value !== '' ||
+      text().includes(unsavedTaxpayer)) throw Error('Expired save retained tax details or retry controls');
   await nativeFetch('/pay-ui-result', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ok:true})});
 }
 exercise().catch(async () => {
