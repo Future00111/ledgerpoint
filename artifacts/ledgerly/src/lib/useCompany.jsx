@@ -11,6 +11,7 @@ export function CompanyProvider({ children }) {
   const [activeCompany, setActiveCompany] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadedFor, setLoadedFor] = useState(null);
+  const [companyLoadFailed, setCompanyLoadFailed] = useState(false);
   const [selectionWarning, setSelectionWarning] = useState('');
   const requestVersion = useRef(0);
   const account = useRef(null);
@@ -24,6 +25,7 @@ export function CompanyProvider({ children }) {
     const version = ++requestVersion.current;
     try {
       setLoading(true);
+      setCompanyLoadFailed(false);
       const res = await fetch('/api/companies', { credentials: 'include' });
       if (!res.ok) throw new Error('Authorized companies could not be loaded.');
       const data = await res.json();
@@ -53,6 +55,7 @@ export function CompanyProvider({ children }) {
     } catch (e) {
       if (version !== requestVersion.current || account.current !== actor) return null;
       console.error('Failed to load companies:', e);
+      setCompanyLoadFailed(true);
       authorizedCompanies.current = [];
       setCompanies([]); setRoles({}); setActiveCompany(null); setLoadedFor(actor);
       return null;
@@ -64,7 +67,7 @@ export function CompanyProvider({ children }) {
   useEffect(() => {
     account.current = isLoaded && isSignedIn ? user?.id : null;
     authorizedCompanies.current = []; selectedId.current = null;
-    setCompanies([]); setRoles({}); setActiveCompany(null); setLoadedFor(null); setSelectionWarning('');
+    setCompanies([]); setRoles({}); setActiveCompany(null); setLoadedFor(null); setSelectionWarning(''); setCompanyLoadFailed(false);
     if (account.current) loadCompanies();
     else setLoading(!isLoaded);
     return () => { requestVersion.current++; };
@@ -83,7 +86,7 @@ export function CompanyProvider({ children }) {
 
   return (
     <CompanyContext.Provider value={{ companies: current ? companies : [], activeCompany: current ? activeCompany : null,
-      switchCompany, loadCompanies, loading: loading || (isSignedIn && !current), roles: current ? roles : {}, selectionWarning }}>
+      switchCompany, loadCompanies, companyLoadFailed: current && companyLoadFailed, loading: loading || (isSignedIn && !current), roles: current ? roles : {}, selectionWarning }}>
       {children}
     </CompanyContext.Provider>
   );
